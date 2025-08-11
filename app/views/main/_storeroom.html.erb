@@ -1,0 +1,36 @@
+<div style="display: table; padding-top: 2%;padding-left: 10px;width:75%; margin-left: auto;margin-right: auto;">
+  <div style="display: table-row">
+    <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;">
+      <img src="/assets/add_drugs.png">
+    </div>
+    <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;">
+      <img src="/assets/available_drugs.png">
+    </div>
+    <div onmousedown="window.location='/issues/select'" style="display: table-cell;text-align: center;">
+      <img src="/assets/mobile_clinic.png">
+    </div>
+    <div onmousedown="window.location='/select_report?type=storeroom'" style="display: table-cell;text-align: center;">
+      <img src="/assets/report.png">
+    </div>
+    <div onmousedown="window.location='/main/settings'"style="display: table-cell;text-align: center;">
+      <img src="/assets/settings.png">
+    </div>
+  </div>
+  <div style="display: table-row">
+    <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.add_item') %>
+    </div>
+    <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.view_inventory') %>
+    </div>
+    <div onmousedown="window.location='/issues/select'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.view_issued_items') %>
+    </div>
+    <div onmousedown="window.location='/select_report?type=storeroom'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      Stores Report
+    </div>
+    <div onmousedown="window.location='/main/settings'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.settings') %>
+    </div>
+  </div>
+</div>

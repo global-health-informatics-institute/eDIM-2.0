@@ -1,0 +1,538 @@
+<style type="text/css">
+  th.tab{
+    border: 1px outset silver;
+    background-color: #39bf87;
+    padding: 15px;
+    line-height: 6vh;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-size: 1.2em !important;
+  }
+  div.mobi-div{
+    padding-left: 5px;
+  }
+  td.heading{
+    font-size: 1em;
+  }
+</style>
+
+<div id="packSize" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content" style="width: 40vw !important;">
+    <div style="display: table;">
+      <div style="display: table-row;">
+        <div style="display: table-cell;background-color:#eeeeee;width:40vw;padding: 10px;">
+          <input type="number" id="packQty" placeholder="Enter Pack Size" style="font-size: 2em; width: 90%;line-height: 3em;">
+          <span class="close" onmousedown="hideModal('packSize');">&times;</span>
+        </div>
+      </div>
+      <div style="display: table-row;">
+        <div style="display: table-cell; border: 1px inset black;">
+          <div style="margin-top: 5px;">
+            <table width="100%" cellspacing="20" >
+              <tr>
+                <td class="customButton" onmousedown="append(1,'packQty');"><span>1</span></td>
+                <td class="customButton" onmousedown="append(2,'packQty');"><span>2</span></td>
+                <td class="customButton" onmousedown="append(3,'packQty');"><span>3</span></td>
+              </tr>
+              <tr>
+                <td class="customButton" onmousedown="append(4,'packQty');"><span>4</span></td>
+                <td class="customButton" onmousedown="append(5,'packQty');"><span>5</span></td>
+                <td class="customButton" onmousedown="append(6,'packQty');"><span>6</span></td>
+              </tr>
+              <tr>
+                <td class="customButton" onmousedown="append(7,'packQty');"><span>7</span></td>
+                <td class="customButton" onmousedown="append(8,'packQty');"><span>8</span></td>
+                <td class="customButton" onmousedown="append(9,'packQty');"><span>9</span></td>
+              </tr>
+              <tr>
+                <td class="customButton" onmousedown="append(0,'packQty');"><span>0</span></td>
+                <td class="customButton" onmousedown="append('del','packQty');"><span>del</span></td>
+                <td class="customButton" style="background-color: #00bf6f !important;" onmousedown="customPrePack();"><span>Pack</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="dispense" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content" style="height: 80vh;width: 90vw !important;">
+    <table style="width: 100%; border: 2px solid black; border-width: 0px 0px 2px 0px;">
+      <tr>
+        <td class='heading'><%= t('menu.terms.item')%></td>
+        <th id="item" style="text-align: left;width: 30%;"><%= @item.drug_name %></th>
+        <td class='heading' style="text-align: left;"><%= t('menu.terms.route')%></td>
+        <th style="text-align: left;width: 30%;" id="route_type">&nbsp;</th>
+        <td style="width: 5%;" rowspan="3">
+          <img style="padding-right: 2px;float: right;" src="/assets/delete.png" onmousedown="hideModal('dispense')">
+        </td>
+      </tr>
+      <tr>
+        <td class='heading'><%= t('menu.terms.bottle_id')%></td>
+        <th id="bottle_id" style="text-align: left;width: 20%;"><%= @item.bottle_id %></th>
+        <td class='heading' style="text-align: left;"><%= t('menu.terms.directions')%></td>
+        <th style="text-align: left;" id="directionsDisp">&nbsp;</th>
+
+      </tr>
+      <tr>
+        <td class='heading'><%= t('menu.terms.current_quantity')%></td>
+        <th style="text-align: left;" id="currQty"><%= @item.current_quantity%></th>
+        <td class='heading'><%= t('menu.terms.quantity')%></td>
+        <th style="text-align: left;" id="qtyDisp">&nbsp;</th>
+      </tr>
+    </table>
+    <div style="display: table;width: 100%;">
+      <div style="display: table-row">
+        <div style="display: table-cell;width: 20%;padding: 5px;vertical-align: top;">
+          <table width="100%" style="border-collapse:separate;border-spacing:0 10px;">
+            <tr>
+              <th class="tab" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">
+                <%= t('forms.buttons.administration_route')%>
+              </th>
+            </tr>
+            <tr>
+              <th class="tab" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">
+                <%= t('forms.buttons.dose')%>
+              </th>
+            </tr>
+            <tr>
+              <th class="tab" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">
+                <%= t('forms.buttons.directions')%>
+              </th>
+            </tr>
+            <tr>
+              <th class="tab" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">
+                <%= t('forms.buttons.duration')%>
+              </th>
+            </tr>
+            <tr>
+              <th class="tab" id="doseTypeTab" onmousedown="showDispenseDiv('doseTypeDiv')">
+                <%= t('forms.buttons.dose_type')%>
+              </th>
+            </tr>
+          </table>
+        </div>
+        <div style="display: table-cell;border: 2px solid black;border-width: 0px 0px 0px 2px;height: 70vh;">
+          <%= form_for :prescription,method: 'POST',:url => dispensation_index_path,html: {id: 'dispenseForm'}  do |f| %>
+              <div style="position: absolute;left: 72vw;top: 80vh;" onmousedown="showDispenseDiv('doseDiv')" class="nextButton" id="dispNext">
+                <%= t('forms.buttons.next')%>
+              </div>
+              <div class="mobi-div" id="routesDiv" >
+                <h3><%= t('forms.labels.select_administration_route')%></h3>
+                <table width="100" style="border-collapse: collapse">
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="oral" id="route-oral" onchange="setRoute('<%= t('forms.options.oral')%>');setDirections();" required>
+                        <label class="custom" for="route-oral"><%= t('forms.options.oral')%></label>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="topical" id="route-topical" onchange="setRoute('<%= t('forms.options.topical')%>');setDirections();" required>
+                        <label class="custom" for="route-topical"><%= t('forms.options.topical')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="respiratory" id="route-respiratory" onchange="setRoute('<%= t('forms.options.respiratory')%>');setDirections();" required>
+                        <label class="custom" for="route-respiratory"><%= t('forms.options.respiratory')%></label>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="injection" id="route-injection" onchange="setRoute('<%= t('forms.options.injection')%>');setDirections();" required>
+                        <label class="custom" for="route-injection"><%= t('forms.options.injection')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="other" id="route-other" onchange="setRoute('<%= t('forms.options.other')%>');setDirections();" required>
+                        <label class="custom" for="route-other"><%= t('forms.options.other')%></label>
+                      </div>
+                    </td>
+                    <td>
+                      &nbsp;
+                    </td>
+                  </tr>
+                </table>
+
+              </div>
+              <div class="mobi-div" id="doseDiv" style="display: none;">
+                <div style="margin-top: 5px;">
+                  <label for="dose"><span style="font-weight: bold;font-size: 1.8em;line-height: 2em;"><%= t('forms.labels.enter_dose')%></span></label>
+                  <input type="text" id="dose" name="dose" style="font-size: 1.8em; width: 40%;line-height: 2em;" required>
+                </div>
+                <div style="margin-top: 5px;">
+                  <table width="80%" cellspacing="15" >
+                    <tr>
+                      <td class="customButton" onmousedown="append(1,'dose');setDirections();"><span>1</span></td>
+                      <td class="customButton" onmousedown="append(2,'dose');setDirections();"><span>2</span></td>
+                      <td class="customButton" onmousedown="append(3,'dose');setDirections();"><span>3</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(4,'dose');setDirections();"><span>4</span></td>
+                      <td class="customButton" onmousedown="append(5,'dose');setDirections();"><span>5</span></td>
+                      <td class="customButton" onmousedown="append(6,'dose');setDirections();"><span>6</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(7,'dose');setDirections();"><span>7</span></td>
+                      <td class="customButton" onmousedown="append(8,'dose');setDirections();"><span>8</span></td>
+                      <td class="customButton" onmousedown="append(9,'dose');setDirections();"><span>9</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(0,'dose');setDirections();"><span>0</span></td>
+                      <td class="customButton" onmousedown="append('.','dose');setDirections();"><span>.</span></td>
+                      <td class="customButton" onmousedown="append('del','dose');setDirections();"><span>del</span></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="mobi-div" id="doseTypeDiv" style="display: none;">
+                <h3><%= t('forms.labels.select_dose_type')%></h3>
+                <table width="100" style="border-collapse: collapse">
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="doseType" value="PRN" class="radio" id="typePRN" onchange="setDirections();" required>
+                        <label class="custom" for="typePRN" style="width: 200px !important;"><%= t('forms.options.as_needed')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="doseType" value="NPRN" class="radio" id="typeNPRN" onchange="setDirections();" required>
+                        <label class="custom" for="typeNPRN" style="width: 200px !important;"><%= t('forms.options.as_prescribed')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="mobi-div" id="directionsDiv" style="display: none;">
+                <h3><%= t('forms.labels.select_directions')%></h3>
+                <div style="height: 55vh; overflow-x: hidden; overflow-y: auto;">
+                  <table width="100" style="border-collapse: collapse">
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="OD" value="OD" onchange="setDirections()" required>
+                          <label class="custom" for="OD" style="width: 200px !important;"><%= t('forms.options.once_a_day')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="BD" value="BD" onchange="setDirections()" required>
+                          <label class="custom" for="BD" style="width: 200px !important;"><%= t('forms.options.two_times_a_day')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="TDS" value="TDS" onchange="setDirections()" required>
+                          <label class="custom" for="TDS" style="width: 200px !important;"><%= t('forms.options.three_times_a_day')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QID" value="QID" onchange="setDirections()" required>
+                          <label class="custom" for="QID" style="width: 200px !important;"><%= t('forms.options.four_times_a_day')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QHR" value="QHR" onchange="setDirections()" required>
+                          <label class="custom" for="QHR" style="width: 200px !important;"><%= t('forms.options.every_hour')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="Q2HRS" value="Q2HRS" onchange="setDirections()" required>
+                          <label class="custom" for="Q2HRS" style="width: 200px !important;"><%= t('forms.options.every_two_hours')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="Q4HRS" value="Q4HRS" onchange="setDirections()" required>
+                          <label class="custom" for="Q4HRS" style="width: 200px !important;"><%= t('forms.options.every_four_hours')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="EOD" value="EOD" onchange="setDirections()" required>
+                          <label class="custom" for="EOD" style="width: 200px !important;"><%= t('forms.options.every_other_day')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QN" value="QN" onchange="setDirections()" required>
+                          <label class="custom" for="QN" style="width: 200px !important;"><%= t('forms.options.every_night')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QWK" value="QWK" onchange="setDirections()" required>
+                          <label class="custom" for="QWK" style="width: 200px !important;"><%= t('forms.options.once_a_week')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="mobi-div" id="qtyDiv" style="display: none;">
+                <div style="margin-top: 5px;">
+                  <label for="qty"><span style="font-weight: bold;font-size: 1.8em;line-height: 2em;"><%= t('forms.labels.enter_number_of_days')%></span></label>
+                  <input type="text" id="qty" style="font-size: 1.8em; width: 40%;line-height: 2em;" name="duration" required>
+                </div>
+                <div style="margin-top: 5px;">
+                  <table width="80%" cellspacing="15" >
+                    <tr>
+                      <td class="customButton" onmousedown="append(1,'qty');setQuantity('qty')"><span>1</span></td>
+                      <td class="customButton" onmousedown="append(2,'qty');setQuantity('qty')"><span>2</span></td>
+                      <td class="customButton" onmousedown="append(3,'qty');setQuantity('qty')"><span>3</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(4,'qty');setQuantity('qty')"><span>4</span></td>
+                      <td class="customButton" onmousedown="append(5,'qty');setQuantity('qty')"><span>5</span></td>
+                      <td class="customButton" onmousedown="append(6,'qty');setQuantity('qty')"><span>6</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(7,'qty');setQuantity('qty')"><span>7</span></td>
+                      <td class="customButton" onmousedown="append(8,'qty');setQuantity('qty')"><span>8</span></td>
+                      <td class="customButton" onmousedown="append(9,'qty');setQuantity('qty')"><span>9</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(0,'qty');setQuantity('qty')"><span>0</span></td>
+                      <td class="customButton" onmousedown="append('.','qty');setQuantity('qty')"><span>.</span></td>
+                      <td class="customButton" onmousedown="append('del','qty');setQuantity('qty')"><span>del</span></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <input type="hidden" name="bottle_id" value="<%= @item.gn_identifier %>"/>
+              <input type="hidden" name="quantity" id="dispensed_quantity"/>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 78vh; width: 100%">
+  <div style="display: table-row">
+    <div style="display: table-cell;width: 30vw;height:74vh;">
+      <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
+        <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;">Summary</span>
+      </div>
+      <div style="width: 100%; background-color: #C0C0C0;text-align: center;">
+        <br/>
+        <h2>Amount Received</h2>
+        <span style="font-size: 2em; color: darkred;"><%= @item.received_quantity %></span>
+        <h2>Amount Remaining</h2>
+        <span style="font-size: 2em; color: darkred;"><%= @item.current_quantity %></span>
+        <h2>Amount Used</h2>
+        <span style="font-size: 2em; color: darkred;"><%= @item.received_quantity - @item.current_quantity %></span>
+        <h2>Days to Expiry</h2>
+        <span style="font-size: 2em; color: darkred;"><%= (@item.expiration_date - Date.current).to_i %> Days</span>
+        <br/><br/>
+      </div>
+    </div>
+    <div style="display: table-cell;width: 70vw;height:74vh;">
+      <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
+        <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;">Pre-packing</span>
+      </div>
+      <div style="display: table-row; padding-top: 1vh">
+        <div class="on-screen">
+          <div onmousedown="prepack(6)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 6
+          </div>
+        </div>
+        <div class="on-screen">
+          <div onmousedown="prepack(10)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 10
+          </div>
+        </div>
+        <div class="on-screen">
+          <div onmousedown="prepack(12)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 12
+          </div>
+        </div>
+        <div class="on-screen">
+          <div onmousedown="prepack(15)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 15
+          </div>
+        </div>
+      </div>
+      <div style="display: table-row; padding-top: 1vh">
+        <div class="on-screen">
+          <div onmousedown="prepack(18)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 18
+          </div>
+        </div>
+        <div class="on-screen">
+          <div onmousedown="prepack(20)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 20
+          </div>
+        </div>
+        <div class="on-screen">
+          <div onmousedown="prepack(30)" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Pack of 30
+          </div>
+        </div>
+        <div class="on-screen">
+          <div onmousedown="showModal('packSize')" class="bttn bttn-primary bttn-lg gradient" type="button">
+            Other
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer" >
+  <button onmousedown="window.location = '/general_inventory/list?drug_id=<%= @item.drug_id %>'" class="nav-bttn green" style="margin-right: 1vw;float: right;">
+    <%= t('forms.buttons.finish')%></button>
+  <% if anonymous_dispensation %>
+      <button onmousedown="showModal('dispense')" class="nav-bttn blue" style="margin-right: 1vw;float: right;">Dispense</button>
+  <% end %>
+</div>
+
+<%= form_for :general_inventory, :url => "/general_inventory/#{@item.id}/pre_packing", html: {id: 'prePackForm'}  do |f| %>
+    <input type="hidden" name="bottle_id" id="bottle_id" value="<%= @item.gn_identifier%>"/>
+    <input type="hidden" name="pre_pack_amount" id="pre_pack_amount" value="0"/>
+<% end %>
+
+<script type="text/javascript">
+  var modal = document.getElementById('packSize');
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function(event) {
+      if (event.target == modal) {
+          modal.style.display = "none";
+      }
+  }
+  function prepack(amount) {
+      $('#pre_pack_amount')[0].value = amount;
+      document.forms["prePackForm"].submit();
+  }
+
+  function customPrePack()
+  {
+      var input = document.getElementById("packQty");
+
+      if(parseInt(input.value) > 0)
+      {
+         prepack(input.value);
+      }
+      else
+      {
+          input.focus();
+      }
+  }
+
+  function showDispenseDiv(option)
+  {
+      var tabs = ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'];
+      var currentTab = tabs.indexOf(option);
+      var button = document.getElementById('dispNext');
+      $(".mobi-div").css("display", "none");
+      $(".tab").css("border", "1px outset silver");
+      document.getElementById(option).style.display= "";
+      document.getElementById(option.replace("Div", "Tab")).style.border= "1px solid black";
+
+      if (option == 'doseTypeDiv')
+      {
+          button.setAttribute("onmousedown", "validateDisp()")
+          button.innerHTML = '<%= t('forms.buttons.finish')%>'
+      }
+      else
+      {
+          button.setAttribute("onmousedown", "showDispenseDiv('"+ tabs[currentTab+1] + "')")
+          button.innerHTML = '<%= t('forms.buttons.next')%>'
+      }
+
+  }
+
+  function setRoute(route) {
+      document.getElementById("route_type").innerHTML = route;
+  }
+
+  function setDirections(){
+      var field = document.getElementById("directionsDisp");
+      var frequency = document.forms[0].elements["frequency"].value
+      field.innerHTML = createDirections(document.getElementById("route_type").innerHTML, document.getElementById('dose').value, frequency,"doseType")
+  }
+
+  function validateDisp() {
+
+      checkRoute = document.getElementsByName("administration");
+      checkDoseType = document.getElementsByName("doseType");
+      checkdirections = document.getElementsByName("frequency");
+
+      if (checkRadio(checkRoute))
+      {
+          if (checkRadio(checkDoseType))
+          {
+              if (parseFloat(document.getElementById('dose').value) > 0)
+              {
+                  if (checkRadio(checkdirections)){
+                      if (parseFloat(document.getElementById('qty').value) > 0){
+                          document.forms["dispenseForm"].submit();
+                      }
+                      else {
+                          showDispenseDiv('qtyDiv');
+                      }
+                  }
+                  else {
+                      showDispenseDiv('directionsDiv');
+                  }
+              }
+              else {
+                  showDispenseDiv('doseDiv');
+              }
+          }
+          else
+          {
+              showDispenseDiv('doseTypeDiv');
+          }
+      }
+      else
+      {
+          showDispenseDiv('routesDiv');
+      }
+  }
+
+  function checkRadio(list)
+  {
+      for(i=0; i < list.length; i++){
+          if(list[i].checked)
+          {
+              return true;
+          }
+      }
+      return false;
+  }
+
+  function  setQuantity(input) {
+
+      var duration = document.getElementById(input).value;
+      var frequency = document.forms[0].elements["frequency"].value;;
+
+      var qty = calcQuantity(parseFloat(document.getElementById('dose').value),frequency,duration);
+      document.getElementById("qtyDisp").innerHTML = ((qty == NaN) ? 0 : Math.ceil(qty));
+      document.getElementById("dispensed_quantity").value = ((qty == NaN) ? 0 : Math.ceil(qty));
+  }
+</script>

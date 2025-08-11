@@ -1,0 +1,113 @@
+<div style="width: 99vw; margin-left: auto;margin-right: auto;">
+  <div style="display: table-row;">
+    <div style="width: 83vw;float: left;margin-top: 1vh;padding: 10px;" class="header-cell">
+      <table >
+        <tr>
+          <td>
+            <div style="display: table-row">
+              <div style="display: table-cell;vertical-align: top;">
+                <strong><%= t('menu.terms.scan_barcode')%></strong>
+              </div>
+              <div style="display: table-cell;float: right;">
+                <img style="display: block;height: 30px;" src="/assets/barcode.jpg">
+              </div>
+            </div>
+          </td>
+          <td style="border: 0em !important;">
+            <input type="text" id="barcode" class="scanner" style="width: 95%;" autofocus>
+          </td>
+        </tr>
+      </table>
+      <div style="display: table;width: 98%;margin-left: auto;margin-right: auto;">
+        <div style="display: table-row; ">
+          <div class="header-content-cell" style=""><%= t('menu.terms.facility') %></div>
+          <div class="header-content-cell"><%= facility_name %></div>
+          <div class="header-content-cell"><%= t('menu.terms.users_name') %></div>
+          <div class="header-content-cell"><%= User.current.display_name %></div>
+        </div>
+        <div style="display: table-row; ">
+          <div class="header-content-cell">Location</div>
+          <div class="header-content-cell"><%= current_location.name.titleize %></div>
+          <div class="header-content-cell">Role</div>
+          <div class="header-content-cell"><%= User.current.role %></div>
+        </div>
+      </div>
+    </div>
+    <div class="header-cell" style="float: right; font-size: 1.1em; width: 9vw;text-align: center;vertical-align: middle;margin-top: 1vh;margin-left: 1vw;padding: 10px;">
+      <h1>eDIM</h1>
+      <%= l(Date.today, format: '%d %b %Y') %>
+    </div>
+  </div>
+
+  <div style="border: 3px solid #06425C;margin-top: 3vh;height: 55vh;">
+    <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
+      <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.actions') %></span>
+    </div>
+    <% if current_location.name.match(/store/i) %>
+        <%= render "/main/storeroom" %>
+    <% else %>
+        <%= render "/main/dispensary" %>
+    <% end %>
+  </div>
+
+</div>
+<div class="footer">
+  <button class="nav-bttn red" style="float: left;" onmousedown="window.location='/sessions/logout'">Logout</button>
+</div>
+
+<script type="text/javascript">
+    var timerHand;
+    var isDispensary = <%= current_location.name.match(/store/i).blank? %>
+    function checkBarcode()
+    {
+        var barcodeTxt = document.getElementById("barcode");
+        if (barcodeTxt.value.trim().length >= 8) {
+
+            barcodeTxt.value = barcodeTxt.value.trim().replace(/\-/,"")
+            if (barcodeTxt.value.toUpperCase().length >= 5)
+            {
+               if(isDispensary)
+               {
+                   window.location = "/patient_identifiers/"+barcodeTxt.value.trim();
+               }
+               else
+               {
+                   window.location = "/general_inventory/"+barcodeTxt.value.trim();
+               }
+            }
+            else
+            {
+                barcodeTxt.value = "";
+                initializeListener();
+            }
+
+        }
+        else
+        {
+            initializeListener();
+        }
+    }
+
+    function initializeListener()
+    {
+        document.getElementById("barcode").focus();
+        timerHand = setTimeout(function () {
+            checkBarcode();
+        }, 3000);
+
+    }
+
+    // Fire immediately when 8 characters are reached
+    document.getElementById("barcode").addEventListener("input", function() {
+        let val = this.value.trim().replace(/\-/,"");
+        if (val.length >= 8) {
+            if (isDispensary) {
+                window.location = "/patient_identifiers/" + val;
+            } else {
+                window.location = "/general_inventory/" + val;
+            }
+        }
+    });
+
+    setTimeout(initializeListener(), 3000);
+</script>

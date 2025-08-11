@@ -1,0 +1,2 @@
+module DrugThresholdHelper
+end

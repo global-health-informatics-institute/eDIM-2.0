@@ -1,0 +1,74 @@
+<script>
+  var tt_cancel_destination = "/drug";
+
+  function set_ajaxURL_for_suggestions(url, filter_value) {
+    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', url + filter_value + "&search_string=");
+    listSuggestions(tstCurrentPage);
+  }
+</script>
+
+
+<%= form_for :drug,  :url => edit_drug_path do |f| %>
+    <table cellpadding=10>
+      <tr>
+        <td>
+          <%= text_field_tag "drug_ingredient", @drug.ingredient,
+                             {:id => 'drug_ingredient',
+                              :field_type => 'alpha',
+                              :helpText => t('forms.labels.enter_ingredient'),
+                              :allowFreeText => false} %>
+        </td>
+      </tr>
+      <tr>
+        <td>Dose Strength</td>
+        <td>
+          <%= text_field_tag "dose_strength", @drug.dose_strength,
+                             {:id => 'dose_strength',
+                              :field_type => 'password',
+                              :helpText => t('forms.labels.enter_dose_strength'),
+                              :allowFreeText => false} %>
+        </td>
+      </tr>
+      <tr>
+        <td>Dose Form</td>
+        <td>
+          <select style='width: 100%' name='dose_form' id='dose_form' value="<%= @drug.dose_form.titleize %>" helptext="'<%= t('forms.labels.enter_dose_form')%>'"
+                  doublepane="false">
+            <% (dose_forms || []).each do |option| %>
+                <option value="<%= option%>"><%= option.titleize %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Drug Category</td>
+        <td>
+          <select style='width: 100%' name='drug_category' id='drug_category' helptext='Drug Category'
+                  doublepane="false">
+            <% (drug_categories || []).each do |option| %>
+                <option value="<%= option%>"><%= option.titleize %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <input type="hidden" value="<%= @drug.id%>" id="drug_id" name="drug_id" />
+      </tr>
+    </table>
+
+
+    <%= submit_tag value="Submit"%>
+<% end %>
+
+
+<script>
+
+  if(document.getElementById("date")) {
+
+    document.getElementById("date").setAttribute("maxdate", (new Date((new Date()).setDate((new Date()).getDate() + 1000))));
+
+    document.getElementById("date").setAttribute("mindate", (new Date((new Date()).setDate((new Date()).getDate() - 1))));
+
+  }
+
+</script>

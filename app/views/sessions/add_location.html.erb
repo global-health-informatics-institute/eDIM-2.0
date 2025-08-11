@@ -1,0 +1,56 @@
+
+<script type="text/javascript">
+    var tt_cancel_destination = "/sessions/logout"
+    var timerHand;
+
+    function inform() {
+        $('infoBar'+tstCurrentPage).innerHTML = "<%= welcome_message %>";
+    }
+
+    function checkBarcode()
+    {
+        var barcodeTxt = document.getElementById('touchscreenInput0');
+        if (barcodeTxt.value.trim().match(/[A-Z0-9]+\$/)) {
+
+            barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/,"")
+            gotoNextPage();
+        }
+        else
+        {
+            initializeListener();
+        }
+    }
+
+    function initializeListener()
+    {
+        var barcode = document.getElementById('touchscreenInput0');
+
+        //barcode.focus();
+        timerHand = setTimeout(function () {
+            checkBarcode();
+        }, 3000);
+
+    }
+
+    setTimeout(initializeListener(), 300);
+
+</script>
+<style>
+
+  .tt_controls_workstation_location .keyboard {
+    display: none;
+  }
+
+  #tt_page_workstation_location .options {
+    display: none;
+  }
+</style>
+
+<%= form_for :sessions, :method => "POST", :url => "/sessions/workstation_location" do |f|%>
+  <label for="location">Location</label>
+  <%= text_field_tag(:location, nil, :helpText => "Workstation location",
+                     :field_type => "number",:tt_pageStyleClass => "NumbersOnly", :tt_onLoad => "inform();") %><br>
+  <%= submit_tag :value => "Submit" %>
+
+<% end %>
+

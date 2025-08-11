@@ -1,0 +1,233 @@
+<div id="dispenseModal" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content" style="width: 40vw !important;">
+    <div style="display: table;">
+      <div style="display: table-row;">
+        <div style="display: table-cell;background-color:#eeeeee;width:40vw;padding: 10px;">
+          <%= form_for :prescription,method: 'POST',:url => refill_dispensation_index_path, html: {id: 'dispenseForm'} do |f| %>
+          <input type="number" id="dispQty" name="quantity" placeholder="Enter amount to dispense" style="font-size: 2em; width: 90%;line-height: 3em;">
+          <span class="close" onmousedown="hideModal('dispenseModal');">&times;</span>
+          <input type="hidden" value="<%= (@patient.id || nil)%>" name="patient_id" />
+          <input type="hidden" name="bottle_id" id="btl_field"/>
+          <input type="hidden" value="<%= (@prescription.id || nil)%>" name="prescription"/>
+          <% end %>
+        </div>
+      </div>
+      <div style="display: table-row;">
+        <div style="display: table-cell; border: 1px inset black;">
+          <div style="margin-top: 5px;">
+            <table width="100%" cellspacing="20" >
+              <tr>
+                <td class="customButton" onmousedown="append(1,'dispQty');"><span>1</span></td>
+                <td class="customButton" onmousedown="append(2,'dispQty');"><span>2</span></td>
+                <td class="customButton" onmousedown="append(3,'dispQty');"><span>3</span></td>
+              </tr>
+              <tr>
+                <td class="customButton" onmousedown="append(4,'dispQty');"><span>4</span></td>
+                <td class="customButton" onmousedown="append(5,'dispQty');"><span>5</span></td>
+                <td class="customButton" onmousedown="append(6,'dispQty');"><span>6</span></td>
+              </tr>
+              <tr>
+                <td class="customButton" onmousedown="append(7,'dispQty');"><span>7</span></td>
+                <td class="customButton" onmousedown="append(8,'dispQty');"><span>8</span></td>
+                <td class="customButton" onmousedown="append(9,'dispQty');"><span>9</span></td>
+              </tr>
+              <tr>
+                <td class="customButton" onmousedown="append(0,'dispQty');"><span>0</span></td>
+                <td class="customButton" onmousedown="append('del', 'dispQty');"><span>del</span></td>
+                <td class="customButton" style="background-color: #00bf6f !important;" onmousedown="dispense();"><span>Dispense</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if @prescription.patient_id.blank? %>
+  <div style="border: 3px solid #06425C;margin-top: 0.5vh;width: 99.5vw; margin-right: auto;margin-left: auto;">
+    <div style="background-color: #006495;padding-left: 3vw;color: white;padding: 1vh;">
+      <span style="font-size: 1.5em;font-weight: bold;font-family: 'Arial Black', Gadget, sans-serif;">Prescription Details</span>
+    </div>
+    <div style="padding: 5px;">
+      <h2><%= @prescription.drug_name %></h2><hr/>
+    </div>
+    <div style="display: table-row;">
+      <div style="display: table-cell;padding-left: 10px;width: 15vw;font-weight: bold;font-size: 1.2em;">QTY Prescribed</div>
+      <div style="display: table-cell;width: 15vw;font-weight: bold;font-size: 1.2em;">QTY Dispensed</div>
+      <div style="display: table-cell;width: 20vw;font-size: 1.2em;font-weight: bold;">Date Prescribed</div>
+      <div style="display: table-cell;font-weight: bold;font-size: 1.2em;">Directions</div>
+    </div>
+    <div style="padding: 5px;"><hr/></div>
+    <div style="display: table-row;">
+      <div style="display: table-cell;padding-left: 15px;width: 15vw;font-size: 1.2em;"><%= @prescription.quantity%></div>
+      <div style="display: table-cell;width: 15vw;font-size: 1.2em;"><%= @prescription.amount_dispensed%></div>
+      <div style="display: table-cell;width: 20vw;font-size: 1.2em;"><%= @prescription.date_prescribed.strftime('%d %b, %Y')%></div>
+      <div style="display: table-cell;font-size: 1.2em;"><%= @prescription.directions%></div>
+    </div>
+    <br/>
+  </div>
+<% else %>
+    <div style="margin-top: 0.5vh;width: 99.5vw; margin-right: auto;margin-left: auto;">
+      <div style="display: table-row;">
+        <div style="display: table-cell;width: 70vw;">
+          <div style="border: 3px solid #06425C;margin-right: auto;margin-left: auto;">
+            <div style="background-color: #006495;padding-left: 3vw;color: white;padding: 1vh;">
+              <span style="font-size: 1.5em;font-weight: bold;font-family: 'Arial Black', Gadget, sans-serif;">Prescription Details</span>
+            </div>
+            <div style="padding: 5px;">
+              <h2><%= @prescription.drug_name %></h2><hr/>
+            </div>
+            <div style="display: table-row;">
+              <div style="display: table-cell;padding-left: 10px;width: 10vw;font-weight: bold;font-size: 1.2em;">QTY Prescribed</div>
+              <div style="display: table-cell;width: 10vw;font-weight: bold;font-size: 1.2em;">QTY Dispensed</div>
+              <div style="display: table-cell;width: 15vw;font-size: 1.2em;font-weight: bold;">Date Prescribed</div>
+              <div style="display: table-cell;font-weight: bold;font-size: 1.2em;">Directions</div>
+            </div>
+            <div style="padding: 5px;"><hr/></div>
+            <div style="display: table-row;">
+              <div style="display: table-cell;padding-left: 15px;width: 10vw;font-size: 1.2em;"><%= @prescription.quantity%></div>
+              <div style="display: table-cell;width: 10vw;font-size: 1.2em;"><%= @prescription.amount_dispensed%></div>
+              <div style="display: table-cell;width: 15vw;font-size: 1.2em;"><%= @prescription.date_prescribed.strftime('%d %b, %Y')%></div>
+              <div style="display: table-cell;font-size: 1.2em;"><%= @prescription.directions%></div>
+            </div>
+            <br/>
+          </div>
+        </div>
+        <div style="display: table-cell;width: 29vw;padding-left: 1vw;">
+          <div style="border: 3px solid #06425C;margin-right: auto;margin-left: auto;">
+            <div style="background-color: #006495;color: white;padding: 1vh;">
+              <span style="font-size: 1.5em;font-weight: bold;font-family: 'Arial Black', Gadget, sans-serif;">Patient Details</span>
+            </div><br/><br/>
+            <div style="display: table-row;">
+              <div style="display: table-cell;padding-left: 5px;width: 10vw;font-size: 1.2em;font-weight: bold;">Patient Name</div>
+              <div style="display: table-cell;font-size: 1.2em;"><%= @patient.full_name %></div>
+            </div>
+            <div style="padding: 5px;"><hr/></div>
+            <div style="display: table-row;">
+              <div style="display: table-cell;padding-left: 5px;width: 10vw;font-size: 1.2em;font-weight: bold;">Gender</div>
+              <div style="display: table-cell;font-size: 1.2em;"><%= @patient.sex %></div>
+            </div>
+            <div style="padding: 5px;"><hr/></div>
+            <div style="display: table-row;">
+              <div style="display: table-cell;padding-left: 5px;width: 10vw;font-size: 1.2em;font-weight: bold;">Age</div>
+              <div style="display: table-cell;font-size: 1.2em;"><%= @patient.age %></div>
+            </div>
+            <br/>
+          </div>
+        </div>
+      </div>
+    </div>
+<% end %>
+
+<div style="margin-top: 2vh;width: 99.5vw; margin-right: auto;margin-left: auto;">
+  <div style="display: table-row;">
+    <div style="display: table-cell;width: 70vw;">
+      <div style="border: 3px solid #336699;margin-top: 0.5vh; margin-right: auto;margin-left: auto;">
+        <div style="background-color: #336699;padding-left: 3vw;color: white;padding: 1vh;">
+          <span style="font-size: 1.5em;font-weight: bold;font-family: 'Arial Black', Gadget, sans-serif;">Inventory Suggestions</span>
+        </div>
+        <br/>
+        <div style="display: table-row;">
+          <div style="display: table-cell;padding-left: 10px;width: 20vw;font-weight: bold;font-size: 1.2em;">Item ID</div>
+          <div style="display: table-cell;width: 20vw;font-weight: bold;font-size: 1.2em;">Expiry Date</div>
+          <div style="display: table-cell;width: 30vw;font-size: 1.2em;font-weight: bold;text-align: center;">Amount Remaining</div>
+        </div>
+        <div style="padding: 5px;"><hr/></div>
+        <% (@suggestions || []).each do |suggestion|%>
+            <div style="display: table-row;">
+              <div style="display: table-cell;padding-left: 15px;width: 20vw;font-size: 1.2em;">
+                <%= Misc.dash_formatter(suggestion.gn_identifier)%>
+              </div>
+              <div style="display: table-cell;width: 20vw;font-size: 1.2em;">
+                <%= suggestion.expiration_date.strftime('%b %Y')%>
+              </div>
+              <div style="display: table-cell;width: 30vw;text-align:center; font-size: 1.2em;">
+                <%= suggestion.current_quantity%>
+              </div>
+            </div>
+            <div style="padding: 5px;"><hr/></div>
+        <% end %>
+        <br/>
+      </div>
+    </div>
+    <div style="display: table-cell;width: 29vw;padding-left: 1vw;">
+      <div style="border: 3px solid #336699;margin-top: 0.5vh; margin-right: auto;margin-left: auto;">
+        <div style="padding: 1vh;">
+          <span style="font-size: 1.5em;font-weight: bold;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.scan_bottle')%></span>
+        </div>
+            <div><hr/></div>
+        <div style="display: table-row;">
+          <div style="display: table-cell;padding-top: 5px;padding-left: 5px;">
+            <img src="/assets/barcode.jpg">
+          </div>
+          <div style="display: table-cell;padding-left: 15px;width: 20vw;font-size: 2em;">
+            <input type="text" id="barcode" style="width: 100%;" autofocus>
+          </div>
+        </div>
+        <br/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer" >
+  <button class="nav-bttn green" style="float: right;margin-right: 1vw;" onmousedown="window.location='<%= @return_path%>'">
+    <%= t('forms.buttons.finish')%>
+  </button>
+</div>
+
+<script type="text/javascript">
+  var timerHand;
+
+  function checkBarcode()
+  {
+      var barcodeTxt = document.getElementById("barcode");
+      if (barcodeTxt.value.trim().match(/[A-Z0-9]+\$/)) {
+
+          barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/,"")
+
+          if (barcodeTxt.value.toUpperCase().length >= 7)
+          {
+              showModal('dispenseModal');
+              document.getElementById("btl_field").value= barcodeTxt.value.trim().toUpperCase();
+          }
+          else
+          {
+              barcodeTxt.value = "";
+              initializeListener();
+          }
+
+      }
+      else
+      {
+          initializeListener();
+      }
+  }
+
+  function initializeListener()
+  {
+      document.getElementById("barcode").focus();
+      timerHand = setTimeout(function () {
+          checkBarcode();
+      }, 3000);
+
+  }
+
+  setTimeout(initializeListener(), 3000);
+
+  function dispense()
+  {
+      var input = document.getElementById("dispQty");
+
+      if(parseFloat(input.value) > 0)
+      {
+          document.forms["dispenseForm"].submit();
+      }
+      else
+      {
+          input.focus();
+      }
+  }
+</script>

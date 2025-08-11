@@ -1,0 +1,39 @@
+<style type="text/css">
+  .odd{
+    background-color: #B0BED9;
+  }
+  .even{
+  }
+    tr {
+      line-height: 2em;
+      font-size: 1.3em;
+    }
+</style>
+
+<div style="height: 8vh;border: 1px inset black; border-width: 0px 0px 3px 0px;">
+  <h1 style="margin-left: 1vw;"><%= @report_type%></h1>
+</div>
+
+<div style="height: 75vh; overflow: auto;">
+  <table width="100%" >
+    <tr>
+      <th style="background-color: #2b2b2b;padding: 5px;color: #FFFFFF;border: 1px solid #ffffff;font-size: 1.6em;"><%= t('menu.terms.item') %></th>
+      <th style="background-color: #2b2b2b;padding: 5px;color: #FFFFFF;border: 1px solid #ffffff;font-size: 1.6em;"><%= t('menu.terms.available_quantity') %></th>
+      <th style="background-color: #2b2b2b;padding: 5px;color: #FFFFFF;border: 1px solid #ffffff;font-size: 1.6em;"><%= t('menu.terms.amount_dispensed') %></th>
+    </tr>
+
+    <% (@items || []).each do |drug,item| %>
+        <tr class="<%= cycle('odd','even') %>">
+          <td style="text-align: left;padding: 5px;font-size: 1.4em;"><%= item["name"] %></td>
+          <td style="text-align: right;margin-right:1vw;padding: 5px;font-size: 1.4em;"><%= number_with_delimiter(item["available"]) %></td>
+          <td style="text-align: right;margin-right:1vw;padding: 5px;font-size: 1.4em;"><%= number_with_delimiter(item["dispensed"]) %></td>
+        </tr>
+    <% end %>
+  </table>
+</div>
+
+<div class="footer" >
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw;float: right;">
+    <%= t('forms.buttons.finish') %>
+  </button>
+</div>

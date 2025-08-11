@@ -1,0 +1,103 @@
+
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+<style type="text/css">
+  .even{
+    background-color: #CCCCCC !important;
+  }
+  input,label{
+    margin-top: 3px;
+    font-size: 1.7em;
+  }
+  th,td{
+    font-size: 1.7em;
+  }
+</style>
+<script type="text/javascript">
+    // Styling the table with datatables library
+    $(document).ready(function() {
+        // $.fn.dataTable.moment( 'MMM-YYYY' );
+        $('#generalInventory').DataTable({
+            "bLengthChange": false,
+            "bDestroy": true,
+            "pageLength":5,
+            "language": {
+                "search": I18n.t('forms.labels.search'),
+                "lengthMenu": "Display _MENU_ records per page",
+                "zeroRecords": I18n.t('forms.labels.nothing_found'),
+                "info": I18n.t('forms.labels.tbl_pages'),
+                "infoEmpty": "No records available",
+                "infoFiltered": I18n.t('forms.labels.filtered'),
+                "oPaginate": {
+                    "sNext": I18n.t('forms.buttons.next'),
+                    "sPrevious": I18n.t('forms.buttons.previous')
+                }
+            }
+        });
+        search_box = $('#generalInventory').dataTable()
+        search = document.getElementsByTagName("input")[0];
+        search.setAttribute("id","search");
+        document.getElementById('search').setAttribute("onclick","showKeyboard();");
+        keyboard = document.getElementsByClassName("keypad")[0]
+        showAlphaKeypad();
+        setTimeout(initializeListener(), 3000);
+    } );
+
+    function initializeListener()
+    {
+        barcode = document.getElementById("search");
+        barcode.focus();
+        timerHand = setTimeout(function () {
+            barcode.value = barcode.value.trim().replace(/\$/, "").replace(/\-/,"");
+        }, 3000);
+
+    }
+
+</script>
+<div style="height: 10vh;border: 1px inset black; border-width: 0px 0px 3px 0px;">
+  <h1 style="margin-left: 0.5vw;"><%= @report_type.titleize %></h1>
+</div>
+
+<div style="height: 75vh; overflow: auto;width: 98vw; margin-left: auto;margin-right: auto;">
+  <table id="generalInventory" class="table table-striped table-bordered" width="100%" cellspacing="0">
+    <thead>
+    <tr>
+      <th><%= t('menu.terms.item') %></th>
+      <th style="width: 10%;">Amount issued</th>
+      <th style="width: 20%;">Issued To</th>
+      <th style="width: 15%;">Issued By</th>
+      <th style="width: 15%;"><%= t('menu.terms.actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% (@records || []).each do |issue| %>
+        <tr>
+          <td><%= issue.drug_name %></td>
+          <td style="text-align: right;padding-right: 5px;"><%= number_with_delimiter(issue.quantity) %></td>
+          <td><%= issue.location_issued_to %></td>
+          <td><%= issue.issuer %></td>
+          <td style="text-align: center;">
+            <div style="display: table-cell;min-width: 8vw;">
+              <img style="" src="/assets/edit.png" title="Edit Issue"
+                   onmousedown="window.location='/issues/<%= issue.id %>/edit'">
+            </div>
+            <div style="display: table-cell;min-width: 8vw;">
+              <img style="" src="/assets/delete.png" title="Void Issue"
+                   onmousedown="confirmAction('/issues/<%= issue.id %>/delete', 'Are you sure you want to void this transaction?')">
+            </div>
+          </td>
+        </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer" >
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw;float: right;">
+    <%= t('forms.buttons.finish')%></button>
+</div>
+
+<div id="keypad">
+  <span class="keypad">
+  </span>
+</div>

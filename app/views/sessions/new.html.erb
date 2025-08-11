@@ -1,0 +1,20 @@
+<script>
+  var tt_cancel_destination = "/sessions/destroy"
+  //barcodeFocusOnce = true;
+  //barcodeScanAction = gotoNextPage;
+</script>
+
+<%= form_for :user,method: 'POST', :url => '/sessions/login'  do |f| %>
+
+  <label for="login">Username</label>
+  <%= text_field_tag(:login, nil, :helpText => t('forms.labels.enter_username'),
+                     :textCase => "lower", :field_type => "password",
+                     :tt_onLoad => "barcodeId = 'touchscreenInput0';") %><br>
+
+  <label for="password">Password</label>
+  <%= password_field_tag(:password, nil, :helpText => t('forms.labels.password'),
+                         :textCase => "lower", :field_type => "password",
+                         :tt_onLoad => "inform(); barcodeId = 'touchscreenInput1';") %><br>
+
+  <%= submit_tag value="Submit"%>
+<% end %>

@@ -1,0 +1,38 @@
+<script type="text/javascript" defer>
+
+    tt_cancel_destination = '/main/settings';
+</script>
+
+<%= form_for :user,method: 'PATCH',  url: user_path do |f| %>
+
+    <% if @section == 'General' %>
+    <p><label for="user_given_name">First name</label><br/>
+      <%= text_field 'user', 'given_name', :ajaxURL=> '/patients/given_names?search_string=',
+                     :value => @user.first_name ,:allowFreeText => true%></p>
+
+    <p><label for="user_family_name">Last name</label><br/>
+      <%= text_field 'user', 'family_name', :ajaxURL => '/patients/family_names?search_string=',
+                     :value => (@user.last_name || nil), :allowFreeText => true%></p>
+    <br>
+    <p><label for="user_role_role_id">User Role</label></br>
+      <%= text_field 'user_role', 'role_id', :xhelpText => 'User role',
+                     :ajaxURL => '/user/roles?field=role&value='%></p>
+    <br>
+   <% else %>
+      <%= f.label :password %>
+      <br>
+      <%= password_field_tag(:password, nil, :helpText => 'Enter password',
+                             :textCase => "lower", :field_type => "password",
+                             :validationRule =>"\\w{6}\\w*",
+                             :validationMessage =>"Password less than SIX characters.",:minlength => 6 ,
+                             :tt_onLoad => "inform(); barcodeId = 'touchscreenInput1';") %><br>
+
+      <%= password_field_tag(:confirm_password, nil, :helpText => 'Confirm password',
+                             :validationRule =>"\\w{6}\\w*",
+                             :validationMessage =>"Password less than SIX characters.",:minlength => 6 ,
+                             :textCase => "lower", :field_type => "password") %><br>
+
+    <% end %>
+    <%= hidden_field_tag 'section', @section %>
+<% end %>
+

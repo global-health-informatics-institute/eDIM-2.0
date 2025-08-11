@@ -1,0 +1,58 @@
+<script>
+  var tt_cancel_destination = "/general_inventory";
+  var tstCurrentDate = <%= Date.today.strftime("%d-%m-%Y") %>;
+
+  function set_ajaxURL_for_suggestions(url, filter_value) {
+    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', url + filter_value + "&search_string=");
+    listSuggestions(tstCurrentPage);
+  }
+</script>
+
+
+<%= form_for :general_inventory,  :url => edit_general_inventory_path  do |f| %>
+    <table cellpadding=10>
+      <tr>
+        <td>
+          Expiry Date:
+        </td>
+        <td>
+          <%= text_field_tag 'expiry_date', @item.expiration_date.strftime("%d-%m-%Y"),
+                             {:id => 'expiry_date',
+                              :field_type => 'date',
+                              :helpText => "Expiry date",
+                              :maxDate => (Date.today + 20.year).to_date,
+                              :minDate => Date.today.to_date,
+                              :tt_pageStyleClass => "Date DatesOnly"} %>
+
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Amount Received:
+        </td>
+        <td>
+          <input type="text" id="amount_received" name="amount_received" value=<%= @item.received_quantity %>
+              field_type="number" helpText="<%= t('forms.labels.amount_received') %>" tt_pageStyleClass="NumbersOnly" />
+        </td>
+      </tr>
+      <tr>
+        <input type="hidden" value="<%= @item.gn_identifier%>" id="bottle_id" name="bottle_id" />
+      </tr>
+    </table>
+
+
+    <%= submit_tag value="Submit"%>
+<% end %>
+
+
+<script>
+
+  if(document.getElementById("date")) {
+
+    document.getElementById("date").setAttribute("maxdate", (new Date((new Date()).setDate((new Date()).getDate() + 1000))));
+
+    document.getElementById("date").setAttribute("mindate", (new Date((new Date()).setDate((new Date()).getDate() - 1))));
+
+  }
+
+</script>

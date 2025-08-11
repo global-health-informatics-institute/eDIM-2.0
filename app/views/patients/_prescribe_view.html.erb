@@ -1,0 +1,56 @@
+<div style="display: table; width: 100%;">
+  <div style="display: table-row">
+    <div style="display: table-cell">
+      <div style="width: 100%; background-color: #006495;border: 1px solid white;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
+        <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;">Prescriptions</span>
+      </div>
+      <div style="height: 60vh; width: 100%; overflow: auto;">
+        <% (@prescriptions || []).each do |prescription| %>
+                  <div style="border: 1px solid silver; padding: 5px;margin: 5px;">
+                    <div style="display: table;width: 100%;">
+                      <div style="display: table-row;">
+                        <div style="display: table-cell;padding: 5px;">
+                          <b>Date:</b> <%= prescription.date_prescribed.to_date.strftime("%b %d, %Y")%><br/>
+                          <b>Drug:</b> <%= prescription.drug_name %><br/>
+                          <b>Directions:</b> <%= prescription.directions %><br/>
+                          <b>Amount Prescribed:</b> <%= prescription.quantity %><br/>
+                        </div>
+                        <div style="display: table-cell;vertical-align: middle;padding: 5px;">
+                          <img style="float: right;" src="/assets/delete.png" title="Void Item"
+                               onmousedown="confirmAction('/void_prescription/<%= prescription.id %>', 'Are you Sure?')">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+        <% end %>
+      </div>
+    </div>
+    <div style="display: table-cell">
+      <div style="width: 100%; background-color: #006495;border: 1px solid white;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
+        <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;">Dispensations</span>
+      </div>
+      <div style="height: 60vh; width: 100%; overflow: auto;">
+          <% (@history || []).each do |dispensation| %>
+                  <div style="border: 1px solid silver; padding: 5px;margin: 5px;">
+                    <div style="display: table;width: 100%;">
+                      <div style="display: table-row;">
+                        <div style="display: table-cell;padding: 5px;">
+                          <b>Date:</b> <%= dispensation.dispensation_date.to_date.strftime("%b %d, %Y")%><br/>
+                          <b>Drug:</b> <%= dispensation.drug_name %><br/>
+                          <b>Directions:</b> <%= dispensation.dispensation_dir %><br/>
+                          <b>Quantity:</b> <%= dispensation.quantity %><br/>
+                        </div>
+                        <div style="display: table-cell;vertical-align: middle;padding: 5px;">
+                          <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
+                               onmousedown="window.location='/print_dispensation_label/<%= dispensation.rx_id %>'">
+                          <img style="float: right;" src="/assets/delete.png" title="Void Item"
+                               onmousedown="confirmAction('/void_dispensation/<%= dispensation.id %>', 'Are you Sure?')">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+          <% end %>
+      </div>
+    </div>
+  </div>
+</div>

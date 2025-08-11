@@ -1,0 +1,55 @@
+<div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
+  <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.past_dispensations')%></span>
+</div>
+
+<div style="height: 55vh; width: 100%; overflow: auto;">
+  <div style="display: table;">
+  <% (@history.each_slice(2).to_a || []).each do |dispensation| %>
+        <div style="display: table-row;">
+          <div style="display: table-cell;width:47vw;float: left;">
+            <div style="border: 1px solid gray; padding: 3px;margin: 3px;">
+              <div style="display: table;width: 100%;">
+                <div style="display: table-row;">
+                  <div style="display: table-cell;padding: 5px;">
+                    <b><%= t('menu.terms.date')%>:</b> <%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%><br/>
+                    <b>Drug:</b> <%= dispensation[0].drug_name %><br/>
+                    <b><%= t('menu.terms.directions')%>:</b> <%= dispensation[0].dispensation_dir %><br/>
+                    <b><%= t('menu.terms.quantity')%>:</b> <%= dispensation[0].quantity %><br/>
+                  </div>
+                  <div style="display: table-cell;vertical-align: middle;padding: 5px;">
+                    <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
+                         onmousedown="window.location='/print_dispensation_label/<%= dispensation[0].rx_id %>'">
+
+                    <img style="float: right;" src="/assets/delete.png" title="Void Item"
+                         onmousedown="confirmAction('/void_dispensation/<%= dispensation[0].id %>', 'Are you sure you want to void dispensation for <%= dispensation[0].drug_name %> on <%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%> ?')">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <% unless dispensation[1].blank? %>
+              <div style="display: table-cell;width:46vw;float: right;">
+                <div style="border: 1px solid gray; padding: 3px;margin: 3px;">
+                  <div style="display: table;width: 100%;">
+                    <div style="display: table-row;">
+                      <div style="display: table-cell;padding: 5px;">
+                        <b><%= t('menu.terms.date')%>:</b> <%= l(dispensation[1].dispensation_date.to_date, format:"%b %d, %Y")%><br/>
+                        <b>Drug:</b> <%= dispensation[1].drug_name %><br/>
+                        <b><%= t('menu.terms.directions')%>:</b> <%= dispensation[1].dispensation_dir %><br/>
+                        <b><%= t('menu.terms.quantity')%>:</b> <%= dispensation[1].quantity %><br/>
+                      </div>
+                      <div style="display: table-cell;vertical-align: middle;padding: 5px;">
+                        <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
+                             onmousedown="window.location='/print_dispensation_label/<%= dispensation[1].rx_id %>'">
+                        <img style="float: right;" src="/assets/delete.png" title="Void Item"
+                             onmousedown="confirmAction('/void_dispensation/<%= dispensation[1].id %>', 'Are you sure you want to void dispensation for <%= dispensation[1].drug_name %> on <%= l(dispensation[1].dispensation_date.to_date, format: "%b %d, %Y")%> ?')">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          <% end %>
+        </div>
+  <% end %>
+  </div>
+</div>

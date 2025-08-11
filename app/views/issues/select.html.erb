@@ -1,0 +1,39 @@
+<script>
+    var tt_cancel_destination = "/";
+</script>
+
+
+<%= form_for :index,  :url => '/issues/list'  do |f| %>
+
+    <select id="reportDuration" name="report_duration" helpText="<%= t('forms.labels.report_duration') %>">
+      <option></option>
+      <% (report_options).each do |w| %>
+          <option value="<%= w[1] %>"><%= w [1]%></option>
+      <% end %>
+    </select>
+
+    <%= text_field_tag 'start_date', l(Date.today, format: "%Y-%m-%d"),
+                       {:id => 'startDate',
+                        :field_type => 'date',
+                        :helpText => t('forms.labels.start_date'),
+                        :maxDate =>  Date.today.to_date,
+                        :minDate => (Date.today - 20.year).to_date,
+                        :tt_pageStyleClass => "Date DatesOnly"} %>
+
+    <%= text_field_tag 'end_date', Date.today.strftime("%Y-%m-%d"),
+                       {:id => 'endDate',
+                        :field_type => 'date',
+                        :helpText => t('forms.labels.end_date'),
+                        :maxDate =>  Date.today.to_date,
+                        :minDate => (Date.today - 20.year).to_date,
+                        :condition => "$('reportDuration').value == '#{t('forms.options.range')}'",
+                        :tt_pageStyleClass => "Date DatesOnly"} %>
+
+    <%= select_tag 'locations[]',
+                   options_for_select(@locations, nil),
+                   :id => "locations",
+                   :helpText => t('forms.labels.issue_locations') ,
+                   :multiple =>  true %>
+
+
+<% end %>

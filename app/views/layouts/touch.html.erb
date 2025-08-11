@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <% @title = "#{controller.controller_name.humanize} #{controller.action_name.humanize}" rescue ""  %>
+    <script type="text/javascript" language="javascript" src="/assets/touchScreenToolkit.js" defer="true"></script>
+    <script language="javascript">
+      tstUserKeyboardPref = "qwerty"
+      tstCurrentDate = '<%= Date.today.strftime("%d-%m-%Y") %>';
+    </script>
+    <%= javascript_include_tag "i18n" %>
+    <%= javascript_include_tag "translations" %>
+    <%= javascript_tag do %>
+        I18n.defaultLocale = "<%= (User.current.language == "ESP" ? "es" : "en") rescue I18n.default_locale %>";
+        I18n.locale = "<%= (User.current.language == "ESP" ? "es" : "en") rescue I18n.default_locale %>";
+    <% end %>
+
+    <style type="text/css">
+      ::-webkit-scrollbar {
+        height: 3vh;
+        width: 5vw;
+        background: #C0C0C0;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #404040;
+        -webkit-border-radius: 2ex;
+        height: 3vh;
+
+      }
+
+      ::-webkit-scrollbar-button {
+        height: 3vh;
+
+      }
+
+      ::-webkit-scrollbar-corner {
+        background: #000;
+      }
+      #Unknown {display: none;}
+    </style>
+  </head>
+  <body id="container">
+    <div id="content">
+      <div id="description" style="color:#777;position:absolute;margin-top:-70px;">
+      </div>
+      <% unless flash[:notice].blank? %>
+          <p id="flash_notice" style="color: green"><%= flash[:notice] %></p>
+      <% end %>
+      <% unless flash[:errors].blank? %>
+          <p id="flash_error" style="color: red"><%= flash[:errors] %></p>
+      <% end %>
+      <% unless flash[:error].nil? %>
+          <p id="flash_alert" style="color: green"><%= flash[:alert] %></p>
+      <% end %>
+      <%= yield %>
+      <div id="footer">
+      </div>
+    </div>
+  </body>
+</html>

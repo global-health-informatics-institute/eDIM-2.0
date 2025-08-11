@@ -1,0 +1,90 @@
+
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+<style type="text/css">
+  .even{
+    background-color: #CCCCCC !important;
+  }
+  input,label{
+    margin-top: 3px;
+    font-size: 1.7em;
+  }
+  th,td{
+    font-size: 1.7em;
+  }
+</style>
+<script type="text/javascript">
+  // Styling the table with datatables library
+  $(document).ready(function() {
+    // $.fn.dataTable.moment( 'MMM-YYYY' );
+    $('#generalInventory').DataTable({"bLengthChange": false,
+      "bDestroy": true,
+      "pageLength":7,
+      "language": {
+        "search": I18n.t('forms.labels.search'),
+        "lengthMenu": "Display _MENU_ records per page",
+        "zeroRecords": I18n.t('forms.labels.nothing_found'),
+        "info": I18n.t('forms.labels.tbl_pages'),
+        "infoEmpty": "No records available",
+        "infoFiltered": I18n.t('forms.labels.filtered'),
+        "oPaginate": {
+          "sNext": I18n.t('forms.buttons.next'),
+          "sPrevious": I18n.t('forms.buttons.previous')
+        }
+      }
+    });
+    search_box = $('#generalInventory').dataTable()
+    search = document.getElementsByTagName("input")[0];
+    search.setAttribute("id","search");
+    document.getElementById('search').setAttribute("onclick","showKeyboard();");
+    keyboard = document.getElementsByClassName("keypad")[0]
+    showAlphaKeypad();
+  } );
+</script>
+<div style="height: 8vh;border: 1px inset black; border-width: 0px 0px 3px 0px;">
+  <h1 style="margin-left: 2vw;"><%= t('menu.terms.drug_list')%></h1>
+</div>
+
+<div style="height: 75vh; overflow: auto;">
+  <table id="generalInventory" class="table table-striped table-bordered" width="100%" cellspacing="0">
+    <thead>
+    <tr>
+      <th ><%= t('menu.terms.drug_name')%></th>
+      <th style="width: 20%;"><%= t('menu.terms.dose_form')%></th>
+      <th style="width: 20%;"><%= t('forms.labels.drug_category')%></th>
+      <th style="width: 15%;"><%= t('menu.terms.actions')%></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% (@drugs || []).each do |drug| %>
+        <tr>
+          <td><%= drug.name.titleize rescue "" %></td>
+          <td><%= drug.dose_form %></td>
+          <td><%= drug.category %></td>
+          <td>
+
+            <img style="float: left;" src="/assets/edit.png" onmousedown="window.location='/drug/<%= drug.id %>/edit'" title="Edit Drug">
+            <img style="float: right;" src="/assets/delete.png" title="Void Drug"
+                 onmousedown="confirmAction('/void_drug/<%= drug.id %>', 'Are you Sure?')">
+          </td>
+        </tr>
+    <% end %>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="footer" >
+  <button class="nav-bttn green" style="float: right;margin-right: 1vw;" onmousedown="window.location='/main/settings'">
+    <%= t('forms.buttons.finish')%>
+  </button>
+  <button class="nav-bttn" style="float: right;margin-right: 1vw;" onmousedown="window.location='/drug/new'">
+    <%= t('forms.buttons.add_drug') %>
+  </button>
+</div>
+
+<div id="keypad">
+          <span class="keypad">
+          </span>
+
+</div>

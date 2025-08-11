@@ -1,0 +1,271 @@
+<style type="text/css">
+  .submitButton{
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    float: right;
+    margin-right: 10px;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1.2em;
+  }
+  img{
+    height: 30px;
+    width: 25px;
+  }
+  .even{
+    background-color: #CCCCCC !important;
+  }
+</style>
+<div id="dispenseForm" class="questionLayer" style="font-size: 0.9em;">
+  <div style="margin-top: 10vh;margin-left: 20vw; height: 80vh;width: 45vw;background-color: #eeeeff;border: 3px outset black;">
+    <div style="display: table;width: 100%;">
+      <div style="display: table-row">
+        <div style="display: table-cell;height: 45vh;">
+          <%= form_for :mobile_visit_product, :url => mobile_visit_product_index_path  do |f| %>
+              <div style="padding: 2%;" id="qtyDiv" >
+                <div style="text-align: center;">
+                  <label for="qty"><span style="font-weight: 200;font-size: 1.2em"><%= t('forms.labels.enter_amount_taken') %></span></label> <br/>
+                  <input type="text" id="qty" style="font-size: 20px;" name="amount" required>
+                </div>
+                <div style="margin-top: 5px;text-align: center;">
+                  <table width="98%" cellspacing="15" >
+                    <tr>
+                      <td class="customButton" onmousedown="append(1,'qty');"><span>1</span></td>
+                      <td class="customButton" onmousedown="append(2,'qty');"><span>2</span></td>
+                      <td class="customButton" onmousedown="append(3,'qty');"><span>3</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(4,'qty');"><span>4</span></td>
+                      <td class="customButton" onmousedown="append(5,'qty');"><span>5</span></td>
+                      <td class="customButton" onmousedown="append(6,'qty');"><span>6</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(7,'qty');"><span>7</span></td>
+                      <td class="customButton" onmousedown="append(8,'qty');"><span>8</span></td>
+                      <td class="customButton" onmousedown="append(9,'qty');"><span>9</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(0,'qty');"><span>0</span></td>
+                      <td class="customButton" onmousedown="append('.','qty');"><span>.</span></td>
+                      <td class="customButton" onmousedown="append('del','qty');"><span>del</span></td>
+                    </tr>
+                  </table>
+                  <table width="100" cellspacing="15" >
+                    <tr>
+                      <td>
+                        <div class="submitButton" style="background-color: tomato !important;" onmousedown="cancelDispense()">
+                          <%= t('forms.buttons.cancel')%>
+                        </div>
+                      </td>
+                      <td colspan="2">
+                        <%= submit_tag t('forms.buttons.finish'), :class => "submitButton"%>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <input type="hidden" value="<%= @visit.id%>" name="visit_id" />
+              <input type="hidden" name="bottle_id" id="bottle_id"/>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="updateForm" class="questionLayer" style="font-size: 0.9em;">
+  <div style="margin-top: 10vh;margin-left: 20vw; height: 80vh;width: 45vw;background-color: #eeeeff;border: 3px outset black;">
+    <div style="display: table;width: 100%;">
+      <div style="display: table-row">
+        <div style="display: table-cell;height: 45vh;">
+          <%= form_for :mobile_visit_product, :method => :patch,:url => "/mobile_visit_product/update" do |f| %>
+              <div style="padding: 2%;" id="qtyDiv" >
+                <div style="text-align: center;">
+                  <label for="amount"><span style="font-weight: 200;font-size: 1.2em"><%= t('forms.labels.enter_amount_returned') %></span></label> <br/>
+                  <input type="text" id="qtyRem" style="font-size: 20px;" name="amount" required>
+                </div>
+                <div style="margin-top: 5px;text-align: center;">
+                  <table width="98%" cellspacing="15" >
+                    <tr>
+                      <td class="customButton" onmousedown="append(1,'qtyRem');"><span>1</span></td>
+                      <td class="customButton" onmousedown="append(2,'qtyRem');"><span>2</span></td>
+                      <td class="customButton" onmousedown="append(3,'qtyRem');"><span>3</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(4,'qtyRem');"><span>4</span></td>
+                      <td class="customButton" onmousedown="append(5,'qtyRem');"><span>5</span></td>
+                      <td class="customButton" onmousedown="append(6,'qtyRem');"><span>6</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(7,'qtyRem');"><span>7</span></td>
+                      <td class="customButton" onmousedown="append(8,'qtyRem');"><span>8</span></td>
+                      <td class="customButton" onmousedown="append(9,'qtyRem');"><span>9</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(0,'qtyRem');"><span>0</span></td>
+                      <td class="customButton" onmousedown="append('.','qtyRem');"><span>.</span></td>
+                      <td class="customButton" onmousedown="append('del','qtyRem');"><span>del</span></td>
+                    </tr>
+                  </table>
+                  <table width="100" cellspacing="15" >
+                    <tr>
+                      <td>
+                        <div class="submitButton" style="background-color: tomato !important;" onmousedown="hideLayer('shadow', 'updateForm')">
+                          <%= t('forms.buttons.cancel')%>
+                        </div>
+                      </td>
+                      <td colspan="2">
+                        <%= submit_tag t('forms.buttons.finish'), :class => "submitButton"%>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <input type="hidden" name="mvp_id" id="mvp_identifier"/>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 12.5vh;padding: 10px;">
+  <div style="display: table">
+    <div style="display: table-row; width: 100%;">
+      <div style="display: table-cell;width: 70vw;">
+        <span style="font-weight: bold;font-size: 20px;"><%= t('menu.terms.mobile_vist') %></span><br/>
+        <span style="font-weight: bold"><%= t('menu.terms.visit_date') %>: <%= l(@visit.visit_date, format: "%d %b %Y")%></span><br/>
+        <span style="font-weight: bold"><%= t('menu.terms.visit_coordinator') %>: <%= @visit.coordinator.titleize %></span>
+      </div>
+      <div style="display: table-cell;">
+          <div style="display: table-row">
+            <div style="display: table-cell;vertical-align: top;">
+              <img style="height: 30px;" src="/assets/barcode.jpg">
+            </div>
+            <div style="display: table-cell;">
+              <input type="text" id="barcode" class="scanner"  autofocus>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:75vh; overflow: auto; width: 100%">
+  <div style="display: table; width: 100%;">
+    <div style="display: table-row">
+      <div style="display: table-cell; padding: 10px;border-right: 1px solid #ffffff; text-align: center;background-color: #006495; color: #FFFFFF;">
+        <%= t('menu.terms.product') %>
+      </div>
+      <div style="display: table-cell; padding: 10px;border-right: 1px solid #ffffff; text-align: center;background-color: #006495; color: #FFFFFF;">
+        <%= t('menu.terms.bottle_id') %>
+      </div>
+      <div style="display: table-cell; padding: 10px;border-right: 1px solid #ffffff; text-align: center;background-color: #006495; color: #FFFFFF;">
+        <%= t('menu.terms.amount_taken') %>
+      </div>
+      <div style="display: table-cell; padding: 10px;border-right: 1px solid #ffffff; text-align: center;background-color: #006495; color: #FFFFFF;">
+        <%= t('menu.terms.amount_used') %>
+      </div>
+      <div style="display: table-cell; padding: 10px;border-right: 1px solid #ffffff; text-align: center;background-color: #006495; color: #FFFFFF;">
+        <%= t('menu.terms.expiration_date') %>
+      </div>
+      <div style="display: table-cell; padding: 10px; text-align: center;background-color: #006495; color: #FFFFFF;">
+        <%= t('menu.terms.actions') %>
+      </div>
+    </div>
+    <% (@visit_products || []).each do |visit| %>
+        <div style="display: table-row" class="<%= cycle("odd", "even")%>">
+          <div style="display: table-cell; padding: 10px;">
+            <%= visit["product"]%>
+          </div>
+          <div style="display: table-cell; padding: 10px; text-align: center;">
+            <%= Misc.dash_formatter(visit["bottle_id"])%>
+          </div>
+          <div style="display: table-cell; padding: 10px;text-align: center;">
+            <%= visit["amount_taken"]%>
+          </div>
+          <div style="display: table-cell; padding: 10px;text-align: center;">
+            <%= visit["amount_used"]%>
+          </div>
+          <div style="display: table-cell; padding: 10px; text-align: center;">
+            <%= l(visit["exp_date"], format: '%d %b %Y')%>
+          </div>
+          <div style="display: table-cell; text-align: center;vertical-align: middle;">
+              <img style="float: left;" src="/assets/edit.png" title="Edit Item"
+                   onmousedown="showLayer('shadow', 'updateForm'),document.getElementById('mvp_identifier').value = <%= visit["id"]%>">
+            <% if  visit["voidable"]%>
+            <img style="float: right;" src="/assets/delete.png" title="Void Item"
+                 onmousedown="confirmAction('/void_mobile_visit_product/<%= visit["id"] %>', 'Are you Sure?')">
+            <% end %>
+          </div>
+        </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="footer" >
+  <div onmousedown="window.location = '/mobile_visit'" class="bttn bttn-success bttn-lg gradient" style="margin-right: 2vw;float: right;" type="button"><%= t('forms.buttons.finish') %></div>
+</div>
+
+<script type="text/javascript">
+  var timerHand;
+
+  function checkBarcode()
+  {
+    var barcodeTxt = document.getElementById("barcode");
+    if (barcodeTxt.value.trim().match(/[A-Z0-9]+\$/)) {
+
+      barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/,"")
+      if (barcodeTxt.value.toUpperCase().length >= 7)
+      {
+        showDispenseForm()
+        document.getElementById("bottle_id").value= barcodeTxt.value.trim().toUpperCase();
+      }
+      else
+      {
+        barcodeTxt.value = "";
+        initializeListener();
+      }
+
+    }
+    else
+    {
+      initializeListener();
+    }
+  }
+
+  function cancelDispense()
+  {
+    var barcodeTxt = document.getElementById("barcode");
+    barcodeTxt.value = "";
+    initializeListener();
+    hideLayer('shadow', 'dispenseForm')
+  }
+
+
+  function initializeListener()
+  {
+    document.getElementById("barcode").focus();
+    timerHand = setTimeout(function () {
+      checkBarcode();
+    }, 3000);
+
+  }
+
+  setTimeout(initializeListener(), 3000);
+
+  function append(item,control){
+    input = document.getElementById(control);
+    if (item == "del"){
+      input.value = qty.value.substring(0,input.value.toString().length-1)
+    }
+    else
+    {
+      input.value = input.value.toString() + item;
+    }
+  }
+
+</script>

@@ -1,0 +1,531 @@
+<html xmlns="http://www.w3.org/1999/html">
+  <header>
+      <style type="text/css">
+        th.tab{
+          border: 1px outset silver;
+          background-color: #39bf87;
+          padding: 15px;
+          line-height: 6vh;
+          margin-top: 5px;
+          margin-bottom: 5px;
+          font-size: 1.2em !important;
+        }
+        div.mobi-div{
+          padding-left: 5px;
+        }
+        td.heading{
+          font-size: 1em;
+        }
+      </style>
+  </header>
+  <body style="margin: 0px; padding: 0px;">
+
+    <div id="dispenseForm" class="questionLayer" >
+      <div style="margin-top: 5vh;margin-left: 5vw; height: 90vh;width: 90vw;background-color: #eeeeff;border: 3px outset black;">
+          <table style="width: 100%; border: 2px solid black; border-width: 0px 0px 2px 0px;">
+            <tr>
+              <td class='heading'><%= t('menu.terms.item')%></td>
+              <th id="item" style="text-align: left;width: 30%;">&nbsp;</th>
+              <td class='heading' style="text-align: left;"><%= t('menu.terms.route')%></td>
+              <th style="text-align: left;width: 30%;" id="route_type">&nbsp;</th>
+              <td style="width: 5%;" rowspan="3">
+                <img style="padding-right: 2px;float: right;" src="/assets/delete.png" onmousedown="cancelDispense()">
+              </td>
+            </tr>
+            <tr>
+              <td class='heading'><%= t('menu.terms.bottle_id')%></td>
+              <th id="bottle_id" style="text-align: left;width: 20%;">&nbsp;</th>
+              <td class='heading' style="text-align: left;"><%= t('menu.terms.directions')%></td>
+              <th style="text-align: left;" id="directionsDisp">&nbsp;</th>
+
+            </tr>
+            <tr>
+              <td class='heading'><%= t('menu.terms.current_quantity')%></td>
+              <th style="text-align: left;" id="currQty">&nbsp;</th>
+              <td class='heading'><%= t('menu.terms.quantity')%></td>
+              <th style="text-align: left;" id="qtyDisp">&nbsp;</th>
+            </tr>
+          </table>
+        <div style="display: table;width: 100%;">
+          <div style="display: table-row">
+            <div style="display: table-cell;width: 20%;padding: 5px;vertical-align: top;">
+                <table width="100%" style="border-collapse:separate;border-spacing:0 10px;">
+                  <tr>
+                    <th class="tab" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">
+                      <%= t('forms.buttons.administration_route')%>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="tab" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">
+                      <%= t('forms.buttons.dose')%>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="tab" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">
+                      <%= t('forms.buttons.directions')%>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="tab" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">
+                      <%= t('forms.buttons.duration')%>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="tab" id="doseTypeTab" onmousedown="showDispenseDiv('doseTypeDiv')">
+                      <%= t('forms.buttons.dose_type')%>
+                    </th>
+                  </tr>
+                </table>
+            </div>
+            <div style="display: table-cell;border: 2px solid black;border-width: 0px 0px 0px 2px;height: 70vh;">
+              <%= form_for :prescription,method: 'POST',:url => dispensation_index_path  do |f| %>
+              <div style="position: absolute;left: 72vw;top: 80vh;" onmousedown="showDispenseDiv('doseDiv')" class="nextButton" id="dispNext">
+                <%= t('forms.buttons.next')%>
+              </div>
+              <div class="mobi-div" id="routesDiv" >
+                <h3><%= t('forms.labels.select_administration_route')%></h3>
+                <table width="100" style="border-collapse: collapse">
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="oral" id="route-oral" onchange="setRoute('<%= t('forms.options.oral')%>');setDirections();" required>
+                        <label class="custom" for="route-oral"><%= t('forms.options.oral')%></label>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="topical" id="route-topical" onchange="setRoute('<%= t('forms.options.topical')%>');setDirections();" required>
+                        <label class="custom" for="route-topical"><%= t('forms.options.topical')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="respiratory" id="route-respiratory" onchange="setRoute('<%= t('forms.options.respiratory')%>');setDirections();" required>
+                        <label class="custom" for="route-respiratory"><%= t('forms.options.respiratory')%></label>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="injection" id="route-injection" onchange="setRoute('<%= t('forms.options.injection')%>');setDirections();" required>
+                        <label class="custom" for="route-injection"><%= t('forms.options.injection')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="administration" class="radio" value="other" id="route-other" onchange="setRoute('<%= t('forms.options.other')%>');setDirections();" required>
+                        <label class="custom" for="route-other"><%= t('forms.options.other')%></label>
+                      </div>
+                    </td>
+                    <td>
+                      &nbsp;
+                    </td>
+                  </tr>
+                </table>
+
+              </div>
+              <div class="mobi-div" id="doseDiv" style="display: none;">
+                <div style="margin-top: 5px;">
+                  <label for="dose"><span style="font-weight: bold;font-size: 1.2em;"><%= t('forms.labels.enter_dose')%></span></label> <br/>
+                  <input type="text" id="dose" name="dose" style="font-size: 1.2em;" required>
+                </div>
+                <div style="margin-top: 5px;">
+                  <table width="70%" cellspacing="15" >
+                    <tr>
+                      <td class="customButton" onmousedown="append(1,'dose');setDirections();"><span>1</span></td>
+                      <td class="customButton" onmousedown="append(2,'dose');setDirections();"><span>2</span></td>
+                      <td class="customButton" onmousedown="append(3,'dose');setDirections();"><span>3</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(4,'dose');setDirections();"><span>4</span></td>
+                      <td class="customButton" onmousedown="append(5,'dose');setDirections();"><span>5</span></td>
+                      <td class="customButton" onmousedown="append(6,'dose');setDirections();"><span>6</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(7,'dose');setDirections();"><span>7</span></td>
+                      <td class="customButton" onmousedown="append(8,'dose');setDirections();"><span>8</span></td>
+                      <td class="customButton" onmousedown="append(9,'dose');setDirections();"><span>9</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(0,'dose');setDirections();"><span>0</span></td>
+                      <td class="customButton" onmousedown="append('.','dose');setDirections();"><span>.</span></td>
+                      <td class="customButton" onmousedown="append('del','dose');setDirections();"><span>del</span></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="mobi-div" id="doseTypeDiv" style="display: none;">
+                <h3><%= t('forms.labels.select_dose_type')%></h3>
+                <table width="100" style="border-collapse: collapse">
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="doseType" value="PRN" class="radio" id="typePRN" onchange="setDirections();" required>
+                        <label class="custom" for="typePRN" style="width: 200px !important;"><%= t('forms.options.as_needed')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="radioDiv">
+                        <input type="radio" name="doseType" value="NPRN" class="radio" id="typeNPRN" onchange="setDirections();" required>
+                        <label class="custom" for="typeNPRN" style="width: 200px !important;"><%= t('forms.options.as_prescribed')%></label>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="mobi-div" id="directionsDiv" style="display: none;">
+                <h3><%= t('forms.labels.select_directions')%></h3>
+                <div style="height: 55vh; overflow-x: hidden; overflow-y: auto;">
+                  <table width="100" style="border-collapse: collapse">
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="OD" value="OD" onchange="setDirections()" required>
+                          <label class="custom" for="OD" style="width: 200px !important;"><%= t('forms.options.once_a_day')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="BD" value="BD" onchange="setDirections()" required>
+                          <label class="custom" for="BD" style="width: 200px !important;"><%= t('forms.options.two_times_a_day')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="TDS" value="TDS" onchange="setDirections()" required>
+                          <label class="custom" for="TDS" style="width: 200px !important;"><%= t('forms.options.three_times_a_day')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QID" value="QID" onchange="setDirections()" required>
+                          <label class="custom" for="QID" style="width: 200px !important;"><%= t('forms.options.four_times_a_day')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QHR" value="QHR" onchange="setDirections()" required>
+                          <label class="custom" for="QHR" style="width: 200px !important;"><%= t('forms.options.every_hour')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="Q2HRS" value="Q2HRS" onchange="setDirections()" required>
+                          <label class="custom" for="Q2HRS" style="width: 200px !important;"><%= t('forms.options.every_two_hours')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="Q4HRS" value="Q4HRS" onchange="setDirections()" required>
+                          <label class="custom" for="Q4HRS" style="width: 200px !important;"><%= t('forms.options.every_four_hours')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="EOD" value="EOD" onchange="setDirections()" required>
+                          <label class="custom" for="EOD" style="width: 200px !important;"><%= t('forms.options.every_other_day')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QN" value="QN" onchange="setDirections()" required>
+                          <label class="custom" for="QN" style="width: 200px !important;"><%= t('forms.options.every_night')%></label>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="radioDiv">
+                          <input type="radio" name="frequency" class="radio" id="QWK" value="QWK" onchange="setDirections()" required>
+                          <label class="custom" for="QWK" style="width: 200px !important;"><%= t('forms.options.once_a_week')%></label>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="mobi-div" id="qtyDiv" style="display: none;">
+                <div style="margin-top: 5px;">
+                  <label for="qty"><span style="font-weight: bold;font-size: 1.2em;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
+                  <input type="text" id="qty" style="font-size: 1.2em;" name="duration" required>
+                </div>
+                <div style="margin-top: 5px;">
+                  <table width="70%" cellspacing="15" >
+                    <tr>
+                      <td class="customButton" onmousedown="append(1,'qty');setQuantity('qty')"><span>1</span></td>
+                      <td class="customButton" onmousedown="append(2,'qty');setQuantity('qty')"><span>2</span></td>
+                      <td class="customButton" onmousedown="append(3,'qty');setQuantity('qty')"><span>3</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(4,'qty');setQuantity('qty')"><span>4</span></td>
+                      <td class="customButton" onmousedown="append(5,'qty');setQuantity('qty')"><span>5</span></td>
+                      <td class="customButton" onmousedown="append(6,'qty');setQuantity('qty')"><span>6</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(7,'qty');setQuantity('qty')"><span>7</span></td>
+                      <td class="customButton" onmousedown="append(8,'qty');setQuantity('qty')"><span>8</span></td>
+                      <td class="customButton" onmousedown="append(9,'qty');setQuantity('qty')"><span>9</span></td>
+                    </tr>
+                    <tr>
+                      <td class="customButton" onmousedown="append(0,'qty');setQuantity('qty')"><span>0</span></td>
+                      <td class="customButton" onmousedown="append('.','qty');setQuantity('qty')"><span>.</span></td>
+                      <td class="customButton" onmousedown="append('del','qty');setQuantity('qty')"><span>del</span></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="mobi-div" id="extDiv" style="display: none;">
+                <div style="margin-top: 5px;">
+                  <label for="extBtl"><span style="font-weight: bold;font-size: 1.2em;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
+                  <input type="text" id="extraBtl" style="font-size: 1.2em;" name="extBtl" required>
+                </div>
+              </div>
+                  <input type="hidden" value="<%= @patient.id%>" name="patient_id" />
+                  <input type="hidden" name="bottle_id" id="btl_field"/>
+                  <input type="hidden" name="quantity" id="dispensed_quantity"/>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: table; width: 99vw;margin-top: 1vh;margin-left: auto;margin-right: auto">
+      <div style="display: table-row;">
+        <div style="width: 75vw;float: left;height: 15vh;" class="header-cell">
+          <table style="width: 100%;font-size: 1.2em">
+            <tr>
+              <td rowspan="2">
+                  <div class="<%=@patient.sex.downcase%>">
+                    <img src="/assets/<%=@patient.sex.downcase%>.png">
+                  </div>
+              </td>
+              <th style="text-align: left;"><%= t('menu.terms.name') %></th>
+              <th>:</th>
+              <td><%= @patient.full_name %></td>
+              <th style="text-align: left;"><%= t('menu.terms.age') %></th>
+              <th>:</th>
+              <td><%= @patient.age %></td>
+            </tr>
+            <tr>
+              <th style="text-align: left;"><%= t('menu.terms.national_id') %></th>
+              <th>:</th>
+              <td><%= @patient.formatted_pnid %></td>
+              <th style="text-align: left;"><%= t('menu.terms.current_address') %></th>
+              <th>:</th>
+              <td><%= @patient.current_address %></td>
+            </tr>
+          </table>
+        </div>
+        <div class="header-cell" style="float: right; width: 20vw;margin-right: 4px;height: 15vh;">
+          <div style="display: table-row">
+            <div style="display: table-cell;vertical-align: top;margin-top: 5px;text-align: center;">
+              <strong><%= t('menu.terms.scan_bottle')%></strong>
+            </div>
+          </div>
+          <div style="display: table-row">
+            <div style="display: table-cell;text-align: center;">
+              <input type="text" id="barcode" class="scanner" style="width: 90%;margin-top: 5px;" autofocus>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: table-row;">
+        <div style="border: 1px solid blue;margin-top: 10px;">
+            <% if has_prescribe %>
+              <%= render '/patients/prescribe_view' %>
+            <% else %>
+              <%= render '/patients/dispense_view' %>
+            <% end %>
+        </div>
+      </div>
+    </div>
+    <div class="footer" >
+      <button class="nav-bttn green" style="float: right;margin-right: 1vw;" onmousedown="window.location='/'">
+        <%= t('forms.buttons.finish')%>
+      </button>
+    </div>
+  </body>
+
+  <script type="text/javascript">
+    var timerHand;
+
+    function checkBarcode()
+    {
+      var barcodeTxt = document.getElementById("barcode");
+      if (barcodeTxt.value.trim().match(/[A-Z0-9]+\$/)) {
+
+        barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/,"")
+
+        if (barcodeTxt.value.toUpperCase().length >= 7)
+        {
+              showDispenseForm()
+              getBottle(barcodeTxt.value.trim().toUpperCase())
+              document.getElementById("bottle_id").innerHTML= barcodeTxt.value.trim().toUpperCase();
+              document.getElementById("btl_field").value= barcodeTxt.value.trim().toUpperCase();
+        }
+        else
+        {
+          barcodeTxt.value = "";
+          initializeListener();
+        }
+
+      }
+      else
+      {
+        initializeListener();
+      }
+    }
+
+    function cancelDispense()
+    {
+      var barcodeTxt = document.getElementById("barcode");
+      barcodeTxt.value = "";
+      initializeListener();
+      hideLayer('shadow', 'dispenseForm')
+    }
+
+
+    function initializeListener()
+    {
+      document.getElementById("barcode").focus();
+      timerHand = setTimeout(function () {
+        checkBarcode();
+      }, 3000);
+
+    }
+
+    setTimeout(initializeListener(), 3000);
+
+    function showDispenseDiv(option)
+    {
+      var tabs = ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'];
+      var currentTab = tabs.indexOf(option);
+      var button = document.getElementById('dispNext');
+      $(".mobi-div").css("display", "none");
+      $(".tab").css("border", "1px outset silver");
+      document.getElementById(option).style.display= "";
+      document.getElementById(option.replace("Div", "Tab")).style.border= "1px solid black";
+
+      if (option == 'doseTypeDiv')
+      {
+        button.setAttribute("onmousedown", "validateDisp()")
+        button.innerHTML = '<%= t('forms.buttons.finish')%>'
+      }
+      else
+      {
+        button.setAttribute("onmousedown", "showDispenseDiv('"+ tabs[currentTab+1] + "')")
+        button.innerHTML = '<%= t('forms.buttons.next')%>'
+      }
+
+    }
+
+
+    function setRoute(route) {
+      document.getElementById("route_type").innerHTML = route;
+    }
+
+    function setDirections(){
+      var field = document.getElementById("directionsDisp");
+      var frequency = document.forms[0].elements["frequency"].value
+      field.innerHTML = createDirections(document.getElementById("route_type").innerHTML, document.getElementById('dose').value, frequency,"doseType")
+    }
+
+    function validateDisp() {
+
+      checkRoute = document.getElementsByName("administration");
+      checkDoseType = document.getElementsByName("doseType");
+      checkdirections = document.getElementsByName("frequency");
+
+      if (checkRadio(checkRoute))
+      {
+        if (checkRadio(checkDoseType))
+        {
+          if (parseFloat(document.getElementById('dose').value) > 0)
+          {
+            if (checkRadio(checkdirections)){
+              if (parseFloat(document.getElementById('qty').value) > 0){
+                  document.forms[0].submit()
+              }
+              else {
+                showDispenseDiv('qtyDiv');
+              }
+            }
+            else {
+              showDispenseDiv('directionsDiv');
+            }
+          }
+          else {
+            showDispenseDiv('doseDiv');
+          }
+        }
+        else
+        {
+          showDispenseDiv('doseTypeDiv');
+        }
+      }
+      else
+      {
+        showDispenseDiv('routesDiv');
+      }
+    }
+
+    function checkRadio(list)
+    {
+      for(i=0; i < list.length; i++){
+        if(list[i].checked)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function  setQuantity(input) {
+
+      var duration = document.getElementById(input).value;
+      var frequency = document.forms[0].elements["frequency"].value;;
+
+      var qty = calcQuantity(parseFloat(document.getElementById('dose').value),frequency,duration);
+      document.getElementById("qtyDisp").innerHTML = ((qty == NaN) ? 0 : Math.ceil(qty));
+      document.getElementById("dispensed_quantity").value = ((qty == NaN) ? 0 : Math.ceil(qty));
+    }
+
+    function getBottle(bottleId)
+    {
+      if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp=new XMLHttpRequest();
+      }else{// code for IE6, IE5
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+      }
+      xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+          var results = xmlhttp.responseText;
+          if(results == 'undefined' || results == '' || results == 'null' || results == 'false') {
+            cancelDispense();
+          }else{
+            var result = JSON.parse(results)
+            document.getElementById('item').innerHTML = result['name'];
+            document.getElementById('currQty').innerHTML = result['currentQty'];
+            return ;
+          }
+        }
+      }
+      xmlhttp.open("GET","/ajax_bottle/"+ bottleId,true);
+      xmlhttp.send();
+
+    }
+
+  </script>
+</html>

@@ -1,0 +1,36 @@
+<script>
+  var tt_cancel_destination = "/mobile_visit";
+</script>
+
+<%= form_for :mobile_visit, :method =>  :patch,:url => "/mobile_visit/#{@visit.id}" do |f| %>
+    <table cellpadding=10>
+      <tr>
+        <td>Visit Coordinator</td>
+        <td>
+          <select style='width: 100%' name='visit_coordinator' id='visitCoordinator' helptext='<%= t("forms.labels.select_visit_coordinator")%>' value="<%= @visit.coordinator %>">
+            <% (@coordinators || []).each do |person| %>
+                <option value="<%= person[0]%>"><%= person[1].titleize %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Visit Date:
+        </td>
+        <td>
+          <%= text_field_tag 'visit_date', @visit.visit_date.strftime("%d-%m-%Y"),
+                             {:id => 'visit_date',
+                              :field_type => 'date',
+                              :helpText => t("menu.terms.visit_date"),
+                              :maxDate => (Date.today + 20.year).to_date,
+                              :minDate => Date.today.to_date,
+                              :tt_pageStyleClass => "Date DatesOnly"} %>
+
+        </td>
+      </tr>
+    </table>
+
+
+    <%= submit_tag value="Submit"%>
+<% end %>

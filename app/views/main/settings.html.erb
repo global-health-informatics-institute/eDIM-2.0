@@ -1,0 +1,60 @@
+<div style="height: 8vh;border: 1px inset black; border-width: 0px 0px 3px 0px;">
+  <h1 style="margin-left: 2vw;"><%= t('menu.terms.settings') %></h1>
+</div>
+
+<div style="height: 60vh;">
+  <div style="display: table; padding-top: 10px;padding-left: 10px;margin-left: auto;margin-right: auto;">
+    <div style="display: table-row">
+      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/user/<%= User.current.id%>/edit?section=password'">
+        <img src="/assets/change_password.png">
+      </div>
+      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/user/<%= User.current.id%>/edit?section=language_preference'">
+        <img src="/assets/change_language.png">
+      </div>
+      <% if ['administrator', 'superuser', 'system developer', 'pharmacist'].include? User.current.role.downcase %>
+        <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/drug'">
+          <img src="/assets/drugs_list.png">
+        </div>
+      <% end %>
+      <% if ['administrator', 'superuser', 'system developer'].include? User.current.role.downcase %>
+        <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/user'">
+          <img src="/assets/user_edit.png">
+        </div>
+      <% end %>
+      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/locations/new'">
+        <img src="/assets/add_location.png">
+      </div>
+      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/locations'">
+        <img src="/assets/print_location.png">
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/user/<%= User.current.id%>/edit?section=password'">
+        <%= t('forms.buttons.change_password')%>
+      </div>
+      <div style="display: table-cell;text-align: center;font-size: 1.4em;"
+           onmousedown="window.location='/user/<%= User.current.id%>/edit?section=language_preference'">
+        <%= t('menu.terms.change_language')%>
+      </div>
+      <% if ['administrator', 'superuser', 'system developer', 'pharmacist'].include? User.current.role.downcase %>
+        <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/drug'">
+          <%= t('menu.terms.manage_drugs')%>
+        </div>
+      <% end %>
+      <% if ['administrator', 'superuser', 'system developer'].include? User.current.role.downcase %>
+        <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/user'">
+          <%= t('forms.buttons.user_management')%>
+        </div>
+      <% end %>
+      <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/locations/new'">
+        Add Location
+      </div>
+      <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/locations'">
+        Print Workstation Location
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer" >
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw;float: right;"><%= t('forms.buttons.finish')%></button>
+</div>

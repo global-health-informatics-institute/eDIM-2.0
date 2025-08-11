@@ -1,0 +1,22 @@
+<div style="border: 1px inset black; border-width: 0px 0px 3px 0px;padding-left: 0.5vw;height: 10vh;">
+  <h2><%= "#{@item.drug_name.titleize}" %></h2>
+  <div style="display: table-row; width: 100vw;margin-left: 0.5vw;font-size: 1.5em;">
+    <div style="display: table-cell;width: 25vw;">
+      <%= "#{t('menu.terms.bottle_id')} : #{Misc.dash_formatter(@item.bottle_id)}" %>
+    </div>
+    <div style="display: table-cell;width: 50vw;">
+      <%= "#{t('forms.labels.drug_category')} : #{@item.drug_category}" %>
+    </div>
+    <% if current_location.name.match(/store/i) %>
+        <div style="display: table-cell;font-size: 1.1em;">
+          <%= "#{t('menu.terms.current_quantity')} : "%><span style='color:red;'><%= @item.current_quantity%></span>
+        </div>
+    <% end %>
+  </div>
+</div>
+
+<% if current_location.name.match(/store/i) %>
+    <%= render "/general_inventory/storeroom" %>
+<% else %>
+    <%= render "/general_inventory/dispensary" %>
+<% end %>
