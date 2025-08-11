@@ -29,7 +29,7 @@ git clone git@github.com:global-health-informatics-institute/eDIM-2.0.git
 
 ## Quick start — (Ruby 3.2.1 / Rails 7.0.8)
 
-These are steps for the upgraded environment you’ve migrated to.
+These are steps for the upgraded environment.
 
 1. Install Ruby (3.2.1) and Bundler:
    ```bash
