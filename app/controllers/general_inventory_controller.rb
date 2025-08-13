@@ -131,13 +131,15 @@ class GeneralInventoryController < ApplicationController
   end
 
   def ajax_bottle
-    entry = GeneralInventory.find_by_gn_identifier(params[:id])
+    entry = GeneralInventory.includes(:drug).find_by_gn_identifier(params[:id])
     if entry.blank?
-      render :text => ''
+      render json: {}
     else
-      render :text => {"name" => entry.drug_name, "currentQty"=> entry.current_quantity}.to_json
+      render json: {
+        name: entry.drug.name,
+        currentQty: entry.current_quantity
+      }
     end
-
   end
 
   def show

@@ -1,46 +1,55 @@
 class DispensationController < ApplicationController
   def create
-    #Function to dispense items
-    @patient = Patient.find(params[:patient_id]) if !params[:patient_id].blank?
+    # Function to dispense items
+    @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
+    return_path = params[:patient_id].present? ? "/patients/#{@patient.id}" : "/"
+    dispense_success = false
 
-    GeneralInventory.transaction do
-      item = GeneralInventory.where("gn_identifier = ? ", params[:bottle_id]).lock(true).first
-      is_a_bottle = Misc.bottle_item(params[:administration],item.dose_form)
-      qty = (is_a_bottle ? 1 : params[:quantity].to_i)
-      amount_dispensed = ((item.current_quantity.to_i - qty) >= -1 ? qty : item.current_quantity.to_i)
-      item.current_quantity -= amount_dispensed
-      item.save
+    begin
+      GeneralInventory.transaction do
+        item = GeneralInventory.where(gn_identifier: params[:bottle_id]).lock(true).first
+        is_a_bottle = Misc.bottle_item(params[:administration], item.dose_form)
+        qty = is_a_bottle ? 1 : params[:quantity].to_i
+        amount_dispensed = [(item.current_quantity.to_i - qty >= -1 ? qty : item.current_quantity.to_i), 0].max
+        item.current_quantity -= amount_dispensed
+        item.save!
 
-      return_path = (params[:patient_id].blank? ? '/' : "/patients/#{@patient.id}")
+        @new_prescription = Prescription.create!(
+          patient_id: @patient&.id,
+          drug_id: item.drug_id,
+          directions: Misc.create_directions(params[:dose], params[:administration], params[:frequency], params[:doseType]),
+          quantity: qty,
+          amount_dispensed: amount_dispensed,
+          provider_id: User.current.id,
+          date_prescribed: Time.current
+        )
 
-      if item.errors.blank?
-        @new_prescription = Prescription.new
-        @new_prescription.patient_id = @patient.id if !params[:patient_id].blank?
-        @new_prescription.drug_id = item.drug_id
-        @new_prescription.directions = Misc.create_directions(params[:dose], params[:administration],params[:frequency],params[:doseType])
-        @new_prescription.quantity = qty
-        @new_prescription.amount_dispensed = amount_dispensed
-        @new_prescription.provider_id = User.current.id
-        @new_prescription.date_prescribed = Time.current
-        @new_prescription.save
+        @dispensation = Dispensation.create!(
+          rx_id: @new_prescription.id,
+          inventory_id: item.gn_inventory_id,
+          patient_id: @new_prescription.patient_id,
+          quantity: amount_dispensed,
+          dispensation_date: Time.current,
+          dispensed_by: User.current.id
+        )
 
-        @dispensation = Dispensation.create({:rx_id => @new_prescription.id, :inventory_id => item.bottle_id,
-                                             :patient_id => @new_prescription.patient_id, :quantity => amount_dispensed,
-                                             :dispensation_date => Time.current, :dispensed_by => User.current.id})
-
-        if @dispensation.errors.blank?
-          if @new_prescription.quantity <= @new_prescription.amount_dispensed
-            print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path) and return
-          else
-            flash[:notice] = 'Insufficient quantity. Top up from another bottle'
-            redirect_to "/prescriptions/#{@new_prescription.id}" and return
-          end
-        end
-      else
-        flash[:errors] = 'Could not create the dispensation'
+        dispense_success = true
       end
+    rescue => e
+      Rails.logger.error "Dispensation failed: #{e.message}"
+      flash[:errors] = 'Could not create the dispensation'
     end
-    redirect_to (return_path || "/") and return
+
+    if dispense_success
+      if @new_prescription.quantity <= @new_prescription.amount_dispensed
+        print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path) and return
+      else
+        flash[:notice] = 'Insufficient quantity. Top up from another bottle'
+        redirect_to "/prescriptions/#{@new_prescription.id}" and return
+      end
+    else
+      redirect_to return_path and return
+    end
   end
 
   def refill
