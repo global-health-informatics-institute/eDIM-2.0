@@ -1,0 +1,9 @@
+# Ignore actual config files
+/config/database.yml
+/config/secrets.yml
+/config/application.yml
+
+# Keep the example files
+!/config/database.yml.example
+!/config/secrets.yml.example
+!/config/application.yml.example
