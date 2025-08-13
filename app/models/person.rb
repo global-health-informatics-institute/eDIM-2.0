@@ -9,10 +9,11 @@ class Person < ActiveRecord::Base
   before_update :before_save
   before_save :before_save
 
-  has_one :patient,-> {where voided: 0}, :foreign_key => :patient_id, :dependent => :destroy
-  has_many :names, :class_name => 'PersonName', :foreign_key => :person_id, :dependent => :destroy
-  has_many :addresses, :class_name => 'PersonAddress', :foreign_key => :person_id, :dependent => :destroy
-  has_many :person_attributes, :class_name => 'PersonAttribute', :foreign_key => :person_id
+has_one :patient, -> { where(voided: 0) }, foreign_key: :patient_id, primary_key: :person_id, dependent: :destroy
+
+  has_many :names, class_name: 'PersonName', foreign_key: :person_id, dependent: :destroy
+  has_many :addresses, class_name: 'PersonAddress', foreign_key: :person_id, dependent: :destroy
+  has_many :person_attributes, class_name: 'PersonAttribute', foreign_key: :person_id
 
   def display_age
     age_in_days = (Date.current - self.birthdate).to_i

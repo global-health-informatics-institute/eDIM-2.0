@@ -3,4 +3,4 @@
 Registration = YAML.load(
   ERB.new(File.read(Rails.root.join("config", "database.yml"))).result,
   aliases: true
-)['openmrs']
+)['billing_import']

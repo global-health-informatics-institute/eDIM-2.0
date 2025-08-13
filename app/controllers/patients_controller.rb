@@ -1,6 +1,7 @@
 class PatientsController < ApplicationController
   def show
-    @patient = Patient.find(params[:id]) rescue nil
+    Rails.logger.debug "Params ID: #{params[:id].inspect}"
+    @patient = Patient.includes(person: :addresses).find(params[:id]) rescue nil
 
     if @patient.blank?
       flash[:errors] = "Patient with ID #{params[:id]} not found"
