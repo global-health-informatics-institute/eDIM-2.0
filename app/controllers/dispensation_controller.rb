@@ -1,13 +1,18 @@
 class DispensationController < ApplicationController
-  def create
-    # Function to dispense items
+    def create
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
     return_path = params[:patient_id].present? ? "/patients/#{@patient.id}" : "/"
+
+    item = GeneralInventory.find_by(gn_identifier: params[:bottle_id])
+    if item.blank?
+      flash[:errors] = "Bottle ID #{params[:bottle_id]} not found in general inventory"
+      redirect_to return_path and return
+    end
+
     dispense_success = false
 
     begin
       GeneralInventory.transaction do
-        item = GeneralInventory.where(gn_identifier: params[:bottle_id]).lock(true).first
         is_a_bottle = Misc.bottle_item(params[:administration], item.dose_form)
         qty = is_a_bottle ? 1 : params[:quantity].to_i
         amount_dispensed = [(item.current_quantity.to_i - qty >= -1 ? qty : item.current_quantity.to_i), 0].max

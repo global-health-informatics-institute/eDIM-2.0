@@ -361,29 +361,22 @@
   <script type="text/javascript">
     var timerHand;
 
-    function checkBarcode()
-    {
+    function checkBarcode() {
       var barcodeTxt = document.getElementById("barcode");
       if (barcodeTxt.value.trim().match(/[A-Z0-9]+\$/)) {
 
-        barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/,"")
+        barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/, "");
 
-        if (barcodeTxt.value.toUpperCase().length >= 7)
-        {
-              showDispenseForm()
-              getBottle(barcodeTxt.value.trim().toUpperCase())
-              document.getElementById("bottle_id").innerHTML= barcodeTxt.value.trim().toUpperCase();
-              document.getElementById("btl_field").value= barcodeTxt.value.trim().toUpperCase();
-        }
-        else
-        {
+        if (barcodeTxt.value.toUpperCase().length >= 7) {
+          getBottle(barcodeTxt.value.trim().toUpperCase());
+          document.getElementById("bottle_id").innerHTML = barcodeTxt.value.trim().toUpperCase();
+          document.getElementById("btl_field").value = barcodeTxt.value.trim().toUpperCase();
+        } else {
           barcodeTxt.value = "";
           initializeListener();
         }
 
-      }
-      else
-      {
+      } else {
         initializeListener();
       }
     }
@@ -395,7 +388,6 @@
       initializeListener();
       hideLayer('shadow', 'dispenseForm')
     }
-
 
     function initializeListener()
     {
@@ -502,30 +494,40 @@
       document.getElementById("dispensed_quantity").value = ((qty == NaN) ? 0 : Math.ceil(qty));
     }
 
-    function getBottle(bottleId)
-    {
-      if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp=new XMLHttpRequest();
-      }else{// code for IE6, IE5
-        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-      }
-      xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-          var results = xmlhttp.responseText;
-          if(results == 'undefined' || results == '' || results == 'null' || results == 'false') {
-            cancelDispense();
-          }else{
-            var result = JSON.parse(results)
-            document.getElementById('item').innerHTML = result['name'];
-            document.getElementById('currQty').innerHTML = result['currentQty'];
-            return ;
+    function getBottle(bottleId) {
+      var xmlhttp = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+
+      xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4) {
+          if (xmlhttp.status == 200) {
+            var results = xmlhttp.responseText;
+
+            if (!results || results === 'undefined' || results === 'null' || results === 'false' || results === '{}') {
+              showFlashMessage(`Bottle ID ${bottleId} not found in inventory.`, true);
+              initializeListener();
+            } else {
+              try {
+                var result = JSON.parse(results);
+                document.getElementById('item').innerHTML = result['name'];
+                document.getElementById('currQty').innerHTML = result['currentQty'];
+
+                // Only open modal when valid
+                showDispenseForm();
+                showDispenseDiv('routesDiv');
+              } catch (e) {
+                alert(`Bottle ID ${bottleId} returned invalid data.`);
+                initializeListener();
+              }
+            }
+          } else {
+            alert(`Bottle ID ${bottleId} could not be fetched.`);
+            initializeListener();
           }
         }
-      }
-      xmlhttp.open("GET","/ajax_bottle/"+ bottleId,true);
+      };
+
+      xmlhttp.open("GET", "/ajax_bottle/" + bottleId, true);
       xmlhttp.send();
-
     }
-
   </script>
 </html>

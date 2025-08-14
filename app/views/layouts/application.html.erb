@@ -2,90 +2,87 @@
 <html>
 <head>
   <title>eDIM</title>
-  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'jquery-1.12.0.min.js' %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag "i18n" %>
   <%= javascript_include_tag "translations" %>
   <%= javascript_tag do %>
-      I18n.defaultLocale = "<%= (User.current.language == "ESP" ? "es" : "en") || I18n.default_locale %>";
-      I18n.locale = "<%= (User.current.language == "ESP" ? "es" : "en") || I18n.default_locale %>";
+    I18n.defaultLocale = "<%= (User.current.language == 'ESP' ? 'es' : 'en') || I18n.default_locale %>";
+    I18n.locale = "<%= (User.current.language == 'ESP' ? 'es' : 'en') || I18n.default_locale %>";
   <% end %>
   <%= csrf_meta_tags %>
   <style type="text/css">
-    ::-webkit-scrollbar {
-      height: 3vh;
-      width: 5vw;
-      background: #C0C0C0;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #404040;
-      -webkit-border-radius: 2ex;
-      height: 3vh;
-
-    }
-
-    ::-webkit-scrollbar-button {
-      height: 3vh;
-
-    }
-
-    ::-webkit-scrollbar-corner {
-      background: #000;
-    }
-
+    ::-webkit-scrollbar { height: 3vh; width: 5vw; background: #C0C0C0; }
+    ::-webkit-scrollbar-thumb { background: #404040; -webkit-border-radius: 2ex; height: 3vh; }
+    ::-webkit-scrollbar-button { height: 3vh; }
+    ::-webkit-scrollbar-corner { background: #000; }
   </style>
 </head>
 <body style="background-color: white;">
-  <% if !flash[:errors].blank? || !flash[:success].blank? %>
-      <div id="shadowLayer" class="opaqueLayer"> </div>
-      <div id="messageLayer" class="questionLayer" style="font-size: 0.9em;">
-        <div class="dialogBox">
-          <div style="display: table-row">
-            <div style="display: table-cell; text-align: center;">
-              &nbsp;
-            </div>
-          </div>
-          <div style="display: table-row">
-            <div style="display: table-cell; text-align: center;">
-              <h2 id="message"><%= flash[:success].blank? ? flash[:errors] : flash[:success] %></h2>
-            </div>
-          </div>
-          <div style="display: table-row">
-            <div style="display: table-cell; text-align: center;">
-              <button onMouseDown="hideLayer('shadowLayer', 'messageLayer')"><span><%= t('forms.buttons.ok_button') %></span></button>
-            </div>
-          </div>
+
+<div id="shadowLayer" class="opaqueLayer" style="display:none;"></div>
+  <div id="messageLayer" class="questionLayer" style="font-size:0.9em; display:none;">
+    <div class="dialogBox">
+      <div style="display: table-row">
+        <div style="display: table-cell; text-align: center;">&nbsp;</div>
+      </div>
+      <div style="display: table-row">
+        <div style="display: table-cell; text-align: center;">
+          <h2 id="flashMessage"></h2>
         </div>
       </div>
-  <% end %>
-  <div id="shadow" class="opaqueLayer"> </div>
+      <div style="display: table-row">
+        <div style="display: table-cell; text-align: center;">
+          <button onmousedown="hideLayer('shadowLayer','messageLayer')">
+            <span><%= t('forms.buttons.ok_button') %></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="shadow" class="opaqueLayer"></div>
   <div id="question" class="questionLayer" style="font-size: 0.9em;">
     <div class="dialogBox">
       <div style="display: table-row">
-        <div style="display: table-cell; text-align: center;">
-          &nbsp;
-        </div>
+        <div style="display: table-cell; text-align: center;">&nbsp;</div>
       </div>
       <div style="display: table-row">
         <div style="display: table-cell; text-align: center;">
-          <h2 id="message"><%= t('messages.are_you_sure')%></h2>
+          <h2 id="questionMessage"><%= t('messages.are_you_sure') %></h2>
         </div>
       </div>
       <div style="display: table-row">
         <div style="display: table-cell; text-align: center;">
           <button id="bttnYes"><span><%= t('forms.buttons.yes_button') %></span></button>
-          <button onMouseDown="hideLayer('shadow', 'question')"><span><%= t('forms.buttons.no_button') %></span></button>
+          <button onMouseDown="hideLayer('shadow', 'question')">
+            <span><%= t('forms.buttons.no_button') %></span>
+          </button>
         </div>
       </div>
     </div>
   </div>
+
   <%= yield %>
+
   <% if !flash[:errors].blank? || !flash[:success].blank? %>
     <script type="text/javascript">
       showLayer("shadowLayer", "messageLayer");
     </script>
-<% end %>
+  <% end %>
+
+  <script type="text/javascript">
+  function showFlashMessage(msg, isError = false) {
+    const modal = document.getElementById('messageLayer');
+    document.getElementById('flashMessage').innerText = msg;
+    modal.style.border = 'none';
+    modal.style.display = 'block'; // just show the modal
+  }
+
+  function hideFlashMessage() {
+    document.getElementById('messageLayer').style.display = 'none';
+  }
+  </script>
+
 </body>
 </html>
