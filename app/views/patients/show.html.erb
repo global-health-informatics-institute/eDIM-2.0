@@ -358,28 +358,39 @@
     </div>
   </body>
 
+  <div id="shadowLayer"></div>
+  <div id="messageLayer">
+    <span id="flashMessage"></span>
+  </div>
+
   <script type="text/javascript">
     var timerHand;
 
     function checkBarcode() {
       var barcodeTxt = document.getElementById("barcode");
-      if (barcodeTxt.value.trim().match(/[A-Z0-9]+\$/)) {
+      var rawValue = barcodeTxt.value.trim().toUpperCase().replace(/\-/, ""); // normalize
 
-        barcodeTxt.value = barcodeTxt.value.trim().replace(/\$/, "").replace(/\-/, "");
+      if (rawValue.length >= 8) { // trigger as soon as we have enough characters
+        barcodeTxt.value = rawValue;
+        document.getElementById("bottle_id").innerHTML = rawValue;
+        document.getElementById("btl_field").value = rawValue;
 
-        if (barcodeTxt.value.toUpperCase().length >= 7) {
-          getBottle(barcodeTxt.value.trim().toUpperCase());
-          document.getElementById("bottle_id").innerHTML = barcodeTxt.value.trim().toUpperCase();
-          document.getElementById("btl_field").value = barcodeTxt.value.trim().toUpperCase();
-        } else {
-          barcodeTxt.value = "";
-          initializeListener();
-        }
+        // Fetch the bottle immediately
+        getBottle(rawValue);
 
+        // Reset input for next scan
+        barcodeTxt.value = "";
       } else {
-        initializeListener();
+        // Wait a bit and check again
+        setTimeout(checkBarcode, 300);
       }
     }
+
+    // Start listening when page loads
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("barcode").focus();
+      checkBarcode();
+    });
 
     function cancelDispense()
     {
@@ -525,7 +536,6 @@
           }
         }
       };
-
       xmlhttp.open("GET", "/ajax_bottle/" + bottleId, true);
       xmlhttp.send();
     }

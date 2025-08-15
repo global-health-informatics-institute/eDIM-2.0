@@ -65,8 +65,9 @@
 
   <%= yield %>
 
-  <% if !flash[:errors].blank? || !flash[:success].blank? %>
+  <% if flash[:errors].present? || flash[:success].present? %>
     <script type="text/javascript">
+      document.getElementById('flashMessage').innerText = "<%= j(flash[:errors] || flash[:success]) %>";
       showLayer("shadowLayer", "messageLayer");
     </script>
   <% end %>
@@ -74,15 +75,19 @@
   <script type="text/javascript">
   function showFlashMessage(msg, isError = false) {
     const modal = document.getElementById('messageLayer');
+    const overlay = document.getElementById('shadowLayer');
+
     document.getElementById('flashMessage').innerText = msg;
     modal.style.border = 'none';
-    modal.style.display = 'block'; // just show the modal
+
+    overlay.style.display = 'block'; // dim the background
+    modal.style.display = 'block';   // show the modal
   }
 
   function hideFlashMessage() {
     document.getElementById('messageLayer').style.display = 'none';
+    document.getElementById('shadowLayer').style.display = 'none'; // remove dim
   }
   </script>
-
 </body>
 </html>
