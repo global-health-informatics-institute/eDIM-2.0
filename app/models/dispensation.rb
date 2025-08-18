@@ -16,25 +16,22 @@ class Dispensation < ActiveRecord::Base
     dispensation = Dispensation.find(id)
 
     Dispensation.transaction do
-      item = GeneralInventory.where(
-        "gn_identifier = ? AND voided = ?", 
-        dispensation.inventory_id, false
-      ).first
-
-      prescription = dispensation.prescription
+      item = GeneralInventory.find_by(gn_inventory_id: dispensation.inventory_id, voided: false)
 
       if item.present?
         item.current_quantity += dispensation.quantity
         item.save!
       end
-      # Always mark dispensation voided
+
       dispensation.update!(voided: true)
 
-      if prescription.present?
+      if dispensation.prescription.present?
+        prescription = dispensation.prescription
         prescription.amount_dispensed -= dispensation.quantity
         prescription.save!
       end
     end
+
     dispensation
   end
 
