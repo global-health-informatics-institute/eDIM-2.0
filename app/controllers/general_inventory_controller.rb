@@ -132,7 +132,7 @@ class GeneralInventoryController < ApplicationController
 
   def ajax_bottle
     entry = GeneralInventory.includes(:drug).find_by_gn_identifier(params[:id])
-    if entry.blank?
+    if entry.blank? || entry.voided
       render plain: 'false'
     else
       render json: {

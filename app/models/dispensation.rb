@@ -11,7 +11,7 @@ class Dispensation < ActiveRecord::Base
   def dispensation_dir
     self.prescription.directions
   end
-
+  
   def self.void(id)
     dispensation = Dispensation.find(id)
 
@@ -27,7 +27,6 @@ class Dispensation < ActiveRecord::Base
         item.current_quantity += dispensation.quantity
         item.save!
       end
-
       # Always mark dispensation voided
       dispensation.update!(voided: true)
 
