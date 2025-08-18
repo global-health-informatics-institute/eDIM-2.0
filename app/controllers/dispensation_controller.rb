@@ -19,7 +19,7 @@ class DispensationController < ApplicationController
         item.current_quantity -= amount_dispensed
         item.save!
 
-        @new_prescription = Prescription.create!(
+        @new_prescription = Prescription.create!( 
           patient_id: @patient&.id,
           drug_id: item.drug_id,
           directions: Misc.create_directions(params[:dose], params[:administration], params[:frequency], params[:doseType]),

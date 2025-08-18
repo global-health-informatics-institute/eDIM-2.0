@@ -28,6 +28,12 @@
               <th id="item" style="text-align: left;width: 30%;">&nbsp;</th>
               <td class='heading' style="text-align: left;"><%= t('menu.terms.route')%></td>
               <th style="text-align: left;width: 30%;" id="route_type">&nbsp;</th>
+              <!-- Warning Cell -->
+              <td style="width:20%; text-align:right; vertical-align:middle;">
+                <span id="dispensationWarning" 
+                style="display:none; color:red; font-weight:bold; font-size:1em; line-height:1.2em; margin-top:10px; display:block;">
+                </span>
+              </td>
               <td style="width: 5%;" rowspan="3">
                 <img style="padding-right: 2px;float: right;" src="/assets/delete.png" onmousedown="cancelDispense()">
               </td>
@@ -37,7 +43,6 @@
               <th id="bottle_id" style="text-align: left;width: 20%;">&nbsp;</th>
               <td class='heading' style="text-align: left;"><%= t('menu.terms.directions')%></td>
               <th style="text-align: left;" id="directionsDisp">&nbsp;</th>
-
             </tr>
             <tr>
               <td class='heading'><%= t('menu.terms.current_quantity')%></td>
@@ -77,11 +82,19 @@
                   </tr>
                 </table>
             </div>
-            <div style="display: table-cell;border: 2px solid black;border-width: 0px 0px 0px 2px;height: 70vh;">
+            <div style="display: table-cell;border: 2px solid black;border-width: 0px 0px 0px 2px;height: 70vh; justify-content: flex-end">
               <%= form_for :prescription,method: 'POST',:url => dispensation_index_path  do |f| %>
               <div style="position: absolute;left: 72vw;top: 80vh;" onmousedown="showDispenseDiv('doseDiv')" class="nextButton" id="dispNext">
                 <%= t('forms.buttons.next')%>
               </div>
+
+              <div style="position: absolute; left: 62vw; top: 80vh; background-color: #053a54; color: white; justify-content: flex-end" 
+                  class="nextButton" id="dispClear" 
+                  onmousedown="clearCurrentTab()" 
+                  style="display:none;">
+                <%= t('forms.buttons.clear') %>
+              </div>
+
               <div class="mobi-div" id="routesDiv" >
                 <h3><%= t('forms.labels.select_administration_route')%></h3>
                 <table width="100" style="border-collapse: collapse">
@@ -395,9 +408,8 @@
       var dose = parseFloat(document.getElementById('dose').value) || 0;
       var duration = parseFloat(document.getElementById('qty').value) || 0;
 
-      // Frequency mapping
       var frequencyCode = document.forms[0].elements["frequency"].value;
-      var freq = 0;
+      var freq = 1;
       switch(frequencyCode) {
         case 'OD': freq = 1; break;
         case 'BD': freq = 2; break;
@@ -409,16 +421,22 @@
         case 'EOD': freq = 0.5; break;
         case 'QN': freq = 1; break;
         case 'QWK': freq = 1/7; break;
-        default: freq = 1; // fallback
       }
 
-      // Optional: read dose type if needed
-      // var doseType = document.querySelector('input[name="doseType"]:checked')?.value;
-
       var qty = dose * freq * duration;
+      qty = isNaN(qty) ? 0 : Math.ceil(qty);
 
-      document.getElementById("qtyDisp").innerHTML = isNaN(qty) ? 0 : Math.ceil(qty);
-      document.getElementById("dispensed_quantity").value = isNaN(qty) ? 0 : Math.ceil(qty);
+      var currentQty = parseInt(document.getElementById('currQty').innerHTML, 10) || 0;
+
+      if (qty > currentQty) {
+        showDispensationWarning(`Cannot dispense more than ${currentQty} units.`);
+        qty = currentQty; // clamp
+      } else {
+        hideDispensationWarning();
+      }
+
+      document.getElementById("qtyDisp").innerHTML = qty;
+      document.getElementById("dispensed_quantity").value = qty;
     }
 
     function cancelDispense()
@@ -440,27 +458,31 @@
 
     setTimeout(initializeListener(), 3000);
 
-    function showDispenseDiv(option)
-    {
+    function showDispenseDiv(option) {
       var tabs = ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'];
       var currentTab = tabs.indexOf(option);
       var button = document.getElementById('dispNext');
+      var clearButton = document.getElementById('dispClear');
+
       $(".mobi-div").css("display", "none");
       $(".tab").css("border", "1px outset silver");
-      document.getElementById(option).style.display= "";
-      document.getElementById(option.replace("Div", "Tab")).style.border= "2px solid #de0404";
+      document.getElementById(option).style.display = "";
+      document.getElementById(option.replace("Div", "Tab")).style.border = "2px solid #de0404";
 
-      if (option == 'doseTypeDiv')
-      {
-        button.setAttribute("onmousedown", "validateDisp()")
-        button.innerHTML = '<%= t('forms.buttons.finish')%>'
-      }
-      else
-      {
-        button.setAttribute("onmousedown", "showDispenseDiv('"+ tabs[currentTab+1] + "')")
-        button.innerHTML = '<%= t('forms.buttons.next')%>'
+      // Show Clear button only on doseDiv or qtyDiv
+      if (option === 'doseDiv' || option === 'qtyDiv') {
+        clearButton.style.display = "inline-block";
+      } else {
+        clearButton.style.display = "none";
       }
 
+      if (option == 'doseTypeDiv') {
+        button.setAttribute("onmousedown", "validateDisp()");
+        button.innerHTML = '<%= t('forms.buttons.finish') %>';
+      } else {
+        button.setAttribute("onmousedown", "showDispenseDiv('" + tabs[currentTab + 1] + "')");
+        button.innerHTML = '<%= t('forms.buttons.next') %>';
+      }
     }
 
     function setRoute(route) {
@@ -481,43 +503,32 @@
     }
 
     function validateDisp() {
+        checkRoute = document.getElementsByName("administration");
+        checkDoseType = document.getElementsByName("doseType");
+        checkdirections = document.getElementsByName("frequency");
 
-      checkRoute = document.getElementsByName("administration");
-      checkDoseType = document.getElementsByName("doseType");
-      checkdirections = document.getElementsByName("frequency");
-
-      if (checkRadio(checkRoute))
-      {
-        if (checkRadio(checkDoseType))
-        {
-          if (parseFloat(document.getElementById('dose').value) > 0)
-          {
-            if (checkRadio(checkdirections)){
-              if (parseFloat(document.getElementById('qty').value) > 0){
-                  document.forms[0].submit()
-              }
-              else {
-                showDispenseDiv('qtyDiv');
-              }
+        if (checkRadio(checkRoute)) {
+            if (checkRadio(checkDoseType)) {
+                if (parseFloat(document.getElementById('dose').value) > 0) {
+                    if (checkRadio(checkdirections)) {
+                        if (parseFloat(document.getElementById('qty').value) > 0) {
+                            updateQuantity(); // <-- important
+                            document.forms[0].submit();
+                        } else {
+                            showDispenseDiv('qtyDiv');
+                        }
+                    } else {
+                        showDispenseDiv('directionsDiv');
+                    }
+                } else {
+                    showDispenseDiv('doseDiv');
+                }
+            } else {
+                showDispenseDiv('doseTypeDiv');
             }
-            else {
-              showDispenseDiv('directionsDiv');
-            }
-          }
-          else {
-            showDispenseDiv('doseDiv');
-          }
+        } else {
+            showDispenseDiv('routesDiv');
         }
-        else
-        {
-          showDispenseDiv('doseTypeDiv');
-        }
-      }
-      else
-      {
-        showDispenseDiv('routesDiv');
-      }
-      updateQuantity();
     }
 
     function checkRadio(list)
@@ -530,16 +541,68 @@
       }
       return false;
     }
-
-    function  setQuantity(input) {
-
-      var duration = document.getElementById(input).value;
-      var frequency = document.forms[0].elements["frequency"].value;;
-
-      var qty = calcQuantity(parseFloat(document.getElementById('dose').value),frequency,duration);
-      document.getElementById("qtyDisp").innerHTML = isNaN(qty) ? 0 : Math.ceil(qty);
-      document.getElementById("dispensed_quantity").value = isNaN(qty) ? 0 : Math.ceil(qty);
+     
+    function showDispensationWarning(message) {
+      const warning = document.getElementById("dispensationWarning");
+      warning.innerText = message;
+      warning.style.display = "inline";
     }
+
+    function hideDispensationWarning() {
+      document.getElementById("dispensationWarning").style.display = "none";
+    }
+
+    function setQuantity(input) {
+      var duration = parseFloat(document.getElementById(input).value) || 0;
+      var frequencyCode = document.forms[0].elements["frequency"].value;
+
+      var freq = 1;
+      switch(frequencyCode) {
+        case 'OD': freq = 1; break;
+        case 'BD': freq = 2; break;
+        case 'TDS': freq = 3; break;
+        case 'QID': freq = 4; break;
+        case 'QHR': freq = 24; break;
+        case 'Q2HRS': freq = 12; break;
+        case 'Q4HRS': freq = 6; break;
+        case 'EOD': freq = 0.5; break;
+        case 'QN': freq = 1; break;
+        case 'QWK': freq = 1/7; break;
+      }
+
+      var qty = parseFloat(document.getElementById('dose').value) * freq * duration;
+      qty = isNaN(qty) ? 0 : Math.ceil(qty);
+
+      var currentQty = parseInt(document.getElementById('currQty').innerHTML, 10) || 0;
+
+      if (qty > currentQty) {
+        showDispensationWarning(`Cannot dispense more than ${currentQty} units.`);
+        qty = currentQty;
+      } else {
+        hideDispensationWarning();
+      }
+
+      document.getElementById("qtyDisp").innerHTML = qty;
+      document.getElementById("dispensed_quantity").value = qty;
+    }
+
+    // Function to clear current tab inputs
+    function clearCurrentTab() {
+      // Determine which tab is active
+      var doseDiv = document.getElementById('doseDiv');
+      var qtyDiv = document.getElementById('qtyDiv');
+
+      if(doseDiv.style.display !== 'none') {
+        document.getElementById('dose').value = '';
+        updateQuantity(); // refresh calculation
+      }
+
+      if(qtyDiv.style.display !== 'none') {
+        document.getElementById('qty').value = '';
+        setQuantity('qty'); // refresh calculation
+      }
+    }
+
 
     function getBottle(bottleId) {
       var xmlhttp = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
