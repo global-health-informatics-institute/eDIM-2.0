@@ -385,7 +385,6 @@
         setTimeout(checkBarcode, 300);
       }
     }
-
     // Start listening when page loads
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById("barcode").focus();
@@ -449,7 +448,7 @@
       $(".mobi-div").css("display", "none");
       $(".tab").css("border", "1px outset silver");
       document.getElementById(option).style.display= "";
-      document.getElementById(option.replace("Div", "Tab")).style.border= "1px solid black";
+      document.getElementById(option.replace("Div", "Tab")).style.border= "2px solid #de0404";
 
       if (option == 'doseTypeDiv')
       {
@@ -463,7 +462,6 @@
       }
 
     }
-
 
     function setRoute(route) {
       document.getElementById("route_type").innerHTML = route;
