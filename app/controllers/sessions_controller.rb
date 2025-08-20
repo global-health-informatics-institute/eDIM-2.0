@@ -32,7 +32,7 @@ class SessionsController < ApplicationController
     Rails.logger.info "Found location: #{location.inspect}"
     Rails.logger.info "Is a workstation? #{location.is_a_workstation? if location}"
 
-    if location.blank? || !location.is_a_workstation?
+    if location.blank? || location.is_a_workstation?
       Rails.logger.warn "Invalid workstation location detected"
       flash[:error] = "Invalid workstation location"
       redirect_to '/sessions/add_location' and return
