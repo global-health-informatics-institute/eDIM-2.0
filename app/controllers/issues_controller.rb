@@ -28,7 +28,6 @@ class IssuesController < ApplicationController
         new_issue = Issue.create( inventory_id: @item.id, location_id: session[:location],
                                   issued_to: @new_stock_entry.location_id, issued_by: session[:user_id],
                                   quantity: params[:amount_issued], issue_date: DateTime.current)
-
         if @new_stock_entry.errors.blank?
           flash[:success] = "#{params[:bottle_id]} was successfully issued."
           print_and_redirect("/print_bottle_barcode/#{@new_stock_entry.id}", "/general_inventory/#{@item.gn_identifier}")

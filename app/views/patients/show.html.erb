@@ -439,12 +439,52 @@
       document.getElementById("dispensed_quantity").value = qty;
     }
 
-    function cancelDispense()
-    {
-      var barcodeTxt = document.getElementById("barcode");
-      barcodeTxt.value = "";
-      initializeListener();
-      hideLayer('shadow', 'dispenseForm')
+    function cancelDispense() {
+        // Hide the modal first
+        hideLayer('shadow', 'dispenseForm');
+
+        // Reset input fields
+        document.getElementById('dose').value = '';
+        document.getElementById('qty').value = '';
+
+        // Clear calculated quantity
+        document.getElementById('qtyDisp').innerHTML = '0';
+        document.getElementById('dispensed_quantity').value = '0';
+
+        // Clear displayed selections
+        document.getElementById('route_type').innerHTML = '';
+        document.getElementById('directionsDisp').innerHTML = '';
+
+        // Uncheck all radio buttons
+        ['doseType', 'administration', 'frequency'].forEach(name => {
+            document.getElementsByName(name).forEach(el => el.checked = false);
+        });
+
+        // Reset tab visibility
+        ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'].forEach(t => {
+            document.getElementById(t).style.display = 'none';
+            document.getElementById(t.replace('Div','Tab')).style.border = '1px outset silver';
+        });
+        // Show first tab
+        document.getElementById('routesDiv').style.display = '';
+        document.getElementById('routesTab').style.border = '2px solid #de0404';
+
+        // Reset buttons
+        var button = document.getElementById('dispNext');
+        button.setAttribute('onmousedown', "showDispenseDiv('routesDiv')");
+        button.innerHTML = '<%= t("forms.buttons.next") %>';
+
+        // Hide Clear button & warnings
+        document.getElementById('dispClear').style.display = 'none';
+        hideDispensationWarning();
+
+        // Reset barcode input
+        var barcodeTxt = document.getElementById("barcode");
+        barcodeTxt.value = "";
+        barcodeTxt.focus();
+
+        // Restart barcode listener
+        initializeListener();
     }
 
     function initializeListener()
@@ -453,7 +493,6 @@
       timerHand = setTimeout(function () {
         checkBarcode();
       }, 3000);
-
     }
 
     setTimeout(initializeListener(), 3000);
@@ -585,24 +624,6 @@
       document.getElementById("qtyDisp").innerHTML = qty;
       document.getElementById("dispensed_quantity").value = qty;
     }
-
-    // Function to clear current tab inputs
-    function clearCurrentTab() {
-      // Determine which tab is active
-      var doseDiv = document.getElementById('doseDiv');
-      var qtyDiv = document.getElementById('qtyDiv');
-
-      if(doseDiv.style.display !== 'none') {
-        document.getElementById('dose').value = '';
-        updateQuantity(); // refresh calculation
-      }
-
-      if(qtyDiv.style.display !== 'none') {
-        document.getElementById('qty').value = '';
-        setQuantity('qty'); // refresh calculation
-      }
-    }
-
 
     function getBottle(bottleId) {
       var xmlhttp = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
