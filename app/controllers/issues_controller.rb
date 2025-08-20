@@ -1,6 +1,7 @@
 class IssuesController < ApplicationController
   def new
     @bottle = params[:bottle]
+    @locations = Location.where.not(location_id: session[:location])
     render layout: 'touch'
   end
 

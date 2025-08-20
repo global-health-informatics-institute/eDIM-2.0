@@ -1,8 +1,11 @@
 class GeneralInventoryController < ApplicationController
 
   def index
-    @inventory = GeneralInventory.select("drug_id, sum(current_quantity) as current_quantity").where(
-                                          "location_id = ? and voided = ?",session[:location], false).group('drug_id').having("current_quantity > 0")
+    @inventory = GeneralInventory
+               .select("drug_id, sum(current_quantity) as current_quantity")
+               .where("voided = ?", false)
+               .group('drug_id')
+               .having("current_quantity > 0")
   end
 
   def new
@@ -143,14 +146,20 @@ class GeneralInventoryController < ApplicationController
   end
 
   def show
-    @item = GeneralInventory.find_by_gn_identifier_and_location_id(params[:id].to_s,session[:location])
+    # Fetch the inventory item by gn_identifier only, ignore session location
+    @item = GeneralInventory.find_by_gn_identifier(params[:id].to_s)
+
     if @item.blank?
-      flash[:errors] = "Item with ID #{params[:id]} not found at this location"
+      flash[:errors] = "Item with ID #{params[:id]} not found"
       redirect_to "/" and return
     end
 
-    if Location.find(session[:location]).name.match(/store/i)
-      @records = Issue.where(inventory_id: @item.gn_inventory_id)
+    # Load all transaction records for this inventory item
+    @records = Issue.where(inventory_id: @item.gn_inventory_id).order(issue_date: :desc)
+
+    # Show a notice if current session location doesn't match the item's location
+    if @item.location_id != session[:location]
+      flash.now[:notice] = "This item belongs to another location (#{Location.find(@item.location_id).name})"
     end
   end
 

@@ -1,18 +1,24 @@
 class LocationsController < ApplicationController
   def suggestions
-    workstation_id = LocationTag.select(:location_tag_id).where(name: 'workstation location').first
-    locations = workstation_id.location_tag_map.collect{|x| x.location_id}
-    names = Location.select(:name, :location_id).where("name LIKE '%#{params[:search_string]}%'
-                                                        AND location_id in (?)", locations).map do |v|
-      "<li value=\"#{v.location_id}\">#{v.name}</li>"
-    end
+    # Get the workstation location tag
+    workstation_tag = LocationTag.find_by(name: 'workstation location')
+    locations = workstation_tag.location_tag_map.pluck(:location_id) if workstation_tag
 
-    facilities= Location.select(:name,:location_id).where("name LIKE '%#{params[:search_string]}%' AND description = ?",
-                                                          'Health Centre , Public Health Facility').map do |v|
-      "<li value=\"#{v.location_id}\">#{v.name}</li>"
-    end
+    # Make sure search_string is a string
+    search = params[:search_string].to_s
 
-    render :text => names.join('') + facilities.join('')
+    # Filter workstation locations
+    names = Location.where(location_id: locations || [])
+    names = names.where("name LIKE ?", "%#{search}%") unless search.blank?
+    names = names.map { |loc| "<li value=\"#{loc.location_id}\">#{loc.name}</li>" }
+
+    # Filter health centres
+    facilities = Location.where(description: 'Health Centre , Public Health Facility')
+    facilities = facilities.where("name LIKE ?", "%#{search}%") unless search.blank?
+    facilities = facilities.map { |loc| "<li value=\"#{loc.location_id}\">#{loc.name}</li>" }
+
+    # Return combined list as plain text
+    render plain: (names + facilities).join('')
   end
 
   def search
