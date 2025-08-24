@@ -42,7 +42,7 @@
                         </div>
                         <div style="display: table-cell;vertical-align: middle;padding: 5px;">
                           <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
-                               onmousedown="window.location='/print_dispensation_label/<%= dispensation.rx_id %>'">
+                              onmousedown="window.location='/print_dispensation_label/<%= dispensation.rx_id.present? ? dispensation.rx_id : dispensation.id %>'">
                           <img style="float: right;" src="/assets/delete.png" title="Void Item"
                                onmousedown="confirmAction('/void_dispensation/<%= dispensation.id %>', 'Are you Sure?')">
                         </div>

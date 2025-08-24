@@ -132,17 +132,12 @@ class DispensationController < ApplicationController
         date
       )
     elsif Dispensation.exists?(params[:id])
-      # Dispensation-only mode (without prescription)
+      # Dispensation-only mode
       @dispensation = Dispensation.find(params[:id])
       date = l(@dispensation.dispensation_date, format: '%d %B %Y')
       
-      # Use the model method to get drug name
       drug_name = @dispensation.drug_name
-      
-      # Use the model method to get directions text
       directions = @dispensation.dispensation_dir
-      
-      # Get patient name
       patient_name = @dispensation.patient&.full_name || "Unknown Patient"
       
       print_string = Misc.create_dispensation_label(

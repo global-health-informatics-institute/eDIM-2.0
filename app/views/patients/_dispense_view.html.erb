@@ -18,7 +18,7 @@
                   </div>
                   <div style="display: table-cell;vertical-align: middle;padding: 5px;">
                     <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
-                         onmousedown="window.location='/print_dispensation_label/<%= dispensation[0].rx_id %>'">
+                      onmousedown="window.location='/print_dispensation_label/<%= dispensation[0].rx_id.present? ? dispensation[0].rx_id : dispensation[0].id %>'">
 
                     <img style="float: right;" src="/assets/delete.png" title="Void Item"
                          onmousedown="confirmAction('/void_dispensation/<%= dispensation[0].id %>', 'Are you sure you want to void dispensation for <%= dispensation[0].drug_name %> on <%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%> ?')">

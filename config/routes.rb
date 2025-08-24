@@ -58,6 +58,7 @@ Rails.application.routes.draw do
   ###################### Dispensation Controller ##############################
   get "/print_dispensation_label/:id" => "dispensation#print_dispensation_label"
   get "/void_dispensation/:id" => "dispensation#destroy"
+  
 
   ###################### Mobile Visit Controller ##############################
   get "/void_mobile_visit/:id" => "mobile_visit#destroy"
