@@ -1,5 +1,5 @@
 class DispensationController < ApplicationController
-    def create
+  def create
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
     return_path = params[:patient_id].present? ? "/patients/#{@patient.id}" : "/"
 
@@ -10,32 +10,52 @@ class DispensationController < ApplicationController
     end
 
     dispense_success = false
+    @new_prescription = nil
 
     begin
       GeneralInventory.transaction do
-        is_a_bottle = Misc.bottle_item(params[:administration], item.dose_form)
-        qty = is_a_bottle ? 1 : params[:quantity].to_i
-        amount_dispensed = [(item.current_quantity.to_i - qty >= -1 ? qty : item.current_quantity.to_i), 0].max
-        item.current_quantity -= amount_dispensed
+        # Compute how much we can dispense, safely
+        is_a_bottle   = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
+        qty_requested = is_a_bottle ? 1 : params[:quantity].to_i
+        current_qty   = item.current_quantity.to_i
+        amount_dispensed = [(current_qty - qty_requested >= 0 ? qty_requested : current_qty), 0].max
+
+        item.current_quantity = current_qty - amount_dispensed
         item.save!
 
-        @new_prescription = Prescription.create!( 
-          patient_id: @patient&.id,
-          drug_id: item.drug_id,
-          directions: Misc.create_directions(params[:dose], params[:administration], params[:frequency], params[:doseType]),
-          quantity: qty,
-          amount_dispensed: amount_dispensed,
-          provider_id: User.current.id,
-          date_prescribed: Time.current
-        )
+        # Decide mode: with prescription vs without
+        with_prescription =
+          params[:prescription_mode].to_s == 'with_prescription' ||
+          (params[:administration].present? && params[:frequency].present? && params[:doseType].present?)
+
+        rx_id = nil
+        if with_prescription
+          directions = Misc.create_directions(
+            params[:dose].to_s,
+            params[:administration].to_s,
+            params[:frequency].to_s,
+            params[:doseType].to_s
+          )
+
+          @new_prescription = Prescription.create!(
+            patient_id:       @patient&.id,
+            drug_id:          item.drug_id,
+            directions:       directions,
+            quantity:         qty_requested,
+            amount_dispensed: amount_dispensed,
+            provider_id:      User.current.id,
+            date_prescribed:  Time.current
+          )
+          rx_id = @new_prescription.id
+        end
 
         @dispensation = Dispensation.create!(
-          rx_id: @new_prescription.id,
-          inventory_id: item.gn_inventory_id,
-          patient_id: @new_prescription.patient_id,
-          quantity: amount_dispensed,
+          rx_id:             rx_id,         
+          inventory_id:      item.gn_inventory_id,
+          patient_id:        @patient&.id,
+          quantity:          amount_dispensed,
           dispensation_date: Time.current,
-          dispensed_by: User.current.id
+          dispensed_by:      User.current.id
         )
 
         dispense_success = true
@@ -46,11 +66,17 @@ class DispensationController < ApplicationController
     end
 
     if dispense_success
-      if @new_prescription.quantity <= @new_prescription.amount_dispensed
-        print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path) and return
+      if @new_prescription.present?
+        if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
+          print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path) and return
+        else
+          flash[:notice] = 'Insufficient quantity. Top up from another bottle'
+          redirect_to "/prescriptions/#{@new_prescription.id}" and return
+        end
       else
-        flash[:notice] = 'Insufficient quantity. Top up from another bottle'
-        redirect_to "/prescriptions/#{@new_prescription.id}" and return
+        # No prescription path
+        flash[:success] = 'Dispensed without prescription'
+        print_and_redirect("/print_dispensation_label/#{@dispensation.id}", return_path) and return
       end
     else
       redirect_to return_path and return
@@ -59,7 +85,6 @@ class DispensationController < ApplicationController
 
   def refill
     #Function to fill a prescription
-
     GeneralInventory.transaction do
       item = GeneralInventory.where("gn_identifier = ? ", params[:bottle_id]).lock(true).first
       qty = params[:quantity].to_i
@@ -71,8 +96,9 @@ class DispensationController < ApplicationController
 
       if item.errors.blank?
         @prescription = Prescription.find(params[:prescription])
-        @prescription.amount_dispensed += amount_dispensed
-        @prescription.save
+        @prescription.amount_dispensed = @prescription.amount_dispensed.to_i + amount_dispensed.to_i
+        @prescription.save!
+
 
         @dispensation = Dispensation.create({:rx_id => @prescription.id, :inventory_id => item.bottle_id,
                                              :patient_id => @prescription.patient_id, :quantity => amount_dispensed,
@@ -94,14 +120,47 @@ class DispensationController < ApplicationController
   end
 
   def print_dispensation_label
-    #This function prints bottle barcode labels for both inventory types
+    if Prescription.exists?(params[:id])
+      # Prescription mode
+      @prescription = Prescription.find(params[:id])
+      date = l(@prescription.date_prescribed, format: '%d %B %Y')
+      print_string = Misc.create_dispensation_label(
+        @prescription.drug_name,
+        @prescription.amount_dispensed,
+        @prescription.directions,
+        @prescription.patient_name,
+        date
+      )
+    elsif Dispensation.exists?(params[:id])
+      # Dispensation-only mode (without prescription)
+      @dispensation = Dispensation.find(params[:id])
+      date = l(@dispensation.dispensation_date, format: '%d %B %Y')
+      
+      # Use the model method to get drug name
+      drug_name = @dispensation.drug_name
+      
+      # Use the model method to get directions text
+      directions = @dispensation.dispensation_dir
+      
+      # Get patient name
+      patient_name = @dispensation.patient&.full_name || "Unknown Patient"
+      
+      print_string = Misc.create_dispensation_label(
+        drug_name,
+        @dispensation.quantity,
+        directions,
+        patient_name,
+        date
+      )
+    else
+      render plain: "Invalid label request", status: :not_found and return
+    end
 
-    @prescription = Prescription.find(params[:id])
-    date = l(@prescription.date_prescribed, format: '%d %B %Y')
-    print_string = Misc.create_dispensation_label(@prescription.drug_name,@prescription.amount_dispensed,
-                                              @prescription.directions, @prescription.patient_name, date)
-
-    send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{('a'..'z').to_a.shuffle[0,8].join}.lbl", :disposition => "inline")
+    send_data(print_string,
+              type: "application/label; charset=utf-8",
+              stream: false,
+              filename: "#{('a'..'z').to_a.shuffle[0,8].join}.lbl",
+              disposition: "inline")
   end
 
   def destroy
@@ -127,8 +186,8 @@ class DispensationController < ApplicationController
 
       if inventory.save
 
-        prescription.amount_dispensed += dispense_amount.to_i
-        prescription.save
+      prescription.amount_dispensed = prescription.amount_dispensed.to_i + dispense_amount.to_i
+      prescription.save!  
 
         dispensation = Dispensation.create({:rx_id => prescription.id, :inventory_id => inventory.bottle_id,
                                             :patient_id => prescription.patient_id, :quantity => dispense_amount,

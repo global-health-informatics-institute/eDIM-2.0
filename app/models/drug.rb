@@ -1,9 +1,18 @@
 class Drug < ActiveRecord::Base
   belongs_to :drug_category, :foreign_key =>  :drug_category_id
-  def ingredient
-    temp = self.name.downcase.gsub(self.dose_form.downcase, "")
-    return temp.gsub(self.dose_strength.downcase, "").squish
+def ingredient
+  temp = self.name.to_s.downcase
+
+  if self.dose_form.present?
+    temp = temp.gsub(self.dose_form.to_s.downcase, "")
   end
+
+  if self.dose_strength.present?
+    temp = temp.gsub(self.dose_strength.to_s.downcase, "")
+  end
+
+  temp.squish
+end
 
   def category
     return self.drug_category.category
