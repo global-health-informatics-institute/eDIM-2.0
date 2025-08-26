@@ -5,38 +5,54 @@ class IssuesController < ApplicationController
     render layout: 'touch'
   end
 
-  def edit
-
-  end
-
   def create
     GeneralInventory.transaction do
-      @item = GeneralInventory.where("gn_identifier = ? ", params[:bottle_id]).lock(true).first
-      @item.current_quantity = @item.current_quantity.to_i - params[:amount_issued].to_i
-      @item.save
+      # 1. Find source stock (backstore) and lock it
+      source_stock = GeneralInventory.where(
+        gn_identifier: params[:bottle_id],
+        location_id: session[:location]
+      ).lock(true).first
 
-      if @item.errors.blank?
-        @new_stock_entry = GeneralInventory.new
-        @new_stock_entry.drug_id = @item.drug_id
-        @new_stock_entry.current_quantity = params[:amount_issued]
-        @new_stock_entry.expiration_date = @item.expiration_date
-        @new_stock_entry.received_quantity = params[:amount_issued]
-        @new_stock_entry.date_received = Date.current
-        @new_stock_entry.location_id = Location.find_by_name(params[:location]).id
-        @new_stock_entry.save
+      issued_quantity = params[:amount_issued].to_i
 
-        new_issue = Issue.create( inventory_id: @item.id, location_id: session[:location],
-                                  issued_to: @new_stock_entry.location_id, issued_by: session[:user_id],
-                                  quantity: params[:amount_issued], issue_date: DateTime.current)
-        if @new_stock_entry.errors.blank?
-          flash[:success] = "#{params[:bottle_id]} was successfully issued."
-          print_and_redirect("/print_bottle_barcode/#{@new_stock_entry.id}", "/general_inventory/#{@item.gn_identifier}")
-        else
-          flash[:errors] = "Insufficient stock on hand"
-          redirect_to "/general_inventory/#{@item.gn_identifier}" and return
-        end
+      if source_stock.nil? || source_stock.current_quantity < issued_quantity
+        flash[:errors] = "Insufficient stock in source location"
+        redirect_to "/general_inventory/#{params[:bottle_id]}" and return
       end
+
+      # 2. Reduce backstore
+      source_stock.update!(current_quantity: source_stock.current_quantity - issued_quantity)
+
+      # 3. Find or create destination stock (same bottle, target location)
+      destination_stock = GeneralInventory.find_or_initialize_by(
+        gn_identifier: source_stock.gn_identifier,
+        location_id: Location.find_by(name: params[:location]).id,
+        drug_id: source_stock.drug_id
+      )
+      destination_stock.received_quantity ||= 0
+      destination_stock.current_quantity ||= 0
+      destination_stock.received_quantity += issued_quantity
+      destination_stock.current_quantity += issued_quantity
+      destination_stock.expiration_date ||= source_stock.expiration_date
+      destination_stock.date_received ||= Date.current
+      destination_stock.save!
+
+      # 4. Create Issue record linking source and destination
+      Issue.create!(
+        inventory_id: source_stock.id,
+        location_id: source_stock.location_id,
+        issued_to: destination_stock.location_id,
+        issued_by: session[:user_id],
+        quantity: issued_quantity,
+        issue_date: DateTime.current
+      )
+
+      flash[:success] = "#{source_stock.gn_identifier} was successfully issued."
+      print_and_redirect("/print_bottle_barcode/#{destination_stock.id}", "/general_inventory/#{source_stock.gn_identifier}")
     end
+  rescue => e
+    flash[:errors] = "Error issuing stock: #{e.message}"
+    redirect_to "/general_inventory/#{params[:bottle_id]}"
   end
 
   def update

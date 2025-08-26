@@ -1,11 +1,14 @@
 class GeneralInventoryController < ApplicationController
 
   def index
+    location_id = session[:location]
+
     @inventory = GeneralInventory
-               .select("drug_id, sum(current_quantity) as current_quantity")
-               .where("voided = ?", false)
-               .group('drug_id')
-               .having("current_quantity > 0")
+                  .where(voided: false, location_id: location_id)
+                  .joins(:drug => :drug_category)       # eager load
+                  .select('general_inventories.*, drugs.name AS drug_name, drug_categories.category AS drug_category_name')
+                  .group('general_inventories.drug_id')
+                  .having('SUM(general_inventories.current_quantity) > 0')
   end
 
   def new
@@ -132,10 +135,13 @@ class GeneralInventoryController < ApplicationController
     1.upto(7) { |i| rand_str << chars[rand(chars.size-1)] }
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{rand_str}.lbl", :disposition => "inline")
   end
-
+   
   def ajax_bottle
-    entry = GeneralInventory.includes(:drug).find_by_gn_identifier(params[:id])
-    if entry.blank? || entry.voided
+    entry = GeneralInventory
+              .includes(:drug)
+              .find_by(gn_identifier: params[:id], location_id: session[:location], voided: false)
+
+    if entry.blank?
       render plain: 'false'
     else
       render json: {
@@ -146,21 +152,22 @@ class GeneralInventoryController < ApplicationController
   end
 
   def show
-    # Fetch the inventory item by gn_identifier only, ignore session location
-    @item = GeneralInventory.find_by_gn_identifier(params[:id].to_s)
+    # Fetch the inventory item for the current location
+    @item = GeneralInventory.find_by(
+      gn_identifier: params[:id].to_s,
+      location_id: session[:location]
+    )
 
     if @item.blank?
-      flash[:errors] = "Item with ID #{params[:id]} not found"
+      flash[:errors] = "Item with ID #{params[:id]} not found in this location"
       redirect_to "/" and return
     end
 
-    # Load all transaction records for this inventory item
+    # Load all transaction records for this inventory item at this location
     @records = Issue.where(inventory_id: @item.gn_inventory_id).order(issue_date: :desc)
 
-    # Show a notice if current session location doesn't match the item's location
-    if @item.location_id != session[:location]
-      flash.now[:notice] = "This item belongs to another location (#{Location.find(@item.location_id).name})"
-    end
+    # Show the total issued quantity across all locations
+    # total_issued = Issue.where(inventory_id: GeneralInventory.where(gn_identifier: @item.gn_identifier).pluck(:gn_inventory_id)).sum(:quantity)
   end
 
   def list

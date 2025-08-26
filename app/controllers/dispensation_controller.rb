@@ -3,9 +3,14 @@ class DispensationController < ApplicationController
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
     return_path = params[:patient_id].present? ? "/patients/#{@patient.id}" : "/"
 
-    item = GeneralInventory.find_by(gn_identifier: params[:bottle_id])
+    # Find stock for current location (could be backstore or dispensary)
+    item = GeneralInventory.where(
+      gn_identifier: params[:bottle_id],
+      location_id: session[:location]
+    ).lock(true).first
+
     if item.blank?
-      flash[:errors] = "Bottle ID #{params[:bottle_id]} not found in general inventory"
+      flash[:errors] = "Bottle ID #{params[:bottle_id]} not found in general inventory for this location"
       redirect_to return_path and return
     end
 
@@ -14,16 +19,20 @@ class DispensationController < ApplicationController
 
     begin
       GeneralInventory.transaction do
-        # Compute how much we can dispense, safely
-        is_a_bottle   = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
+        # Determine requested quantity
+        is_a_bottle = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
         qty_requested = is_a_bottle ? 1 : params[:quantity].to_i
-        current_qty   = item.current_quantity.to_i
-        amount_dispensed = [(current_qty - qty_requested >= 0 ? qty_requested : current_qty), 0].max
+        amount_dispensed = [item.current_quantity.to_i, qty_requested].min
 
-        item.current_quantity = current_qty - amount_dispensed
-        item.save!
+        if amount_dispensed <= 0
+          flash[:errors] = "Insufficient stock in this location"
+          redirect_to return_path and return
+        end
 
-        # Decide mode: with prescription vs without
+        # Decrement current location stock
+        item.update!(current_quantity: item.current_quantity - amount_dispensed)
+
+        # Prescription logic
         with_prescription =
           params[:prescription_mode].to_s == 'with_prescription' ||
           (params[:administration].present? && params[:frequency].present? && params[:doseType].present?)
@@ -49,8 +58,9 @@ class DispensationController < ApplicationController
           rx_id = @new_prescription.id
         end
 
+        # Record dispensation (local to this location)
         @dispensation = Dispensation.create!(
-          rx_id:             rx_id,         
+          rx_id:             rx_id,
           inventory_id:      item.gn_inventory_id,
           patient_id:        @patient&.id,
           quantity:          amount_dispensed,
@@ -68,18 +78,17 @@ class DispensationController < ApplicationController
     if dispense_success
       if @new_prescription.present?
         if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
-          print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path) and return
+          print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
         else
           flash[:notice] = 'Insufficient quantity. Top up from another bottle'
-          redirect_to "/prescriptions/#{@new_prescription.id}" and return
+          redirect_to "/prescriptions/#{@new_prescription.id}"
         end
       else
-        # No prescription path
         flash[:success] = 'Dispensed without prescription'
-        print_and_redirect("/print_dispensation_label/#{@dispensation.id}", return_path) and return
+        print_and_redirect("/print_dispensation_label/#{@dispensation.id}", return_path)
       end
     else
-      redirect_to return_path and return
+      redirect_to return_path
     end
   end
 

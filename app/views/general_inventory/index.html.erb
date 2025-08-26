@@ -73,7 +73,7 @@
         <% (@inventory || []).each do |item| %>
             <tr>
               <td><%= item.drug_name.titleize rescue "" %></td>
-              <td><%= item.drug_category %></td>
+              <td><%= item.drug_category_name %></td>
               <td style="text-align: right;padding-right: 1vw;"><%= number_with_delimiter(item.current_quantity) %></td>
               <td style="text-align: center;">
                 <img style="" src="/assets/view_icon.png"  title="View item"
