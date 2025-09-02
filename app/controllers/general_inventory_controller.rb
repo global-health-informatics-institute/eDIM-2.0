@@ -11,10 +11,6 @@ class GeneralInventoryController < ApplicationController
                   .having('SUM(general_inventories.current_quantity) > 0')
   end
 
-  def new
-    render :layout => "touch"
-  end
-
   def edit
     if request.post?
       # Edit a new record for general inventory
@@ -42,53 +38,110 @@ class GeneralInventoryController < ApplicationController
       redirect_to "/" and return
 
     else
-      @item = GeneralInventory.find(params[:id])
+      dispensary_loc = Location.find_by_name("Dispensary")&.id
+      @is_dispensary = session[:location] == dispensary_loc
       render :layout => "touch"
     end
   end
 
+
+  def new
+    dispensary_loc = Location.find_by_name("Dispensary")&.id
+    @is_dispensary = session[:location] == dispensary_loc
+    @current_drug_categories = DrugCategory.all.pluck(:category)
+
+    render layout: "touch"
+  end
+
   def create
+    # Determine if current location is dispensary
+    dispensary_loc = Location.find_by_name("Dispensary")&.id
+    is_dispensary = session[:location] == dispensary_loc
 
-    # Create a new record for general inventory
-    #raise params.inspect
-    count = params['number_of_items'].to_i rescue 0
-    drug_id = Drug.find_by_name(params[:drug_name]).id rescue nil
-
-    if drug_id.blank?
-      flash[:errors] = "Item #{params[:drug_name]} was not found"
+    # Extract parameters from nested structure
+    inventory_params = params[:general_inventory] || {}
+    
+    # Find the drug
+    drug_name = inventory_params[:drug_name].to_s.strip
+    drug = Drug.find_by_name(drug_name)
+    if drug.nil?
+      flash[:errors] = "Item #{drug_name} was not found"
       redirect_to "/" and return
-    else
-      ids = []
+    end
+    drug_id = drug.id
 
-      GeneralInventory.transaction do
-        (0..count).each do |i|
-          @new_stock_entry = GeneralInventory.new
-          @new_stock_entry.drug_id = drug_id
-          @new_stock_entry.current_quantity = params[:amount_received]
-          @new_stock_entry.expiration_date = params[:expiry_date].to_date rescue nil
-          @new_stock_entry.received_quantity = params[:amount_received]
-          @new_stock_entry.date_received = Date.current
-          @new_stock_entry.location_id = session[:location]
-          @new_stock_entry.save
+    # Number of items to create (BACKSTORE) or iterations (DISPENSARY)
+    count = inventory_params[:number_of_items].to_i rescue 0
+    iterations = (0..count).size
 
-          if @new_stock_entry.errors.blank?
-            ids << @new_stock_entry.id
-          else
-            flash[:errors] = @new_stock_entry.errors.join(",")
-            redirect_to "/" and return
-          end
+    if is_dispensary
+      requested_qty = inventory_params[:amount_requested].to_s.strip.to_i
+      if requested_qty <= 0
+        flash[:errors] = "Quantity must be greater than 0"
+        redirect_to "/" and return
+      end
+
+      total_qty = requested_qty * iterations
+
+      Request.transaction do
+        request = Request.new(
+          drug_id:    drug_id,
+          location_id: session[:location],
+          quantity:   total_qty,
+          fulfilled:  false
+        )
+
+        unless request.save
+          flash[:errors] = request.errors.full_messages.join(", ")
+          redirect_to "/" and return
         end
       end
 
-      if ids.length > 1
-        flash[:success] = "#{ids.length} #{t('messages.items_of')} #{params[:drug_name]} #{t('messages.add_items_success')}."
-        print_and_redirect("/general_inventory/print_bottle_barcode?ids=#{ids.join(',')}", "/")
-      else
-        flash[:success] = "#{params[:drug_name]} #{t('messages.add_item_success')}."
-        print_and_redirect("/print_bottle_barcode/#{ids.first}", "/")
+      flash[:success] = "#{iterations} request(s) for #{drug_name} (total qty: #{total_qty}) submitted successfully."
+      redirect_to "/" and return
+    end
+
+    # BACKSTORE flow: use amount_received
+    received_qty = inventory_params[:amount_received].to_s.strip.to_i
+    if received_qty <= 0
+      flash[:errors] = "Quantity must be greater than 0"
+      redirect_to "/" and return
+    end
+
+    expiry_date = begin
+      inventory_params[:expiry_date].to_s.strip.presence&.to_date
+    rescue
+      nil
+    end
+
+    ids = []
+    GeneralInventory.transaction do
+      (0..count).each do |_i|
+        new_stock_entry = GeneralInventory.new(
+          drug_id:           drug_id,
+          current_quantity:  received_qty,
+          received_quantity: received_qty,
+          expiration_date:   expiry_date,
+          date_received:     Date.current,
+          location_id:       session[:location]
+        )
+
+        if new_stock_entry.save
+          ids << new_stock_entry.id
+        else
+          flash[:errors] = new_stock_entry.errors.full_messages.join(", ")
+          redirect_to "/" and return
+        end
       end
     end
 
+    if ids.length > 1
+      flash[:success] = "#{ids.length} #{t('messages.items_of')} #{drug_name} #{t('messages.add_items_success')}."
+      print_and_redirect("/general_inventory/print_bottle_barcode?ids=#{ids.join(',')}", "/")
+    else
+      flash[:success] = "#{drug_name} #{t('messages.add_item_success')}."
+      print_and_redirect("/print_bottle_barcode/#{ids.first}", "/")
+    end
   end
 
   def destroy
@@ -152,7 +205,6 @@ class GeneralInventoryController < ApplicationController
   end
 
   def show
-    # Fetch the inventory item for the current location
     @item = GeneralInventory.find_by(
       gn_identifier: params[:id].to_s,
       location_id: session[:location]

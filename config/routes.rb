@@ -83,6 +83,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :requests do
+    member do
+      post :fulfill
+    end
+  end
+
+
   resources :patients do
     collection do
       get 'given_names'
