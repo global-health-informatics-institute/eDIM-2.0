@@ -2,7 +2,10 @@
   var tt_cancel_destination = "/";
 
   function set_ajaxURL_for_suggestions(url, filter_value) {
-    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', url + filter_value + "&search_string=");
+    // Only call if a category is selected
+    if (!filter_value || filter_value.trim() === "") return;
+
+    $('touchscreenInput' + tstCurrentPage).setAttribute('ajaxURL', url + encodeURIComponent(filter_value) + "&search_string=");
     listSuggestions(tstCurrentPage);
   }
 </script>
@@ -12,9 +15,10 @@
     <tr>
       <td>Drug Category</td>
       <td>
+        <% categories_to_show = @is_dispensary ? @available_categories : @current_drug_categories %>
         <select style='width: 100%;' name='general_inventory[drug_category]' id='drug_category' helptext="<%= t('forms.labels.drug_category')%>" doublepane="false">
-          <% (current_drug_categories || []).each do |option| %>
-            <option value="<%= option%>"><%= option.titleize %></option>
+          <% (categories_to_show || []).each do |option| %>
+            <option value="<%= option %>"><%= option.titleize %></option>
           <% end %>
         </select>
       </td>
@@ -37,10 +41,13 @@
         <td>Amount Requested:</td>
         <td>
           <%= text_field_tag "general_inventory[amount_requested]", nil,
-                            {:id => 'amount_requested',
-                             :field_type => 'number',
-                             :helpText => t('forms.labels.amount_requested'),
-                             :tt_pageStyleClass => "NumbersOnly"} %>
+                            {
+                              id: 'amount_requested',
+                              field_type: 'number',
+                              helpText: t('forms.labels.amount_requested'),
+                              tt_pageStyleClass: "NumbersOnly",
+                              data: { available: 0 } # will set dynamically via JS
+                            } %>
         </td>
       </tr>
     <% else %>
@@ -93,6 +100,109 @@
 
   <%= submit_tag value="Submit"%>
 <% end %>
+
+<script>
+(function() {
+  const drugInput = document.getElementById('drug_name');
+  const amountInput = document.getElementById('amount_requested');
+  const labelCell = amountInput ? amountInput.closest('tr').querySelector('td:first-child') : null;
+  if (!drugInput || !amountInput || !labelCell) return;
+
+  // core fetch function (exposed globally so clicks can call it)
+  function fetchAvailableFor(drugName) {
+    if (!drugName || drugName.trim() === "") {
+      amountInput.dataset.available = 0;
+      amountInput.value = "";
+      amountInput.max = "";
+      labelCell.textContent = "Amount Requested:";
+      amountInput.setAttribute('helpText', 'Amount Requested');
+      return;
+    }
+
+    labelCell.textContent = "Amount Requested (checking backstore...)";
+    amountInput.setAttribute('helpText', 'Checking backstore...');
+
+    fetch('/drug/available_quantity?drug_name=' + encodeURIComponent(drugName))
+      .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(data => {
+        const available = parseInt(data.available || 0, 10);
+        amountInput.dataset.available = available;
+        amountInput.max = available;
+
+        const currentVal = parseInt(amountInput.value || 0, 10) || 0;
+        if (currentVal > available) amountInput.value = available;
+
+        // Correct: use innerHTML and the correct variable
+        labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${available}</span> available in backstore)`;
+        amountInput.setAttribute('helpText', `Enter Amount Requested (${available} available in backstore)`);
+        console.debug('available for', drugName, available);
+      })
+      .catch(err => {
+        console.error('Error fetching available_quantity:', err);
+        amountInput.dataset.available = 0;
+        amountInput.max = "";
+        labelCell.textContent = "Amount Requested:";
+        amountInput.setAttribute('helpText', 'Amount Requested');
+      });
+  }
+
+  // expose globally so click handlers can call it if needed
+  window.fetchAvailableFor = fetchAvailableFor;
+
+  // Debounced handlers (typing/blur/change fallback)
+  let inputTimer = null;
+  function scheduleFetch() {
+    clearTimeout(inputTimer);
+    inputTimer = setTimeout(() => fetchAvailableFor(drugInput.value), 250);
+  }
+  drugInput.addEventListener('input', scheduleFetch);
+  drugInput.addEventListener('change', scheduleFetch);
+  drugInput.addEventListener('blur', scheduleFetch);
+
+  // Delegate clicks on suggestion <li>s anywhere in document:
+  // Accept any <li> that has a value attribute (as your autocomplete outputs)
+  document.addEventListener('click', function(e) {
+    const li = e.target.closest('li[value]');
+    if (!li) return;
+
+    // put the chosen name into the input (mimic selection)
+    const chosen = li.getAttribute('value') || li.textContent;
+    drugInput.value = chosen;
+
+    // If the <li> contains data-qty, use it (fast path)
+    const dataQty = li.dataset && li.dataset.qty ? parseInt(li.dataset.qty, 10) : null;
+    if (Number.isFinite(dataQty)) {
+      amountInput.dataset.available = dataQty;
+      amountInput.max = dataQty;
+      labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${dataQty}</span> available in backstore)`;
+      amountInput.setAttribute('helpText', `Enter Amount Requested (${dataQty} available in backstore)`);
+      // clamp any value
+      const cur = parseInt(amountInput.value || 0, 10) || 0;
+      if (cur > dataQty) amountInput.value = dataQty;
+    } else {
+      // fallback: call server to get quantity
+      fetchAvailableFor(chosen);
+    }
+
+    // if your autocomplete needs a blur or focus to close suggestions, do it:
+    drugInput.focus();
+    // prevent default to avoid odd click behaviour
+    // (do not stopPropagation - keep event natural)
+  });
+
+  // Clamp numeric typing into amountInput
+  amountInput.addEventListener('input', function() {
+    const max = parseInt(amountInput.dataset.available || 0, 10) || 0;
+    const val = parseInt(amountInput.value || 0, 10) || 0;
+    if (val > max) amountInput.value = max;
+  });
+
+  // If input prefilled, initialize
+  if (drugInput.value && drugInput.value.trim() !== "") {
+    fetchAvailableFor(drugInput.value);
+  }
+})();
+</script>
 
 <script>
   if(document.getElementById("date")) {

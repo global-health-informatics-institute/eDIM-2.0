@@ -1,12 +1,46 @@
 class DrugController < ApplicationController
 
   def search
-    drugs = Drug.where("voided = ? and name like ? and drug_category_id = ? ", false, "%#{params[:search_string]}%",
-               DrugCategory.find_by_category(params[:filter_value]).id) rescue []
-    drug_names = drugs.map do |v|
-      "<li value='#{v.name.html_safe}'>#{v.name.html_safe}</li>"
+    category = DrugCategory.find_by_category(params[:filter_value])
+    return render html: "".html_safe if category.nil?
+
+    if in_dispensary?
+      drugs = Drug.joins(:general_inventories)
+                  .where(voided: false,
+                        drug_category_id: category.id,
+                        general_inventories: { location_id: 5, voided: false })
+                  .where("general_inventories.current_quantity > 0")
+                  .select("drugs.*, general_inventories.gn_identifier AS gi_gn_identifier, general_inventories.current_quantity AS gi_current_quantity")
+    else
+      drugs = Drug.where(voided: false, drug_category_id: category.id)
     end
-    render html: drug_names.join('').html_safe and return
+
+    if params[:search_string].present?
+      drugs = drugs.where("drugs.name LIKE ?", "%#{params[:search_string]}%")
+    end
+
+    # Build <li> with extra attributes if available
+    drug_items = drugs.map do |v|
+      gn = v.respond_to?(:gi_gn_identifier) ? v.gi_gn_identifier : ""
+      qty = v.respond_to?(:gi_current_quantity) ? v.gi_current_quantity : ""
+      "<li value='#{v.name}' data-gn='#{gn}' data-qty='#{qty}'>#{v.name}</li>"
+    end
+
+    render html: drug_items.join('').html_safe
+  end
+
+
+  private
+
+  # Detect dispensary
+  def in_dispensary?
+    dispensary = Location.find_by(name: "Dispensary")
+    session[:location].to_i == dispensary&.id.to_i
+  end
+
+  # Helper to get current location ID
+  def current_location_id
+    session[:location].to_i
   end
 
   def index
@@ -84,4 +118,27 @@ class DrugController < ApplicationController
     end
 
   end
+
+  # GET /drug/available_quantity
+    def available_quantity
+      drug_name = params[:drug_name].to_s.strip
+      backstore_location = Location.find_by_name("Backstore")&.id || 5
+
+      if drug_name.blank?
+        render json: { available: 0 } and return
+      end
+
+      # case-insensitive exact match (safer than loose LIKE)
+      drug = Drug.where("LOWER(name) = ?", drug_name.downcase).first
+
+      if drug
+        # Sum current_quantity for this drug in the backstore (ignore other locations)
+        available = GeneralInventory.where(drug_id: drug.id, location_id: backstore_location, voided: false)
+                                    .sum(:current_quantity)
+        render json: { available: available, drug_id: drug.id }
+      else
+        render json: { available: 0 }
+      end
+    end
+
 end

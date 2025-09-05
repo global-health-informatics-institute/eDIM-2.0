@@ -39,6 +39,9 @@ Rails.application.routes.draw do
   get "/print_bottle_barcode/:id" => "general_inventory#print_bottle_barcode"
   get "/ajax_bottle/:id" => "general_inventory#ajax_bottle"
   get "/general_inventory/print_bottle_barcode"
+  
+  get "/requested_items", to: "general_inventory#requested", as: :requested_items
+  post '/requests/:id/fulfill', to: 'requests#fulfill', as: :fulfill_request
 
   ###################### User Controller #############################
   get "/username_availability" => "user#username_availability"
@@ -65,6 +68,10 @@ Rails.application.routes.draw do
 
   ###################### Mobile Visit Product Controller ######################
   get "/void_mobile_visit_product/:id" => "mobile_visit_product#destroy"
+  
+  ###################### Drugs Controller ##############################
+  get '/drug/available_quantity', to: 'drug#available_quantity'
+
 
   resources :mobile_visit
   resources :mobile_visit_product
@@ -73,6 +80,11 @@ Rails.application.routes.draw do
   resources :drug
   resources :patient_identifiers
 
+  resources :drug, only: [:index, :new, :create, :edit, :destroy] do
+    collection do
+      get :available_quantity
+    end
+  end
 
   resources :general_inventory do
     post 'pre_packing'

@@ -44,38 +44,67 @@ class GeneralInventoryController < ApplicationController
     end
   end
 
-
   def new
     dispensary_loc = Location.find_by_name("Dispensary")&.id
     @is_dispensary = session[:location] == dispensary_loc
-    @current_drug_categories = DrugCategory.all.pluck(:category)
+
+    if @is_dispensary
+      backstore_location = Location.find_by_name("Backstore")&.id || 5
+
+      # Only load categories
+      @available_categories = GeneralInventory
+                                .joins(drug: :drug_category)
+                                .where(location_id: backstore_location, voided: false)
+                                .where("current_quantity > 0")
+                                .distinct
+                                .pluck("drug_categories.category")
+                                .sort
+
+      # NEW: If drug_id is passed, get its total available
+      if params[:drug_id].present?
+        @available_quantity = GeneralInventory
+                                .where(location_id: backstore_location, voided: false, drug_id: params[:drug_id])
+                                .sum(:current_quantity)
+      else
+        @available_quantity = nil
+      end
+    else
+      @current_drug_categories = DrugCategory.all.pluck(:category)
+    end
 
     render layout: "touch"
   end
 
   def create
-    # Determine if current location is dispensary
     dispensary_loc = Location.find_by_name("Dispensary")&.id
     is_dispensary = session[:location] == dispensary_loc
 
-    # Extract parameters from nested structure
     inventory_params = params[:general_inventory] || {}
-    
-    # Find the drug
-    drug_name = inventory_params[:drug_name].to_s.strip
-    drug = Drug.find_by_name(drug_name)
-    if drug.nil?
-      flash[:errors] = "Item #{drug_name} was not found"
-      redirect_to "/" and return
-    end
-    drug_id = drug.id
 
-    # Number of items to create (BACKSTORE) or iterations (DISPENSARY)
+    drug_name     = inventory_params[:drug_name].to_s.strip
+    drug_category = inventory_params[:drug_category].to_s.strip
+
+    # For backstore additions, do NOT join general_inventories
+    drug = Drug.joins(:drug_category)
+              .where(
+                name: drug_name,
+                drug_categories: { category: drug_category }
+              )
+              .first
+
+    if drug.nil?
+      flash[:errors] = "The selected drug could not be found"
+      redirect_to("/") and return
+    end
+
+    drug_id = drug.drug_id
+
     count = inventory_params[:number_of_items].to_i rescue 0
     iterations = (0..count).size
 
     if is_dispensary
       requested_qty = inventory_params[:amount_requested].to_s.strip.to_i
+
       if requested_qty <= 0
         flash[:errors] = "Quantity must be greater than 0"
         redirect_to "/" and return
@@ -83,25 +112,30 @@ class GeneralInventoryController < ApplicationController
 
       total_qty = requested_qty * iterations
 
-      Request.transaction do
-        request = Request.new(
-          drug_id:    drug_id,
-          location_id: session[:location],
-          quantity:   total_qty,
-          fulfilled:  false
-        )
+      begin
+        Request.transaction do
+          request = Request.new(
+            drug_id:   drug_id,
+            location_id: session[:location],
+            quantity:  total_qty,
+            fulfilled: false
+          )
 
-        unless request.save
-          flash[:errors] = request.errors.full_messages.join(", ")
-          redirect_to "/" and return
+          unless request.save
+            raise ActiveRecord::Rollback, request.errors.full_messages.join(", ")
+          end
         end
-      end
 
-      flash[:success] = "#{iterations} request(s) for #{drug_name} (total qty: #{total_qty}) submitted successfully."
-      redirect_to "/" and return
+        flash[:success] = "#{iterations} request(s) for #{drug_name} (total qty: #{total_qty}) submitted successfully."
+        redirect_to "/" and return
+
+      rescue => e
+        flash[:errors] = "Failed to submit request: #{e.message}"
+        redirect_to "/" and return
+      end
     end
 
-    # BACKSTORE flow: use amount_received
+    # BACKSTORE flow: insert new general inventory entries
     received_qty = inventory_params[:amount_received].to_s.strip.to_i
     if received_qty <= 0
       flash[:errors] = "Quantity must be greater than 0"
@@ -143,6 +177,7 @@ class GeneralInventoryController < ApplicationController
       print_and_redirect("/print_bottle_barcode/#{ids.first}", "/")
     end
   end
+
 
   def destroy
     #Delete an item from general inventory

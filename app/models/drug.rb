@@ -1,5 +1,6 @@
 class Drug < ActiveRecord::Base
   belongs_to :drug_category, :foreign_key =>  :drug_category_id
+  has_many :general_inventories, foreign_key: :drug_id
 def ingredient
   temp = self.name.to_s.downcase
 

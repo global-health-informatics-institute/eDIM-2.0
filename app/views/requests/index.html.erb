@@ -1,0 +1,115 @@
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+<style type="text/css">
+  .even {
+    background-color: #CCCCCC !important;
+  }
+  th, td {
+    font-size: 1.7em;
+  }
+</style>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#requestsTable').DataTable({
+      "bLengthChange": false,
+      "bDestroy": true,
+      "pageLength": 10,
+      "searching": false,
+      "language": {
+        "lengthMenu": "Display _MENU_ records per page",
+        "zeroRecords": I18n.t('forms.labels.nothing_found'),
+        "info": I18n.t('forms.labels.tbl_pages'),
+        "infoEmpty": "No records available",
+        "infoFiltered": I18n.t('forms.labels.filtered'),
+        "oPaginate": {
+          "sNext": I18n.t('forms.buttons.next'),
+          "sPrevious": I18n.t('forms.buttons.previous')
+        }
+      }
+    });
+  });
+</script>
+
+<!-- Page header -->
+<div style="height: 6vh; border: 1px inset black; border-width: 0px 0px 3px 0px;">
+  <h1 style="margin-left: 0.5vw;">
+    Requests (<%= Location.find(session[:location]).name %>)
+  </h1>
+</div>
+
+<!-- Table container -->
+<div style="height: 78vh; overflow: auto; width: 99vw; margin-left: auto; margin-right: auto;">
+  <table id="requestsTable" class="table table-striped table-bordered" style="width: 98.5vw; font-size: 1.2em;" cellspacing="0">
+    <thead>
+      <tr style="height: 60px; text-align: center; vertical-align: middle;">
+        <th>#</th>
+        <th>Drug</th>
+        <th>Quantity Requested</th>
+        <th>Request Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (@requests || []).each_with_index do |request, index| %>
+        <tr style="text-align: center; height: 70px; vertical-align: middle;">
+          <td><%= index + 1 %></td>
+          <td><%= request.drug.name %></td>
+          <td><%= request.quantity %></td>
+          <td><%= request.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          <td style="text-align: center;">
+            <% unless request.fulfilled %>
+              <%= link_to "/requests/#{request.id}/fulfill",
+                          method: :post,
+                          style: "
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            border: 2px solid gray;
+                            color: gray;
+                            font-weight: bold;
+                            font-size: 1.1em;
+                            padding: 6px 12px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            gap: 4px;
+                            text-decoration: none;
+                          " do %>
+                <img src='/assets/tick_icon.png' style='width:24px;height:24px;' />
+                Issue
+              <% end %>
+            <% else %>
+              <span style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid green;
+                color: green;
+                font-weight: bold;
+                font-size: 1.1em;
+                padding: 6px 12px;
+                border-radius: 6px;
+                gap: 4px;
+              ">
+                <img src='/assets/tick_icon.png' style='width:16px;height:16px;' />
+                Fulfilled
+              </span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Footer buttons -->
+<div class="footer">
+  <!-- Cancel button far left -->
+  <button onmousedown="window.location='/'" class="nav-bttn red" style="margin-left: 1vw; float: left;">
+    Cancel
+  </button>
+
+  <!-- Finish button far right -->
+  <button onmousedown="window.location='/'" class="nav-bttn green" style="margin-right: 1vw; float: right;">
+    <%= t('forms.buttons.finish') %>
+  </button>
+</div>

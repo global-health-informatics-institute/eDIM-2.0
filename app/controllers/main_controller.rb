@@ -1,4 +1,21 @@
 class MainController < ApplicationController
+  
+  
+  before_action :set_pending_requests_count, only: [:index]
+
+  private
+
+  def set_pending_requests_count
+    backstore = Location.find_by(name: "Backstore")
+
+    if session[:location] == backstore&.location_id
+      @pending_requests_count = Request.where(fulfilled: false).count
+    else
+      @pending_requests_count = Request.where(location_id: session[:location], fulfilled: false).count
+    end
+  end
+
+  
   def index
   end
 
