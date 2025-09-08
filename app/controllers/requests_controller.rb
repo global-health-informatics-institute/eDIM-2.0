@@ -40,14 +40,12 @@ class RequestsController < ApplicationController
     end
   end
 
-  # Step 1: Redirect to issuing form
   def fulfill
     request = Request.find(params[:id])
     redirect_to new_issue_path(drug_id: request.drug_id, request_id: request.id)
   end
 
   # Step 2: Complete issuing from issuing form
-  # Params expected: request_id, gn_identifier, quantity_to_issue
   def complete_issue
     request = Request.find(params[:request_id])
     issue_qty = params[:quantity].to_i
@@ -87,8 +85,8 @@ class RequestsController < ApplicationController
         # Create Issue record
         Issue.create!(
           inventory_id: bottle.id,
-          location_id: bottle.location_id,
-          issued_to: dest_stock.location_id,
+          location_id: source_location_id,
+          issued_to: request.location_id,
           issued_by: session[:user_id],
           quantity: to_issue,
           issue_date: DateTime.current

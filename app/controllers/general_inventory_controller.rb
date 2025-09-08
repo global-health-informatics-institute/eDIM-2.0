@@ -76,6 +76,29 @@ class GeneralInventoryController < ApplicationController
   end
 
   def create
+
+    if params[:general_inventory] && params[:general_inventory][:amount_requested].present?
+      requested = params[:general_inventory][:amount_requested].to_i
+      drug_name = params[:general_inventory][:drug_name].to_s.strip
+      category_name = params[:general_inventory][:drug_category].to_s.strip
+
+      # find drug (matching your existing lookup style)
+      drug = Drug.joins(:drug_category)
+                .where("drugs.name = ? AND drug_categories.category = ?", drug_name, category_name)
+                .first
+
+      if drug
+        backstore_id = Location.find_by_name("Backstore")&.id || 5
+        available = GeneralInventory.where(drug_id: drug.id, location_id: backstore_id, voided: false)
+                                    .sum(:current_quantity).to_i
+
+        if requested > available
+          flash[:errors] = "You cannot request more than #{available} units."
+          redirect_to new_general_inventory_path and return
+        end
+      end
+    end
+
     dispensary_loc = Location.find_by_name("Dispensary")&.id
     is_dispensary = session[:location] == dispensary_loc
 
@@ -110,15 +133,24 @@ class GeneralInventoryController < ApplicationController
         redirect_to "/" and return
       end
 
-      total_qty = requested_qty * iterations
+      total_qty = requested_qty * (count > 0 ? count : 1)
+
+      # get oldest inventory entry from backstore to copy gn_identifier
+      backstore_id = Location.find_by_name("Backstore")&.id || 5
+      inventory_entry = GeneralInventory.where(drug_id: drug.id, location_id: backstore_id, voided: false)
+                                        .order(:date_received)
+                                        .first
+
+      gn_identifier = inventory_entry&.gn_identifier
 
       begin
         Request.transaction do
           request = Request.new(
-            drug_id:   drug_id,
-            location_id: session[:location],
-            quantity:  total_qty,
-            fulfilled: false
+            drug_id:      drug_id,
+            location_id:  session[:location],
+            quantity:     total_qty,
+            fulfilled:    false,
+            gn_identifier: gn_identifier
           )
 
           unless request.save
@@ -126,8 +158,10 @@ class GeneralInventoryController < ApplicationController
           end
         end
 
-        flash[:success] = "#{iterations} request(s) for #{drug_name} (total qty: #{total_qty}) submitted successfully."
+        num_requests = count > 0 ? count : 1
+        flash[:success] = "#{num_requests} request(s) for #{drug_name} (total qty: #{total_qty}) submitted successfully."
         redirect_to "/" and return
+
 
       rescue => e
         flash[:errors] = "Failed to submit request: #{e.message}"
@@ -157,7 +191,8 @@ class GeneralInventoryController < ApplicationController
           received_quantity: received_qty,
           expiration_date:   expiry_date,
           date_received:     Date.current,
-          location_id:       session[:location]
+          location_id:       session[:location],
+          #gn_identifier:     gn_identifier(drug_id)
         )
 
         if new_stock_entry.save
@@ -177,7 +212,6 @@ class GeneralInventoryController < ApplicationController
       print_and_redirect("/print_bottle_barcode/#{ids.first}", "/")
     end
   end
-
 
   def destroy
     #Delete an item from general inventory

@@ -101,7 +101,6 @@ Rails.application.routes.draw do
     end
   end
 
-
   resources :patients do
     collection do
       get 'given_names'
