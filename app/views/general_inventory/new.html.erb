@@ -168,8 +168,8 @@
         const currentVal = parseInt(amountInput.value || 0, 10) || 0;
         if (currentVal > available) amountInput.value = available;
 
-        labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${available}</span> available in backstore)`;
-        amountInput.setAttribute('helpText', `Enter Amount Requested (${available} available in backstore)`);
+        labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${available} bottles </span> available in backstore)`;
+        amountInput.setAttribute('helpText', `Enter Amount Requested (${available} bottles available in backstore)`);
         console.debug('available for', drugName, available);
       })
       .catch(err => {
@@ -208,8 +208,8 @@
     if (Number.isFinite(dataQty)) {
       amountInput.dataset.available = dataQty;
       amountInput.removeAttribute('max');
-      labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${dataQty}</span> available in backstore)`;
-      amountInput.setAttribute('helpText', `Enter Amount Requested (<span style="color:red;">${dataQty}</span> available in backstore)`);
+      labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${dataQty} bottle(s) </span>  available in backstore)`;
+      amountInput.setAttribute('helpText', `Enter Amount Requested (<span style="color:red;">${dataQty} bottle(s) </span>  available in backstore)`);
       // clamp any value
       const cur = parseInt(amountInput.value || 0, 10) || 0;
       if (cur > dataQty) amountInput.value = dataQty;
@@ -218,7 +218,6 @@
       fetchAvailableFor(chosen);
     }
 
-    // if your autocomplete needs a blur or focus to close suggestions, do it:
     drugInput.focus();
   });
 

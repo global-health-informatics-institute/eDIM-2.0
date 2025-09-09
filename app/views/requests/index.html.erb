@@ -54,7 +54,7 @@
         <tr style="text-align: center; height: 70px; vertical-align: middle;">
           <td><%= index + 1 %></td>
           <td><%= request.drug.name %></td>
-          <td><%= request.quantity %></td>
+          <td><%= request.quantity_remaining %></td>
           <td><%= request.created_at.strftime("%Y-%m-%d %H:%M") %></td>
           <td style="text-align: center;">
             <% unless request.fulfilled %>

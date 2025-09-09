@@ -9,15 +9,14 @@
     <div onmousedown="window.location='/select_report?type=dispensation'" style="display: table-cell;text-align: center;">
       <img src="/assets/disp_rpt.png">
     </div>
-<!--
-    <div onmousedown="window.location='/select_report?type=prescription'" style="display: table-cell;text-align: center;">
-      <img src="/assets/report.png">
+    <div onmousedown="window.location='/requests/select'" style="display: table-cell;text-align: center;">
+      <img src="/assets/request_report.png" style="width: 64px; height: 64px;">
     </div>
-//-->
-    <div onmousedown="window.location='/main/settings'"style="display: table-cell;text-align: center;">
+    <div onmousedown="window.location='/main/settings'" style="display: table-cell;text-align: center;">
       <img src="/assets/settings.png">
     </div>
   </div>
+
   <div style="display: table-row">
     <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.request_item') %>
@@ -28,11 +27,9 @@
     <div onmousedown="window.location='/select_report?type=dispensation'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.dispensation_rpt') %>
     </div>
-<!--
-    <div onmousedown="window.location='/select_report?type=prescription'" style="display: table-cell;text-align: center;font-size: 1.4em;">
-      <%= t('menu.terms.prescription_rpt') %>
+    <div onmousedown="window.location='/requests/select'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.requests_report') %>
     </div>
-//-->
     <div onmousedown="window.location='/main/settings'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.settings') %>
     </div>

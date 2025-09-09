@@ -1,0 +1,177 @@
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+
+<style type="text/css">
+  /* Table styling */
+  #generalInventory {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 1.5em;
+    background-color: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  }
+
+  /* Add visible vertical & horizontal lines */
+  #generalInventory th, #generalInventory td {
+    border: 1px solid #e2e2e2;
+    padding: 12px 15px;
+  }
+
+  #generalInventory thead th {
+    font-weight: normal;
+    background-color: #708090;
+    color: #000000;
+    text-align: left;
+  }
+
+  /* Right-align numeric columns */
+  #generalInventory td:nth-child(2),
+  #generalInventory td:nth-child(3),
+  #generalInventory td:nth-child(4) {
+    text-align: right;
+    padding-right: 20px;
+  }
+
+  #generalInventory tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  /* Alternate row shading - stronger color */
+  #generalInventory tbody tr:nth-child(even) {
+      background-color: #cccccc;
+  }
+
+  #generalInventory tbody tr:hover {
+      background-color: #cce6ff;
+  }
+
+  /* Search input */
+  #search {
+    font-size: 1.2em;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    width: 30%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  h1 {
+    margin: 0.5vw 0;
+  }
+
+  .footer {
+    margin-top: 15px;
+    text-align: right;
+  }
+
+  .nav-bttn.green {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+  }
+
+  .nav-bttn.green:hover {
+    background: #218838;
+  }
+</style>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#generalInventory').DataTable({
+      "bLengthChange": false,
+      "bDestroy": true,
+      "pageLength": 10,
+      "language": {
+        "search": I18n.t('forms.labels.search'),
+        "zeroRecords": I18n.t('forms.labels.nothing_found'),
+        "info": I18n.t('forms.labels.tbl_pages'),
+        "infoEmpty": "No records available",
+        "infoFiltered": I18n.t('forms.labels.filtered'),
+        "oPaginate": {
+          "sNext": I18n.t('forms.buttons.next'),
+          "sPrevious": I18n.t('forms.buttons.previous')
+        }
+      },
+      "columnDefs": [
+        { "width": "25%", "targets": 0 }, 
+        { "width": "10%", "targets": [1,2,3] },
+        { "width": "15%", "targets": [4,5,6] }
+      ]
+    });
+
+    let search_box = $('#generalInventory').dataTable();
+    let search = document.getElementsByTagName("input")[0];
+    search.setAttribute("id", "search");
+    search.setAttribute("onclick", "showKeyboard();");
+    showAlphaKeypad();
+    setTimeout(initializeListener, 3000);
+  });
+
+  function initializeListener() {
+    let barcode = document.getElementById("search");
+    barcode.focus();
+    setTimeout(function() {
+      barcode.value = barcode.value.trim().replace(/\$/, "").replace(/\-/,"");
+    }, 3000);
+  }
+</script>
+
+<div style="height: 10vh; border-bottom: 3px solid #ccc;">
+  <h1><%= @report_type.titleize %></h1>
+</div>
+
+<div style="height: 75vh; overflow: auto; width: 98vw; margin: auto;">
+  <table id="generalInventory" class="display">
+    <thead>
+      <tr>
+        <th>Drug</th>
+        <th>Amount Requested</th>
+        <th>Amount Received</th>
+        <th>Remaining</th>
+        <th>Requested Date</th>
+        <th>Received Date</th>
+      </tr>
+    </thead>
+
+      <tbody>
+        <% if (@records || []).any? %>
+          <% @records.each do |req| %>
+            <tr>
+              <td><%= req.drug.name %></td>
+              <td><%= number_with_delimiter(req.quantity) %></td>
+              <td><%= number_with_delimiter(req.quantity_received || 0) %></td>
+              <td><%= number_with_delimiter(req.quantity_remaining) %></td>
+              <td><%= l(req.created_at, format: "%d %b %Y") %>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%= l(req.created_at, format: "%H:%M") %></td>
+              <td>
+                <% if req.quantity_received.to_i > 0 %>
+                  <%= l(req.updated_at, format: "%d %b %Y") %>&nbsp;&nbsp;&nbsp;<%= l(req.updated_at, format: "%H:%M") %>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="7" style="text-align: center">
+              No records found
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+  </table>
+</div>
+
+<div class="footer" >
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw;float: right;">
+    <%= t('forms.buttons.finish')%></button>
+</div>
+
+<div id="keypad">
+  <span class="keypad"></span>
+</div>

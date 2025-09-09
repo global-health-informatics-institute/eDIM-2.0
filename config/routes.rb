@@ -72,6 +72,13 @@ Rails.application.routes.draw do
   ###################### Drugs Controller ##############################
   get '/drug/available_quantity', to: 'drug#available_quantity'
 
+  # New Requests Report routes
+  get  'requests/select', to: 'requests#select',  as: 'select_requests_report'
+  post 'requests/report', to: 'requests#report',  as: 'requests_report'
+
+  # Optional
+  get  'requests/list',   to: 'requests#list',    as: 'requests_list'
+
 
   resources :mobile_visit
   resources :mobile_visit_product
@@ -79,6 +86,19 @@ Rails.application.routes.draw do
   resources :prescriptions
   resources :drug
   resources :patient_identifiers
+
+  resources :requests do
+    collection do
+      get :select
+    end
+  end
+
+  resources :requests do
+    member do
+      get :fulfill       
+      post :complete_issue
+    end
+  end
 
   resources :drug, only: [:index, :new, :create, :edit, :destroy] do
     collection do

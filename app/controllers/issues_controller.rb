@@ -33,13 +33,13 @@ class IssuesController < ApplicationController
       redirect_to "/issues/new?drug_id=#{request.drug_id}&request_id=#{request.id}" and return
     end
 
-    dest_stock = nil  # define here
+    dest_stock = nil
 
     ActiveRecord::Base.transaction do
       # Deduct from Backstore
       source_stock.update!(current_quantity: source_stock.current_quantity - issued_quantity)
 
-      # Add to destination (same bottle, target location)
+      # Add to destination
       dest_stock = GeneralInventory.find_or_initialize_by(
         gn_identifier: source_stock.gn_identifier,
         location_id: target_location.id,
@@ -63,13 +63,20 @@ class IssuesController < ApplicationController
         issue_date: DateTime.current
       )
 
-      # Mark request as fulfilled
-      request.update!(
-        gn_identifier: source_stock.gn_identifier,
-        fulfilled: true,
-        fulfilled_at: DateTime.current,
-        fulfilled_by: session[:user_id]
-      )
+      # Ensure quantity_received is incremented properly
+      request.with_lock do
+        request.quantity_received ||= 0
+        request.quantity_received += issued_quantity
+
+        # Mark as fulfilled if total issued >= requested quantity
+        if request.quantity_received >= request.quantity
+          request.fulfilled = true
+          request.fulfilled_at = DateTime.current
+          request.fulfilled_by = session[:user_id]
+        end
+
+        request.save!
+      end
     end
 
     flash[:success] = "#{issued_quantity} units of #{request.drug.name} issued successfully."

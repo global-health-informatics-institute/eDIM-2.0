@@ -82,7 +82,7 @@ class GeneralInventoryController < ApplicationController
       drug_name = params[:general_inventory][:drug_name].to_s.strip
       category_name = params[:general_inventory][:drug_category].to_s.strip
 
-      # find drug (matching your existing lookup style)
+      # lookup to find drug
       drug = Drug.joins(:drug_category)
                 .where("drugs.name = ? AND drug_categories.category = ?", drug_name, category_name)
                 .first
@@ -107,7 +107,7 @@ class GeneralInventoryController < ApplicationController
     drug_name     = inventory_params[:drug_name].to_s.strip
     drug_category = inventory_params[:drug_category].to_s.strip
 
-    # For backstore additions, do NOT join general_inventories
+    # Backstore additions
     drug = Drug.joins(:drug_category)
               .where(
                 name: drug_name,
@@ -192,7 +192,6 @@ class GeneralInventoryController < ApplicationController
           expiration_date:   expiry_date,
           date_received:     Date.current,
           location_id:       session[:location],
-          #gn_identifier:     gn_identifier(drug_id)
         )
 
         if new_stock_entry.save
@@ -215,7 +214,6 @@ class GeneralInventoryController < ApplicationController
 
   def destroy
     #Delete an item from general inventory
-
     item = GeneralInventory.void_item(params[:id])
     if item.blank?
       flash[:errors]= "Item with bottle id #{params[:general_inventory][:gn_id]} could not be found"
@@ -242,7 +240,6 @@ class GeneralInventoryController < ApplicationController
     #This function prints bottle barcode labels for both inventory types
     id = params[:ids].split(',') rescue params[:id]
     entry = GeneralInventory.find(id)
-#    raise params[:id].inspect
     if entry.is_a?(Array)
       print_string = ""
       (entry || []).each do |bottle|
@@ -288,7 +285,6 @@ class GeneralInventoryController < ApplicationController
     @records = Issue.where(inventory_id: @item.gn_inventory_id).order(issue_date: :desc)
 
     # Show the total issued quantity across all locations
-    # total_issued = Issue.where(inventory_id: GeneralInventory.where(gn_identifier: @item.gn_identifier).pluck(:gn_inventory_id)).sum(:quantity)
   end
 
   def list

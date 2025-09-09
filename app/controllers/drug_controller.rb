@@ -119,7 +119,7 @@ class DrugController < ApplicationController
 
   end
 
-  # GET /drug/available_quantity
+  # GET drug avaiable quantity
     def available_quantity
       drug_name = params[:drug_name].to_s.strip
       backstore_location = Location.find_by_name("Backstore")&.id || 5
@@ -128,11 +128,11 @@ class DrugController < ApplicationController
         render json: { available: 0 } and return
       end
 
-      # case-insensitive exact match (safer than loose LIKE)
+      # case-insensitive exact match
       drug = Drug.where("LOWER(name) = ?", drug_name.downcase).first
 
       if drug
-        # Sum current_quantity for this drug in the backstore (ignore other locations)
+        # Sum current_quantity for this drug in the backstore
         available = GeneralInventory.where(drug_id: drug.id, location_id: backstore_location, voided: false)
                                     .sum(:current_quantity)
         render json: { available: available, drug_id: drug.id }

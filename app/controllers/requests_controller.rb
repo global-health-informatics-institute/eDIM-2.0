@@ -45,7 +45,12 @@ class RequestsController < ApplicationController
     redirect_to new_issue_path(drug_id: request.drug_id, request_id: request.id)
   end
 
-  # Step 2: Complete issuing from issuing form
+  def select
+    locations = GeneralInventory.where(gn_inventory_id: Issue.all.pluck(:inventory_id)).pluck(:location_id)
+    @locations = ['All Locations'] + Location.where(location_id: locations.uniq).pluck(:name)
+    render layout: 'touch'
+  end
+
   def complete_issue
     request = Request.find(params[:request_id])
     issue_qty = params[:quantity].to_i
@@ -60,6 +65,7 @@ class RequestsController < ApplicationController
     remaining_qty = issue_qty
 
     ActiveRecord::Base.transaction do
+      issued_total = 0
       available_bottles.each do |bottle|
         break if remaining_qty <= 0
 
@@ -93,12 +99,14 @@ class RequestsController < ApplicationController
         )
 
         remaining_qty -= to_issue
+        issued_total += to_issue  # Track issued quantity
       end
 
       if remaining_qty > 0
         raise ActiveRecord::Rollback, "Insufficient stock to fulfill request"
       else
         request.update!(
+          quantity_received: issued_total,   # update actual issued amount
           fulfilled: true,
           fulfilled_at: Time.now,
           fulfilled_by: session[:user_id]
@@ -111,6 +119,73 @@ class RequestsController < ApplicationController
   rescue => e
     flash[:error] = "Error: #{e.message}"
     redirect_to requests_path
+  end
+
+  def report
+    # Determine date range
+    start_date, end_date = case params[:report_duration]
+    when t('forms.options.daily')
+      [params[:start_date].to_date.beginning_of_day, params[:start_date].to_date.end_of_day]
+    when t('forms.options.weekly')
+      [params[:start_date].to_date.beginning_of_week, params[:start_date].to_date.end_of_week]
+    when t('forms.options.monthly')
+      [params[:start_date].to_date.beginning_of_month, params[:start_date].to_date.end_of_month]
+    when t('forms.options.range')
+      [params[:start_date].to_date.beginning_of_day, params[:end_date].to_date.end_of_day]
+    else
+      [Date.today.beginning_of_day, Date.today.end_of_day]
+    end
+
+    # If logged in location is not backstore, use session location automatically
+    if Location.find(session[:location]).name.downcase != "backstore"
+      selected_locations = [session[:location]]
+    else
+      selected_locations = params[:locations] || ['All Locations']
+    end
+
+    # Save filters in session
+    session[:report_filter] = {
+      start_date: start_date,
+      end_date: end_date,
+      locations: selected_locations,
+      report_duration: params[:report_duration]
+    }
+
+    redirect_to requests_list_path
+  end
+
+  def list
+    filters = session[:report_filter] || {}
+    start_date = filters[:start_date] || Date.today.beginning_of_day
+    end_date   = filters[:end_date] || Date.today.end_of_day
+    locations  = filters[:locations] || ['All Locations']
+    duration   = filters[:report_duration]
+
+    # Set report title
+    @report_type = case duration
+                   when t('forms.options.daily')
+                     "Requests Report for #{l(start_date.to_date, format:'%d %B, %Y')}"
+                   when t('forms.options.weekly')
+                     "Requests Report from #{l(start_date.to_date.beginning_of_week, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date.end_of_week, format:'%d %B, %Y')}"
+                   when t('forms.options.monthly')
+                     "Requests Report for #{l(start_date.to_date, format:'%B %Y')}"
+                   when t('forms.options.range')
+                     "Requests Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format:'%d %B, %Y')}"
+                   else
+                     "Requests Report for #{l(Date.today, format:'%d %B, %Y')}"
+                   end
+
+    # Fetch records based on location filter
+    if locations.include?('All Locations')
+      @records = Request.includes(:drug, :fulfilled_by_user, :location)
+                        .where(created_at: start_date..end_date)
+    else
+      location_ids = Location.where(name: locations).pluck(:location_id)
+      @records = Request.includes(:drug, :fulfilled_by_user, :location)
+                        .where(created_at: start_date..end_date, location_id: location_ids)
+    end
+
+    render 'list', layout: 'application'
   end
 
   private
