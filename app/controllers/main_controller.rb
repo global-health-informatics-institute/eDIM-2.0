@@ -22,19 +22,6 @@ class MainController < ApplicationController
   def settings
   end
 
-  def select_report
-    case params[:type]
-      when 'prescription'
-        @path = '/main/prescription_report'
-      when 'dispensation'
-        @path = '/main/dispensation_report'
-      when 'storeroom'
-        @path = '/main/stores_report'
-        locations = GeneralInventory.where(gn_inventory_id: Issue.all.pluck(:inventory_id)).pluck(:location_id)
-        @locations = ['All Locations'] + Location.where(location_id: locations.uniq).pluck(:name)
-    end
-    render :layout => "touch"
-  end
 
   def dispensation_report
     case params[:report_duration]

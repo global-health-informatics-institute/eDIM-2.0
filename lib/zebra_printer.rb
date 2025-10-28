@@ -27,18 +27,18 @@ module ZebraPrinter #:nodoc:
       @gap = '018'
       @orientation = orientation || 'T'
       @number_of_labels = number_of_labels || nil
-      @left_margin = 30
+      @left_margin = 150
       @right_margin = 25
       @top_margin = 30
       @bottom_margin = 26
-      @line_spacing = 6
+      @line_spacing = 8
       @column_count = 1
       @content_width = @width - (@left_margin + @right_margin)
       @content_height = @height - (@top_margin + @bottom_margin)
       @column_width = @content_width
       @column_height = @content_height
       @column_spacing = 0
-      @font_size = 1
+      @font_size = 4
       @font_horizontal_multiplier = 1
       @font_vertical_multiplier = 1
       @font_reverse = false
@@ -46,7 +46,7 @@ module ZebraPrinter #:nodoc:
       header
     end
     
-    # Create a new label from a template (hash)
+    # Create a new label from a template
     def self.from_template(params, values = nil)
       label = Label.new(params[:width], params[:height], params[:orientation]) 
       (params[:fields] || []).each {|field|
@@ -319,6 +319,5 @@ module ZebraPrinter #:nodoc:
       super(dimensions.first, dimensions.last, 'T')
     end
   end
-
   
 end

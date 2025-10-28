@@ -167,6 +167,53 @@ class DispensationController < ApplicationController
               disposition: "inline")
   end
 
+  def list
+    # Determine date range and report type
+    case params[:report_duration]
+    when t('forms.options.daily')
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = params[:start_date].to_date.end_of_day
+      @report_type = "Dispensation Report for #{l(start_date, format: '%d %B, %Y')}"
+
+    when t('forms.options.weekly')
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = (start_date + 6.days).end_of_day
+      @report_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
+
+    when t('forms.options.monthly')
+      start_date = params[:start_date].to_date.beginning_of_month.beginning_of_day
+      end_date   = params[:start_date].to_date.end_of_month.end_of_day
+      @report_type = "Dispensation Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
+
+    when t('forms.options.range')
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = params[:end_date].to_date.end_of_day
+      @report_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
+      
+    else
+      # default: today
+      start_date = Date.today.beginning_of_day
+      end_date   = Date.today.end_of_day
+      @report_type = "Dispensation Report for #{l(Date.today, format: '%d %B, %Y')}"
+    end
+
+    # Fetch dispensations for date range and location
+    # Using associations instead of joins
+    @records = Dispensation
+             .where(dispensation_date: start_date..end_date, voided: false)
+             #.where(patient_id: Patient.where(location_id: session[:location]).select(:patient_id))
+             .order(dispensation_date: :desc)
+
+    # Render the list
+    render :list, layout: 'touch'
+  end
+
+  def select
+    # In dispensary: always just show the current location
+    @locations = [Location.find(session[:location])&.name].compact
+    render layout: 'touch'
+  end
+
   def destroy
     #Delete an dispensation
     dispensation = Dispensation.void(params[:id])

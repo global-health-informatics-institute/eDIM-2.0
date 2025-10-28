@@ -1,0 +1,119 @@
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+
+<style type="text/css">
+  .even {
+    background-color: #CCCCCC !important;
+  }
+  th, td {
+    font-size: 1.7em;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .footer {
+    margin-top: 20px;
+    text-align: right;
+    padding: 12px;
+  }
+  .nav-bttn.green {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+  }
+  .nav-bttn.green:hover {
+    background: #218838;
+  }
+  .nav-bttn.red {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+  }
+  .nav-bttn.red:hover {
+    background: #c82333;
+  }
+</style>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    setTimeout(function() {
+      $('#dispensationTable').DataTable({
+        "bLengthChange": false,
+        "bDestroy": true,
+        "pageLength": 10,
+        "scrollX": true,
+        "autoWidth": false,
+        "language": {
+          "search": "Search",
+          "zeroRecords": "Nothing found",
+          "info": "Page _PAGE_ of _PAGES_",
+          "infoEmpty": "No records available",
+          "infoFiltered": "(filtered from _MAX_ total records)",
+          "oPaginate": { "sNext": "Next", "sPrevious": "Previous" }
+        },
+        "columnDefs": [
+          { "width": "5%", "targets": 0 },
+          { "width": "25%", "targets": 1 },
+          { "width": "15%", "targets": 2 },
+          { "width": "20%", "targets": 3 },
+          { "width": "20%", "targets": 4 },
+          { "width": "15%", "targets": 5 }
+        ]
+      });
+    }, 50);
+  });
+</script>
+
+<!-- Page header -->
+<div style="height: 6vh; border: 1px inset black; border-width: 0px 0px 3px 0px;">
+  <h1 style="margin-left: 0.5vw;">
+    <%= @report_type.titleize %>
+  </h1>
+</div>
+
+<!-- Table container -->
+<div style="height: 78vh; overflow: auto; width: 99vw; margin-left: auto; margin-right: auto;">
+  <table id="dispensationTable" class="table table-striped table-bordered" style="width: 98.5vw;" cellspacing="0">
+    <thead>
+      <tr style="height: 60px;">
+        <th>#</th>
+        <th>Drug</th>
+        <th>Quantity</th>
+        <th>Patient</th>
+        <th>Dispensed By</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (@records || []).each_with_index do |d, index| %>
+        <tr style="height: 70px;">
+          <td><%= index + 1 %></td>
+          <td><%= d.drug_name %></td>
+          <td style="text-align:right;"><%= number_with_delimiter(d.quantity) %></td>
+          <td><%= d.patient&.full_name || 'Unknown' %></td>
+          <td><%= d.dispensed_by_name %></td>
+          <td><%= l(d.dispensation_date, format: '%d %B %Y') %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Footer buttons -->
+<div class="footer">
+  <!-- Cancel button far left -->
+  <button onmousedown="window.location='/'" class="nav-bttn red" style="margin-left: 1vw; float: left;">
+    Cancel
+  </button>
+
+  <!-- Finish button far right -->
+  <button onmousedown="window.location='/'" class="nav-bttn green" style="margin-right: 1vw; float: right;">
+    <%= t('forms.buttons.finish') %>
+  </button>
+</div>

@@ -4,31 +4,19 @@ class DrugController < ApplicationController
     category = DrugCategory.find_by_category(params[:filter_value])
     return render html: "".html_safe if category.nil?
 
-    if in_dispensary?
-      drugs = Drug.joins(:general_inventories)
-                  .where(voided: false,
-                        drug_category_id: category.id,
-                        general_inventories: { location_id: 5, voided: false })
-                  .where("general_inventories.current_quantity > 0")
-                  .select("drugs.*, general_inventories.gn_identifier AS gi_gn_identifier, general_inventories.current_quantity AS gi_current_quantity")
-    else
-      drugs = Drug.where(voided: false, drug_category_id: category.id)
-    end
+    # For both dispensary add and backstore add: return all drugs in the category
+    drugs = Drug.where(voided: false, drug_category_id: category.id)
 
     if params[:search_string].present?
       drugs = drugs.where("drugs.name LIKE ?", "%#{params[:search_string]}%")
     end
 
-    # Build <li> with extra attributes if available
     drug_items = drugs.map do |v|
-      gn = v.respond_to?(:gi_gn_identifier) ? v.gi_gn_identifier : ""
-      qty = v.respond_to?(:gi_current_quantity) ? v.gi_current_quantity : ""
-      "<li value='#{v.name}' data-gn='#{gn}' data-qty='#{qty}'>#{v.name}</li>"
+      "<li value='#{v.name}'>#{v.name}</li>"
     end
 
     render html: drug_items.join('').html_safe
   end
-
 
   private
 

@@ -47,11 +47,13 @@ class GeneralInventoryController < ApplicationController
   def new
     dispensary_loc = Location.find_by_name("Dispensary")&.id
     @is_dispensary = session[:location] == dispensary_loc
+    backstore_location = Location.find_by_name("Backstore")&.id || 5
 
-    if @is_dispensary
-      backstore_location = Location.find_by_name("Backstore")&.id || 5
+    # detect if this is "Add Drug" from dispensary menu
+    @dispensary_add_mode = params[:add_mode] == "true"
 
-      # Only load categories
+    if @is_dispensary && !@dispensary_add_mode
+      # DISPENSARY normal request flow: only items with stock at Backstore
       @available_categories = GeneralInventory
                                 .joins(drug: :drug_category)
                                 .where(location_id: backstore_location, voided: false)
@@ -60,16 +62,30 @@ class GeneralInventoryController < ApplicationController
                                 .pluck("drug_categories.category")
                                 .sort
 
-      # NEW: If drug_id is passed, get its total available
-      if params[:drug_id].present?
-        @available_quantity = GeneralInventory
-                                .where(location_id: backstore_location, voided: false, drug_id: params[:drug_id])
-                                .sum(:current_quantity)
+      if params[:drug_category].present?
+        @available_drugs = GeneralInventory
+                              .joins(drug: :drug_category)
+                              .where(location_id: backstore_location, voided: false)
+                              .where("current_quantity > 0")
+                              .where("drug_categories.category = ?", params[:drug_category])
+                              .distinct
+                              .pluck("drugs.name")
+                              .sort
       else
-        @available_quantity = nil
+        @available_drugs = []
       end
     else
-      @current_drug_categories = DrugCategory.all.pluck(:category)
+      # BACKSTORE add OR DISPENSARY add: show all categories and all drugs in selected category
+      @available_categories = DrugCategory.all.pluck(:category).sort
+
+      if params[:drug_category].present?
+        @available_drugs = Drug.joins(:drug_category)
+                              .where(drug_categories: { category: params[:drug_category] })
+                              .pluck(:name)
+                              .sort
+      else
+        @available_drugs = []
+      end
     end
 
     render layout: "touch"
@@ -125,7 +141,9 @@ class GeneralInventoryController < ApplicationController
     count = inventory_params[:number_of_items].to_i rescue 0
     iterations = (0..count).size
 
-    if is_dispensary
+    mode = inventory_params[:mode] || 'request'
+
+    if is_dispensary && mode == 'request'
       requested_qty = inventory_params[:amount_requested].to_s.strip.to_i
 
       if requested_qty <= 0

@@ -22,20 +22,41 @@ module Misc
     return checkdigit
   end
 
-  def self.create_bottle_label(item,bottle_id,expiration_date,qty = nil)
-
+  def self.create_bottle_label(item, bottle_id, expiration_date, qty = nil)
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 4
     label.font_horizontal_multiplier = 1
     label.font_vertical_multiplier = 1
-    label.left_margin = 50
-    label.draw_barcode(610,30,1,1,2,4,80,false,"#{bottle_id}")
-    label.draw_multi_text("#{item}", {:column_width => 520})
-    label.draw_multi_text("Inventory #: #{Misc.dash_formatter(bottle_id)}",{:column_width => 520})
-    label.draw_multi_text("Quantity : #{qty}",{:column_width => 520}) if !qty.blank?
-    label.draw_multi_text("Exp : #{expiration_date.strftime('%m/%Y')}", {:column_width => 520})
-    label.print(1)
+    label.left_margin = 10
 
+    label_width = 609       
+    text_x = 50              
+    column_width = 500       
+    current_y = 30           
+
+    # Draw text lines
+    label.draw_multi_text("#{item}", column_width: column_width, x: text_x, y: current_y)
+    current_y += 40
+
+    label.draw_multi_text("Inventory #: #{Misc.dash_formatter(bottle_id)}", column_width: column_width, x: text_x, y: current_y)
+    current_y += 40
+
+    if qty.present?
+      label.draw_multi_text("Quantity: #{qty}", column_width: column_width, x: text_x, y: current_y)
+      current_y += 40
+    end
+
+    label.draw_multi_text("Exp: #{expiration_date.strftime('%m/%Y')}", column_width: column_width, x: text_x, y: current_y)
+    current_y += 60
+
+    # Center the barcode under the text
+    barcode_width_est = 200  
+    barcode_x = (label_width - barcode_width_est) / 2
+
+    # Draw barcode
+    label.draw_barcode(barcode_x, current_y, 0, 1, 3, 5, 100, false, "#{bottle_id}")
+
+    label.print(1)
   end
 
   def self.create_dispensation_label(item,quantity,directions,patient_name,date)
@@ -44,14 +65,14 @@ module Misc
     label.font_size = 4
     label.font_horizontal_multiplier = 1
     label.font_vertical_multiplier = 1
-    label.left_margin = 50
+    label.left_margin = 10
     #label.draw_text("Rx:#{rx_id}",450,10,0,4,1,1,true)
     #label.draw_multi_text("#{Misc.get_facility_name}",{:column_width => 570})
-    label.draw_multi_text("Patient: #{patient_name}",{:column_width => 570}) if !patient_name.blank?
-    label.draw_multi_text("#{item}",{:column_width => 570})
-    label.draw_multi_text("Dir : #{directions}",{:column_width => 570})
-    label.draw_multi_text("QTY : #{quantity}",{:column_width => 570})
-    label.draw_multi_text("#{date}",{:column_width => 570})
+    label.draw_multi_text("Patient: #{patient_name}",{:column_width => 2700}) if !patient_name.blank?
+    label.draw_multi_text("Drug: #{item}",{:column_width => 2700})
+    label.draw_multi_text("Dir : #{directions}",{:column_width => 2700})
+    label.draw_multi_text("QTY : #{quantity}",{:column_width => 2700})
+    label.draw_multi_text("Date: #{date}",{:column_width => 2700})
     label.print(1)
 
   end
@@ -127,13 +148,50 @@ module Misc
 
   def self.print_location(location_id)
     location = Location.find(location_id)
-    label = ZebraPrinter::Label.new(801,329,'026',false)
+
+    # label width in dots
+    label_width = 801
+    label = ZebraPrinter::Label.new(label_width, 329, '026', false)
+
+    # font setup
     label.font_size = 2
     label.font_horizontal_multiplier = 2
     label.font_vertical_multiplier = 2
-    label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{location.location_id}")
-    label.draw_multi_text("#{location.name}")
+
+    # barcode position
+    barcode_x = 200
+    barcode_y = 120
+    barcode_height = 120
+
+    # draw barcode
+    label.draw_barcode(barcode_x, barcode_y, 0, 1, 5, 15, barcode_height, false, "#{location.location_id}")
+
+    # text setup
+    text = location.name.to_s.strip
+    font_unit = label.font_size * label.font_horizontal_multiplier * 6
+    text_px_est = text.length * font_unit
+
+    # calculate barcode center and align text with it
+    barcode_center_x = barcode_x + (400 / 2) # adjust 400 based on your barcode width visually
+    x_center = barcode_center_x - (text_px_est / 2)
+    x_center = 10 if x_center < 10
+
+    # text above the barcode
+    text_y = barcode_y - 60  # move up (adjust for spacing)
+    text_y = 10 if text_y < 10
+
+    # draw text centered above barcode
+    label.draw_text(
+      text,
+      x_center.to_i,
+      text_y,
+      0,
+      label.font_size,
+      label.font_horizontal_multiplier,
+      label.font_vertical_multiplier,
+      false
+    )
+
     label.print(1)
   end
 

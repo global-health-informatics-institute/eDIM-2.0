@@ -3,6 +3,7 @@ class Dispensation < ActiveRecord::Base
   belongs_to :prescription, foreign_key: :rx_id, optional: true
   belongs_to :general_inventory, foreign_key: :inventory_id, optional: true
   belongs_to :user, foreign_key: 'dispensed_by'
+  belongs_to :location
 
   def drug_name
     prescription&.drug_name || general_inventory&.drug_name || "Unknown drug"
@@ -11,6 +12,11 @@ class Dispensation < ActiveRecord::Base
   # Directions if prescription exists, otherwise fallback text
   def dispensation_dir
     prescription&.directions.presence || "Dispensed without prescription"
+  end
+
+  # Return the full name of the user who dispensed
+  def dispensed_by_name
+    user&.display_name || 'Unknown'
   end
 
   # Voiding a dispensation should restore inventory and adjust prescription

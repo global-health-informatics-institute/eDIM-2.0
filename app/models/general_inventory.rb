@@ -1,21 +1,15 @@
 class GeneralInventory < ActiveRecord::Base
-  belongs_to :drug, :foreign_key => :drug_id
+  belongs_to :drug, foreign_key: :drug_id
   before_create :complete_record
+  after_create  :reorder_gn_sequence_for_drug
 
-  validates :expiration_date, :presence => true
-  validates :date_received, :presence => true
-  validates :received_quantity, :presence => true
-  validates :current_quantity, :presence => true
-  validates :received_quantity, :numericality => { :only_integer => true }
-  validates :received_quantity, :numericality => { :greater_than => -1 }
-  validates :current_quantity, :numericality => { :only_integer => true }
-  validates :current_quantity, :numericality => { :greater_than => -1 }
+  validates :expiration_date, :date_received, :received_quantity, :current_quantity, presence: true
+  validates :received_quantity, :current_quantity, numericality: { only_integer: true, greater_than: -1 }
   validates_associated :drug
 
   include Misc
 
   def drug_name
-    #this method handles the need to access the drug name associated to the inventory entry
     self.drug.name.humanize.gsub(/\b('?[a-z])/) { $1.capitalize } rescue ""
   end
 
@@ -24,35 +18,49 @@ class GeneralInventory < ActiveRecord::Base
   end
 
   def bottle_id
-    return self.gn_identifier
+    self.gn_identifier
   end
 
   def self.void_item(bottle_id)
-    item = GeneralInventory.find(bottle_id)
-    unless item.blank?
-      item.voided = true
-      item.void_reason = "Unspecified"
-      item.save
-      return item
-    end
+    item = GeneralInventory.find_by(id: bottle_id)
+    return false if item.blank?
 
-    return false
+    item.update(voided: true, void_reason: "Unspecified")
+    item
   end
 
   def dose_form
     self.drug.dose_form
   end
+
   private
 
   def complete_record
-    self.current_quantity = self.received_quantity
-    self.date_received = Date.current
-    self.created_by = User.current.id
-    unless !self.gn_identifier.blank?
-      last_id = GeneralInventory.order(gn_inventory_id: :desc).first.id rescue "0"
-      next_number = (last_id.to_i+1).to_s.rjust(6,"0")
+    self.current_quantity ||= self.received_quantity
+    self.date_received    ||= Date.current
+    self.created_by       ||= User.current.id
+
+    existing_entries = GeneralInventory.where(drug_id: self.drug_id)
+                                       .order(:expiration_date, :gn_inventory_id)
+
+    if existing_entries.present?
+      # Reuse the base gn_identifier of the first existing bottle
+      self.gn_identifier = existing_entries.first.gn_identifier
+    else
+      # First time this drug is added → generate a new base identifier
+      last_id = GeneralInventory.order(gn_inventory_id: :desc).pick(:gn_inventory_id).to_i rescue 0
+      next_number = (last_id + 1).to_s.rjust(6, "0")
       check_digit = calculate_check_digit(next_number)
       self.gn_identifier = "G#{next_number}#{check_digit}"
+    end
+  end
+
+  def reorder_gn_sequence_for_drug
+    entries = GeneralInventory.where(drug_id: self.drug_id)
+                              .order(:expiration_date, :gn_inventory_id)
+
+    entries.each_with_index do |entry, index|
+      entry.update_column(:gn_sequence, format('%04d', index + 1))
     end
   end
 end

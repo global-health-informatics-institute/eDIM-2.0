@@ -6,12 +6,29 @@ class ApplicationController < ActionController::Base
   helper_method :current_user
 
   def print_and_redirect(print_url, redirect_url, message = "Printing label ...", show_next_button = false, patient_id = nil)
-    #Function handles redirects when printing labels
     @print_url = print_url
     @redirect_url = redirect_url
-    @message = t('messages.printing_wait')
+    @message = message
     @show_next_button = show_next_button
-    render :layout => false
+
+    render html: <<-HTML.html_safe
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Printing...</title>
+        <meta charset="UTF-8">
+      </head>
+      <body>
+        <p>#{@message}</p>
+        <iframe src="#{@print_url}" style="display:none;"></iframe>
+        <script type="text/javascript">
+          setTimeout(function() {
+            window.location = "#{@redirect_url}";
+          }, 1000); // adjust delay if needed
+        </script>
+      </body>
+      </html>
+    HTML
   end
 
   def current_user

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_09_01_073655) do
+ActiveRecord::Schema[7.0].define(version: 2025_09_09_192142) do
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -677,6 +677,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_01_073655) do
   create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
     t.integer "drug_id"
     t.string "gn_identifier"
+    t.integer "gn_sequence", default: 1, null: false
     t.date "expiration_date"
     t.date "date_received"
     t.integer "received_quantity", default: 0
@@ -1814,7 +1815,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_01_073655) do
   create_table "requests", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "drug_id", null: false
     t.integer "location_id", null: false
+    t.string "gn_identifier", limit: 20
     t.integer "quantity", null: false
+    t.integer "quantity_received", default: 0
     t.boolean "fulfilled", default: false
     t.datetime "fulfilled_at"
     t.integer "fulfilled_by"

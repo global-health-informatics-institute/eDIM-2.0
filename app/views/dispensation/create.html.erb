@@ -1,98 +1,103 @@
-<html>
-<style>
-  body{
-    font-family: "Nimbus Sans L", "Arial Narrow", sans-serif;
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+
+<style type="text/css">
+  .even {
+    background-color: #CCCCCC !important;
   }
 
+  input, label {
+    margin-top: 3px;
+    font-size: 1.7em;
+  }
 
-  <% if @show_next_button %>
-  .page_button {
-    display:block;
-    font-size: 0.8em;
-    color: black;
-    background-color: lightgray;
-    margin: 15px;
-    border: 3px outset gray;
-    -moz-user-select:none;
-    width: 100px;
-    height: 70px;
+  th, td {
+    font-size: 1.7em;
     text-align: center;
   }
 
-  #filing_info {
-    font-size:25px;
-    -moz-user-select:none;
+  .footer {
+    height: 10vh;
+    padding: 1em;
   }
-  #patients_info_div{
-    left:28px;
-    position:absolute;
-    top:0px;
-    font-size:17;
-    -moz-user-select:none;
-  }
-  td , th {
-    text-align:center;
-    border: 20px solid white;
-    padding: 10px;
-  }
-
-  .filing_instraction {
-    text-align:left;
-  }
-
-  .old_label {
-    background-color:#FFFF99;
-  }
-
-  .new_label {
-    background-color:lightgreen;
-  }
-
-  .active_heading {
-    background-color:black;
-    color:white;
-  }
-
-  #footer {
-    background-color: #333333;
-    bottom: 0;
-    color: #CADCEA;
-    height: 80px;
-    overflow: hidden;
-    padding-right: 20px;
-    position: absolute;
-    width: 98%;
-  }
-
-  <%end%>
 </style>
 
-<script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#dispensationTable').DataTable({
+      "bLengthChange": false,
+      "bDestroy": true,
+      "pageLength": 5,
+      "language": {
+        "search": I18n.t('forms.labels.search'),
+        "lengthMenu": "Display _MENU_ records per page",
+        "zeroRecords": I18n.t('forms.labels.nothing_found'),
+        "info": I18n.t('forms.labels.tbl_pages'),
+        "infoEmpty": "No records available",
+        "infoFiltered": I18n.t('forms.labels.filtered'),
+        "oPaginate": {
+          "sNext": I18n.t('forms.buttons.next'),
+          "sPrevious": I18n.t('forms.buttons.previous')
+        }
+      }
+    });
 
+    var search = document.getElementsByTagName("input")[0];
+    search.setAttribute("id", "search");
+    search.setAttribute("onclick", "showKeyboard();");
+    showAlphaKeypad();
 
-  function done() {
-    document.location = "<%=@redirect_url%>"
+    setTimeout(initializeListener(), 3000);
+  });
+
+  function initializeListener() {
+    var barcode = document.getElementById("search");
+    barcode.focus();
+    setTimeout(function() {
+      barcode.value = barcode.value.trim().replace(/\$/, "").replace(/\-/, "");
+    }, 3000);
   }
 </script>
 
+<div style="height: 75vh; overflow: auto; width: 98vw; margin-left: auto; margin-right: auto;">
+  <table id="dispensationTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th><%= t('menu.terms.item') %></th>
+        <th>Amount Issued</th>
+        <th>Issued To</th>
+        <th>Issued By</th>
+        <th><%= t('menu.terms.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (@records || []).each do |disp| %>
+        <tr>
+          <td><%= disp.drug_name %></td>
+          <td style="text-align: right;"><%= number_with_delimiter(disp.quantity) %></td>
+          <td><%= disp.location_issued_to %></td>
+          <td><%= disp.issuer %></td>
+          <td>
+            <div style="display: inline-block; min-width: 8vw;">
+              <img src="/assets/edit.png" title="Edit Record" 
+                   onmousedown="window.location='/dispensation/<%= disp.id %>/edit'">
+            </div>
+            <div style="display: inline-block; min-width: 8vw;">
+              <img src="/assets/delete.png" title="Void Record" 
+                   onmousedown="confirmAction('/dispensation/<%= disp.id %>/delete', 'Are you sure you want to void this transaction?')">
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
 
+<div class="footer">
+  <button onmousedown="window.location='/'" class="nav-bttn green" style="float: right;">
+    <%= t('forms.buttons.finish') %>
+  </button>
+</div>
 
-<% if not @show_next_button %>
-    <body>
-    <br/><br/><br/>
-    <center><h1><%=h @message %></h1></center>
-    <iframe src="<%= @print_url %>" style='display:none'></iframe>
-    </body>
-    <script>
-      setTimeout(redirect, 3000);
-      function redirect(){
-        document.location = '<%= @redirect_url %>'
-      }
-    </script>
-<%else%>
-    <body onload="setAttributes();">
-    <%=@message%>
-    <iframe src="/" style='display:none'></iframe>
-    </body>
-<%end%>
-</html>
+<div id="keypad">
+  <span class="keypad"></span>
+</div>

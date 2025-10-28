@@ -16,7 +16,7 @@ Rails.application.routes.draw do
 
   ###################### Main Controller ##################################
   get "/main/settings"
-  get "/select_report" => "main#select_report"
+  #get "/select_report" => "main#select_report"
   post "/main/dispensation_report"
   post "/main/prescription_report"
   post "/main/stores_report"
@@ -79,6 +79,16 @@ Rails.application.routes.draw do
   # Optional
   get  'requests/list',   to: 'requests#list',    as: 'requests_list'
 
+  # Dispensation report routes
+  get '/select_report',        to: 'dispensation#select', as: :select_report
+  #get '/dispensation/list',    to: 'dispensation#list',   as: :dispensation_list
+  post '/dispensation/list', to: 'dispensation#list', as: :dispensation_list
+
+  # Dispensary Add Drug
+  get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
+  post '/dispensary', to: 'general_inventory#create', as: :create_dispensary_item
+
+
 
   resources :mobile_visit
   resources :mobile_visit_product
@@ -93,10 +103,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :requests do
-    member do
-      get :fulfill       
-      post :complete_issue
+  resources :dispensation, only: [] do
+    collection do
+      get :list
+      get :select
+      post :refill
     end
   end
 

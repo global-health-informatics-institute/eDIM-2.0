@@ -94,32 +94,35 @@ class IssuesController < ApplicationController
 
   def list
     case params[:report_duration]
-      when t('forms.options.daily')
-        @report_type = "Issues Report for #{l(params[:start_date].to_date, format:'%d %B, %Y')}"
-        start_date = params[:start_date].to_date.strftime('%Y-%m-%d 00:00:00')
-        end_date = params[:start_date].to_date.strftime('%Y-%m-%d 23:59:59')
-      when t('forms.options.weekly')
-        @report_type = "Issues Report from #{l(params[:start_date].to_date.beginning_of_week, format:'%d %B, %Y')}
-        #{t('menu.terms.to')} #{l(params[:start_date].to_date.end_of_week, format: '%d %B, %Y')}"
-        start_date = params[:start_date].to_date.beginning_of_week.strftime('%Y-%m-%d 00:00:00')
-        end_date = params[:start_date].to_date.end_of_week.strftime('%Y-%m-%d 23:59:59')
-      when t('forms.options.monthly')
-        @report_type = "Issues Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
-        start_date = params[:start_date].to_date.beginning_of_month.strftime('%Y-%m-%d 00:00:00')
-        end_date = params[:start_date].to_date.end_of_month.strftime('%Y-%m-%d 23:59:59')
-      when t('forms.options.range')
-        @report_type = "Issues Report from #{l(params[:start_date].to_date, format: '%d %B, %Y')}
-        #{t('menu.terms.to')} #{l(params[:end_date].to_date, format: '%d %B, %Y')}"
-        start_date = params[:start_date].to_date.strftime('%Y-%m-%d 00:00:00')
-        end_date = params[:end_date].to_date.strftime('%Y-%m-%d 23:59:59')
+    when t('forms.options.daily')
+      @report_type = "Issues Report for #{l(params[:start_date].to_date, format:'%d %B, %Y')}"
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = params[:start_date].to_date.end_of_day
+
+    when t('forms.options.weekly')
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = (start_date + 6.days).end_of_day
+
+      @report_type = "Issues Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format: '%d %B, %Y')}"
+
+    when t('forms.options.monthly')
+      start_date = params[:start_date].to_date.beginning_of_month.beginning_of_day
+      end_date   = params[:start_date].to_date.end_of_month.end_of_day
+
+      @report_type = "Issues Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
+
+    when t('forms.options.range')
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = params[:end_date].to_date.end_of_day
+
+      @report_type = "Issues Report from #{l(start_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
     end
 
     if params[:locations].include? 'All Locations'
-      @records = Issue.where("issue_date BETWEEN '#{start_date}' and '#{end_date}' and voided = false")
+      @records = Issue.where(issue_date: start_date..end_date, voided: false)
     else
-      locations = Location.where(name: params[:locations]).pluck(:location_id).join(',')
-      @records = Issue.where("issue_date BETWEEN '#{start_date}' and '#{end_date}'
-                              and location_id in (#{locations}) and voided = false")
+      locations = Location.where(name: params[:locations]).pluck(:location_id)
+      @records = Issue.where(issue_date: start_date..end_date, location_id: locations, voided: false)
     end
   end
 

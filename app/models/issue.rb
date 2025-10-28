@@ -4,9 +4,12 @@ class Issue < ActiveRecord::Base
   has_one :user, foreign_key: :issued_by
   validates_presence_of :issue_date,:issued_by,:issued_to,:quantity,:location_id
 
-  def drug_name
+  #def drug_name
     #this method handles the need to access the drug name associated to the dispensation
-    self.general_inventory.drug_name
+   # self.general_inventory.drug_name
+  #end
+  def drug_name
+    GeneralInventory.find_by_gn_inventory_id(self.inventory_id)&.drug_name || "Unknown Drug"
   end
 
   def dispensation_location
@@ -43,10 +46,6 @@ class Issue < ActiveRecord::Base
 
   def location_issued_to
     return Location.find(self.issued_to).name
-  end
-
-  def drug_name
-    return GeneralInventory.find_by_gn_inventory_id(self.inventory_id).drug_name
   end
 
   def issuer

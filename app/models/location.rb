@@ -4,6 +4,8 @@ class Location < ActiveRecord::Base
   self.primary_key = "location_id"
   include Openmrs
 
+  has_many :dispensations
+
   cattr_accessor :current_location
   before_create :before_create
   before_update :before_save

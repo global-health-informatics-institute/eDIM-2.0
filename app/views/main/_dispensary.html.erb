@@ -1,12 +1,15 @@
 <div style="display: table; padding-top: 2%;padding-left: 10px;width:75%; margin-left: auto;margin-right: auto;">
   <div style="display: table-row">
+    <div onmousedown="window.location='/dispensary/new?add_mode=true'" style="display: table-cell;text-align: center;">
+      <img src="/assets/add_drug.png" style="width: 64px; height: 64px;">
+    </div>
     <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;">
       <img src="/assets/add_drugs.png">
     </div>
     <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;">
       <img src="/assets/available_drugs.png">
     </div>
-    <div onmousedown="window.location='/select_report?type=dispensation'" style="display: table-cell;text-align: center;">
+    <div onmousedown="window.location='/dispensation/select'" style="display: table-cell;text-align: center;">
       <img src="/assets/disp_rpt.png">
     </div>
     <div onmousedown="window.location='/requests/select'" style="display: table-cell;text-align: center;">
@@ -18,13 +21,16 @@
   </div>
 
   <div style="display: table-row">
+    <div onmousedown="window.location='/dispensary/new?add_mode=true'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.add_drug') %>
+    </div>
     <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.request_item') %>
     </div>
     <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.view_inventory') %>
     </div>
-    <div onmousedown="window.location='/select_report?type=dispensation'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+    <div onmousedown="window.location='/dispensation/select'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.dispensation_rpt') %>
     </div>
     <div onmousedown="window.location='/requests/select'" style="display: table-cell;text-align: center;font-size: 1.4em;">
