@@ -19,10 +19,18 @@ class DispensationController < ApplicationController
 
     begin
       GeneralInventory.transaction do
-        # Determine requested quantity
+        # Determine requested quantities
         is_a_bottle = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
-        qty_requested = is_a_bottle ? 1 : params[:quantity].to_i
-        amount_dispensed = [item.current_quantity.to_i, qty_requested].min
+        qty_per_pack = is_a_bottle ? 1 : params[:quantity].to_i
+        num_packs   = params[:numPacks].to_i
+        total_qty   = qty_per_pack * num_packs
+
+        # Use total quantity if prepacking, else just qty_per_pack
+        amount_dispensed = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
+                            [item.current_quantity.to_i, total_qty].min
+                          else
+                            [item.current_quantity.to_i, qty_per_pack].min
+                          end
 
         if amount_dispensed <= 0
           flash[:errors] = "Insufficient stock in this location"
@@ -32,12 +40,15 @@ class DispensationController < ApplicationController
         # Decrement current location stock
         item.update!(current_quantity: item.current_quantity - amount_dispensed)
 
-        # Prescription logic
+        # Determine if prescription should be created
         with_prescription =
+          params[:prepacking] == 'true' ||
           params[:prescription_mode].to_s == 'with_prescription' ||
           (params[:administration].present? && params[:frequency].present? && params[:doseType].present?)
 
         rx_id = nil
+        directions = nil
+
         if with_prescription
           directions = Misc.create_directions(
             params[:dose].to_s,
@@ -50,7 +61,7 @@ class DispensationController < ApplicationController
             patient_id:       @patient&.id,
             drug_id:          item.drug_id,
             directions:       directions,
-            quantity:         qty_requested,
+            quantity:         qty_per_pack,
             amount_dispensed: amount_dispensed,
             provider_id:      User.current.id,
             date_prescribed:  Time.current
@@ -68,6 +79,20 @@ class DispensationController < ApplicationController
           dispensed_by:      User.current.id
         )
 
+        # Record prepack if applicable
+        if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
+          Prepack.create!(
+            bottle_id:        item.gn_inventory_id,
+            gn_identifier:    item.gn_identifier,
+            drug_id:          item.drug_id,
+            quantity_per_pack: qty_per_pack,
+            num_packs:        num_packs,
+            total_quantity:   total_qty,
+            directions:       directions,
+            prepacked_by_id:  User.current.id
+          )
+        end
+
         dispense_success = true
       end
     rescue => e
@@ -75,16 +100,23 @@ class DispensationController < ApplicationController
       flash[:errors] = 'Could not create the dispensation'
     end
 
+    Rails.logger.info "Prepacking param: #{params[:prepacking].inspect}"
+
     if dispense_success
-      if @new_prescription.present?
+      if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
+        flash[:success] = 'Prepacking labels created successfully'
+        print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
+
+      elsif @new_prescription.present?
         if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
           print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
         else
           flash[:notice] = 'Insufficient quantity. Top up from another bottle'
           redirect_to "/prescriptions/#{@new_prescription.id}"
         end
+
       else
-        flash[:success] = 'Dispensed without prescription'
+        flash[:success] = 'Dispensed without prescriptions'
         print_and_redirect("/print_dispensation_label/#{@dispensation.id}", return_path)
       end
     else
@@ -130,32 +162,79 @@ class DispensationController < ApplicationController
 
   def print_dispensation_label
     if Prescription.exists?(params[:id])
-      # Prescription mode
       @prescription = Prescription.find(params[:id])
       date = l(@prescription.date_prescribed, format: '%d %B %Y')
-      print_string = Misc.create_dispensation_label(
-        @prescription.drug_name,
-        @prescription.amount_dispensed,
-        @prescription.directions,
-        @prescription.patient_name,
-        date
-      )
+
+      # Check if there is a prepack record for this prescription
+      prepack = Prepack.find_by(drug_id: @prescription.drug_id, total_quantity: @prescription.amount_dispensed)
+
+      if prepack.present?
+        # Print one label per pack
+        print_string = ""
+        prepack.num_packs.times do
+          print_string += Misc.create_dispensation_label(
+            @prescription.drug_name,
+            prepack.quantity_per_pack,
+            prepack.directions,
+            @prescription.patient_name,
+            date,
+            pack_index: nil,
+            total_packs: nil,
+            bottle_id: prepack.gn_identifier
+          )
+        end
+      else
+        # Regular prescription label
+        print_string = Misc.create_dispensation_label(
+          @prescription.drug_name,
+          @prescription.amount_dispensed,
+          @prescription.directions,
+          @prescription.patient_name,
+          date,
+          pack_index: nil,
+          total_packs: nil,
+          bottle_id: "UNKNOWN" # fallback if no prepack
+        )
+      end
+
     elsif Dispensation.exists?(params[:id])
-      # Dispensation-only mode
       @dispensation = Dispensation.find(params[:id])
       date = l(@dispensation.dispensation_date, format: '%d %B %Y')
-      
+
       drug_name = @dispensation.drug_name
       directions = @dispensation.dispensation_dir
       patient_name = @dispensation.patient&.full_name || "Unknown Patient"
-      
-      print_string = Misc.create_dispensation_label(
-        drug_name,
-        @dispensation.quantity,
-        directions,
-        patient_name,
-        date
-      )
+
+      # Check if there is a prepack record for this dispensation
+      prepack = Prepack.find_by(drug_id: @dispensation.drug_id, total_quantity: @dispensation.quantity)
+
+      if prepack.present?
+        print_string = ""
+        prepack.num_packs.times do
+          print_string += Misc.create_dispensation_label(
+            drug_name,
+            prepack.quantity_per_pack,
+            prepack.directions,
+            patient_name,
+            date,
+            pack_index: nil,
+            total_packs: nil,
+            bottle_id: prepack.gn_identifier
+          )
+        end
+      else
+        print_string = Misc.create_dispensation_label(
+          drug_name,
+          @dispensation.quantity,
+          directions,
+          patient_name,
+          date,
+          pack_index: nil,
+          total_packs: nil,
+          bottle_id: "UNKNOWN" # fallback
+        )
+      end
+
     else
       render plain: "Invalid label request", status: :not_found and return
     end

@@ -311,6 +311,12 @@ class GeneralInventoryController < ApplicationController
                                         0, params[:drug_id] ,session[:location], false)
   end
 
+def prepack_labels
+
+  render :prepack_labels
+end
+
+
   def pre_packing
     GeneralInventory.transaction do
       @item = GeneralInventory.where("gn_identifier = ? ", params[:bottle_id]).lock(true).first

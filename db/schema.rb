@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_09_09_192142) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_06_091811) do
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -677,7 +677,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_09_192142) do
   create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
     t.integer "drug_id"
     t.string "gn_identifier"
-    t.integer "gn_sequence", default: 1, null: false
+    t.string "gn_sequence", limit: 4
     t.date "expiration_date"
     t.date "date_received"
     t.integer "received_quantity", default: 0
@@ -1525,6 +1525,25 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_09_192142) do
     t.string "void_reason", limit: 225
   end
 
+  create_table "prepacks", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "bottle_id", null: false
+    t.integer "drug_id", null: false
+    t.integer "quantity_per_pack", null: false
+    t.integer "num_packs", null: false
+    t.integer "total_quantity", null: false
+    t.string "directions"
+    t.integer "prepacked_by_id", null: false
+    t.string "status", default: "created", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "gn_identifier"
+    t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
+    t.index ["drug_id"], name: "fk_rails_10a6425e68"
+    t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
+    t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
+    t.index ["status"], name: "index_prepacks_on_status"
+  end
+
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "drug_id"
@@ -2345,6 +2364,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_09_192142) do
   add_foreign_key "person_name", "users", column: "creator", primary_key: "user_id", name: "user_who_made_name"
   add_foreign_key "person_name", "users", column: "voided_by", primary_key: "user_id", name: "user_who_voided_name"
   add_foreign_key "person_name_code", "person_name", primary_key: "person_name_id", name: "code for name", on_update: :cascade
+  add_foreign_key "prepacks", "drugs", primary_key: "drug_id"
+  add_foreign_key "prepacks", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
+  add_foreign_key "prepacks", "users", column: "prepacked_by_id", primary_key: "user_id"
   add_foreign_key "program", "concept", primary_key: "concept_id", name: "program_concept"
   add_foreign_key "program", "users", column: "changed_by", primary_key: "user_id", name: "user_who_changed_program"
   add_foreign_key "program", "users", column: "creator", primary_key: "user_id", name: "program_creator"

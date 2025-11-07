@@ -3,9 +3,16 @@
     <div onmousedown="window.location='/dispensary/new?add_mode=true'" style="display: table-cell;text-align: center;">
       <img src="/assets/add_drug.png" style="width: 64px; height: 64px;">
     </div>
+
+    <div onmousedown="window.location='/general_inventory/prepack_labels'" style="display: table-cell;text-align: center;">
+      <img src="/assets/prepack.png" style="width: 64px; height: 64px;">
+    </div>
+
+    <!--- 
     <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;">
       <img src="/assets/add_drugs.png">
-    </div>
+    </div>   
+    --->
     <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;">
       <img src="/assets/available_drugs.png">
     </div>
@@ -24,9 +31,16 @@
     <div onmousedown="window.location='/dispensary/new?add_mode=true'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.add_drug') %>
     </div>
-    <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+
+    <div onmousedown="window.location='/general_inventory/prepack_labels'" style="display: table-cell;text-align: center;font-size: 1.4em;">
+      <%= t('menu.terms.prepack_labels') %>
+    </div>
+
+   <!--- 
+   <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.request_item') %>
     </div>
+   --->
     <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;font-size: 1.4em;">
       <%= t('menu.terms.view_inventory') %>
     </div>

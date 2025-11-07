@@ -93,7 +93,7 @@ function showDispenseForm()
   showLayer('shadow', 'dispenseForm')
 }
 
-function createDirections(route, dose, frequency,doseType)
+function createDirections(route, dose, frequency, doseType, labels)
 {
     routes = {"oral":I18n.t('menu.terms.take'), "topical":I18n.t('menu.terms.apply'),
             "injection":I18n.t('menu.terms.inject'),"respiratory":I18n.t('menu.terms.inhale'),"other":""}
@@ -102,6 +102,14 @@ function createDirections(route, dose, frequency,doseType)
                     "QHR":I18n.t('forms.options.every_hour'), "Q4HRS":I18n.t('forms.options.every_four_hours'),
                     "Q2HRS":I18n.t('forms.options.every_two_hours'), "QWK":I18n.t('forms.options.once_a_week'),
                     "EOD":I18n.t('forms.options.every_other_day'), "QN":I18n.t('forms.options.every_night') }
+    
+    // Handle labels mode
+    if (labels === true || doseType === "labels") {
+        dir = (routes[route.toLowerCase()] == undefined ? "" : routes[route.toLowerCase()])
+        return dir + " "+ dose + " " + (frequencies[frequency] == undefined ? "" : frequencies[frequency]);
+    }
+    
+    // Dispensations
     type = document.getElementsByName(doseType)
     var prn = document.forms[0].elements["doseType"].value;
 

@@ -1,0 +1,158 @@
+/* --- Modal container --- */
+#dispenseForm {
+  display: none;
+  position: absolute;
+  top: 5vh;
+  left: 5vw;
+  width: 90vw;
+  height: 90vh;
+  background-color: #eeeeff;
+  border: 3px outset #003366;
+  border-radius: 15px;
+  overflow: auto;
+  z-index: 1000;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* --- Tabs (preserve original design) --- */
+.tab {
+  border: 1px outset silver;
+  background-color: #39bf87;
+  padding: 12px;
+  line-height: 5vh;
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  color: white;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.tab:hover {
+  background-color: #2d966a;
+}
+
+.tab.active {
+  background-color: #056c4f;
+}
+
+/* --- Radio Styling (copied from application.css and preserved) --- */
+div.radioDiv {
+  clear: both;
+  margin-left: 2vw;
+}
+
+input.radio:empty {
+  margin-left: -999px;
+  visibility: hidden;
+}
+
+label.custom {
+  min-width: 20vw;
+  border-radius: 3px;
+  border: 1px solid #D1D3D4;
+  font-size: 1.4em !important;
+  display: inline-block;
+  margin-top: 1em;
+  line-height: 3em;
+  text-indent: 3.25em;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+input.radio:empty ~ label:before {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  content: '';
+  width: 2.5em;
+  background: #D1D3D4;
+  border-radius: 3px 0 0 3px;
+}
+
+input.radio:checked ~ label:before {
+  content: '\2714';
+  text-indent: .9em;
+  color: #000;
+  background-color: #CCCCCC;
+}
+
+input.radio:checked ~ label {
+  color: #000;
+  font-weight: bold;
+}
+
+/* --- Custom keypad buttons --- */
+.customButton {
+  cursor: pointer;
+  background-color: #2980b9;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  margin: 2px;
+  display: inline-block;
+  width: 60px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.customButton:hover {
+  background-color: #1e6693;
+}
+
+/* --- Green Next Button --- */
+#nextBtn {
+  position: absolute;
+  bottom: 30px;
+  right: 60px;
+  background-color: #056c4f;
+  color: white;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 18px 40px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease-in-out;
+}
+
+#nextBtn:hover {
+  background-color: #078b65;
+}
+
+/* --- Footer buttons --- */
+.nav-bttn {
+  padding: 8px 15px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.nav-bttn.red {
+  background-color: #c0392b;
+  color: white;
+}
+
+.nav-bttn.blue {
+  background-color: #2980b9;
+  color: white;
+}
+
+/* --- Modal overlay --- */
+#modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 900;
+}

@@ -55,59 +55,29 @@
   <button class="nav-bttn red" style="float: left;" onmousedown="window.location='/sessions/logout'">Logout</button>
 </div>
 
-<script type="text/javascript">
-    var timerHand;
-    var isDispensary = <%= current_location.name.match(/store/i).blank? %>
-    function checkBarcode()
-    {
-        var barcodeTxt = document.getElementById("barcode");
-        if (barcodeTxt.value.trim().length >= 8) {
+<script>
+let modalOpen = false;
+let focusInterval;
+let timerHand;
 
-            barcodeTxt.value = barcodeTxt.value.trim().replace(/\-/,"")
-            if (barcodeTxt.value.toUpperCase().length >= 5)
-            {
-               if(isDispensary)
-               {
-                   window.location = "/patient_identifiers/"+barcodeTxt.value.trim();
-               }
-               else
-               {
-                   window.location = "/general_inventory/"+barcodeTxt.value.trim();
-               }
-            }
-            else
-            {
-                barcodeTxt.value = "";
-                initializeListener();
-            }
+// Main scanner polling
+const isDispensary = <%= current_location.name.match(/store/i).blank? %>;
+function checkBarcode() {
+  if (modalOpen) return;
 
-        }
-        else
-        {
-            initializeListener();
-        }
-    }
+  const barcodeTxt = document.getElementById("barcode");
+  if (!barcodeTxt) return;
 
-    function initializeListener()
-    {
-        document.getElementById("barcode").focus();
-        timerHand = setTimeout(function () {
-            checkBarcode();
-        }, 3000);
+  const val = barcodeTxt.value.trim().replace(/\-/,"");
+  if (val.length >= 8) {
+    if (isDispensary) window.location = "/patient_identifiers/" + val;
+    else window.location = "/general_inventory/" + val;
+    barcodeTxt.value = '';
+  }
 
-    }
+  if (!modalOpen) timerHand = setTimeout(checkBarcode, 3000);
+}
 
-    // Fire immediately when 8 characters are reached
-    document.getElementById("barcode").addEventListener("input", function() {
-        let val = this.value.trim().replace(/\-/,"");
-        if (val.length >= 8) {
-            if (isDispensary) {
-                window.location = "/patient_identifiers/" + val;
-            } else {
-                window.location = "/general_inventory/" + val;
-            }
-        }
-    });
-
-    setTimeout(initializeListener(), 3000);
+// Start scanner
+setTimeout(checkBarcode, 3000);
 </script>

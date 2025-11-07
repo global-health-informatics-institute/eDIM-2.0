@@ -1,22 +1,9 @@
 Rails.application.routes.draw do
-
-  get 'prescriptions/index'
-
-  get 'prescriptions/show'
-
-  get 'prescriptions/create'
-
-  get 'prescriptions/edit'
-
-  # The priority is based upon order of creation: first created -> highest priority.
-  # See how all your routes lay out with "rake routes".
-
-  # You can have the root of your site routed with "root"
+  # Root
   root 'main#index'
 
   ###################### Main Controller ##################################
   get "/main/settings"
-  #get "/select_report" => "main#select_report"
   post "/main/dispensation_report"
   post "/main/prescription_report"
   post "/main/stores_report"
@@ -26,6 +13,7 @@ Rails.application.routes.draw do
   get "/drug/search"
   get "/void_drug/:id" => "drug#destroy"
   post "/edit_drug" => "drug#edit"
+  get '/drug/available_quantity', to: 'drug#available_quantity'
 
   ###################### General Inventory Controller #####################
   get "/void_general_inventory/:id" => "general_inventory#destroy"
@@ -39,83 +27,49 @@ Rails.application.routes.draw do
   get "/print_bottle_barcode/:id" => "general_inventory#print_bottle_barcode"
   get "/ajax_bottle/:id" => "general_inventory#ajax_bottle"
   get "/general_inventory/print_bottle_barcode"
-  
-  get "/requested_items", to: "general_inventory#requested", as: :requested_items
-  post '/requests/:id/fulfill', to: 'requests#fulfill', as: :fulfill_request
+
+  # Dispensary
+  get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
+  post '/dispensary', to: 'general_inventory#create', as: :create_dispensary_item
+
+  # Prepack labels
+  get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
+  resources :prepack_labels, only: [:show, :new, :create]
 
   ###################### User Controller #############################
   get "/username_availability" => "user#username_availability"
-
   get "/query_users" => "user#query"
   get "/void_user/:id" => "user#destroy"
   post "/edit_user" => "user#edit"
   get "/user/users_names"
 
-  ###################### Prescription Controller ##############################
+  ###################### Prescription Controller ######################
   get "/void_prescriptions/:id" => "prescription#destroy"
   get "/prescriptions" => "prescription#ajax_prescriptions"
   post "/prescription/dispense"
   post "/prescription/edit"
 
-
-  ###################### Dispensation Controller ##############################
+  ###################### Dispensation Controller ######################
   get "/print_dispensation_label/:id" => "dispensation#print_dispensation_label"
   get "/void_dispensation/:id" => "dispensation#destroy"
-  
 
-  ###################### Mobile Visit Controller ##############################
+  ###################### Mobile Visit Controllers ######################
   get "/void_mobile_visit/:id" => "mobile_visit#destroy"
-
-  ###################### Mobile Visit Product Controller ######################
   get "/void_mobile_visit_product/:id" => "mobile_visit_product#destroy"
-  
-  ###################### Drugs Controller ##############################
-  get '/drug/available_quantity', to: 'drug#available_quantity'
 
-  # New Requests Report routes
+  ###################### Requests Controller ##########################
   get  'requests/select', to: 'requests#select',  as: 'select_requests_report'
   post 'requests/report', to: 'requests#report',  as: 'requests_report'
-
-  # Optional
   get  'requests/list',   to: 'requests#list',    as: 'requests_list'
+  post '/requests/:id/fulfill', to: 'requests#fulfill', as: :fulfill_request
 
-  # Dispensation report routes
-  get '/select_report',        to: 'dispensation#select', as: :select_report
-  #get '/dispensation/list',    to: 'dispensation#list',   as: :dispensation_list
+  ###################### Dispensation Reports ##########################
+  get '/select_report', to: 'dispensation#select', as: :select_report
   post '/dispensation/list', to: 'dispensation#list', as: :dispensation_list
 
-  # Dispensary Add Drug
-  get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
-  post '/dispensary', to: 'general_inventory#create', as: :create_dispensary_item
+  ###################### Resources #####################################
 
-
-
-  resources :mobile_visit
-  resources :mobile_visit_product
-  resources :drug_threshold
-  resources :prescriptions
-  resources :drug
-  resources :patient_identifiers
-
-  resources :requests do
-    collection do
-      get :select
-    end
-  end
-
-  resources :dispensation, only: [] do
-    collection do
-      get :list
-      get :select
-      post :refill
-    end
-  end
-
-  resources :drug, only: [:index, :new, :create, :edit, :destroy] do
-    collection do
-      get :available_quantity
-    end
-  end
+  resources :prepack_labels, only: [:new, :show]
 
   resources :general_inventory do
     post 'pre_packing'
@@ -130,7 +84,30 @@ Rails.application.routes.draw do
     member do
       post :fulfill
     end
+    collection do
+      get :select
+    end
   end
+
+  resources :dispensation do
+    collection do
+      get :list
+      get :select
+      post :refill
+    end
+  end
+
+  resources :drug, only: [:index, :new, :create, :edit, :destroy] do
+    collection do
+      get :available_quantity
+    end
+  end
+
+  resources :prescriptions
+  resources :mobile_visit
+  resources :mobile_visit_product
+  resources :drug_threshold
+  resources :patient_identifiers
 
   resources :patients do
     collection do
@@ -142,12 +119,6 @@ Rails.application.routes.draw do
   resources :user do
     collection do
       get 'roles'
-    end
-  end
-
-  resources :dispensation do
-    collection do
-      post 'refill'
     end
   end
 
@@ -168,8 +139,8 @@ Rails.application.routes.draw do
 
   resources :sessions do
     collection do
-      post 'login' , action: :create
-      get 'logout' , action: :destroy
+      post 'login', action: :create
+      get 'logout', action: :destroy
       get 'add_location'
       post 'workstation_location'
     end

@@ -23,6 +23,7 @@ module Misc
   end
 
   def self.create_bottle_label(item, bottle_id, expiration_date, qty = nil)
+
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 4
     label.font_horizontal_multiplier = 1
@@ -59,22 +60,60 @@ module Misc
     label.print(1)
   end
 
-  def self.create_dispensation_label(item,quantity,directions,patient_name,date)
+  def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_index: nil, total_packs: nil, bottle_id:)
+    puts "DEBUG - Directions received: '#{directions}'"
+    puts "DEBUG - Bottle ID: '#{bottle_id}'"
 
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 4
     label.font_horizontal_multiplier = 1
     label.font_vertical_multiplier = 1
     label.left_margin = 10
-    #label.draw_text("Rx:#{rx_id}",450,10,0,4,1,1,true)
-    #label.draw_multi_text("#{Misc.get_facility_name}",{:column_width => 570})
-    label.draw_multi_text("Patient: #{patient_name}",{:column_width => 2700}) if !patient_name.blank?
-    label.draw_multi_text("Drug: #{item}",{:column_width => 2700})
-    label.draw_multi_text("Dir : #{directions}",{:column_width => 2700})
-    label.draw_multi_text("QTY : #{quantity}",{:column_width => 2700})
-    label.draw_multi_text("Date: #{date}",{:column_width => 2700})
-    label.print(1)
 
+    label.draw_multi_text("Patient: #{patient_name}", column_width: 2700) if patient_name.present?
+    label.draw_multi_text("Drug: #{item}", column_width: 2700)
+    label.draw_multi_text("Dir : #{directions}", column_width: 2700)
+
+    dose_pattern = Misc.extract_dose_pattern(directions)
+    label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
+
+    label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
+    label.draw_multi_text("Date: ____/____/________", column_width: 2700)
+
+    if pack_index && total_packs
+      label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
+    end
+
+    # Add barcode properly
+    label.draw_barcode(150, 230, 0, 1, 3, 5, 100, false, bottle_id)
+    label.draw_multi_text("Bottle ID: #{bottle_id}", column_width: 2700)
+
+    # Return ZPL code instead of printing directly
+    label.print(1)
+  end
+
+
+  def self.extract_dose_pattern(directions)
+    return "" if directions.blank?
+
+    normalized = directions.downcase.strip
+    
+    # Capture numeric dose
+    dose_match = normalized.match(/take\s+(\d+)\s*(tablet|tab|capsule|cap)?/)
+    dose = dose_match ? dose_match[1] : "1"
+
+    case normalized
+    when /three times a day|3 times a day|tds|t\.?d\.?s\.?/i
+      "#{dose} - #{dose} - #{dose}"
+    when /twice a day|two times a day|2 times a day|bd|b\.?d\.?/i
+      "#{dose} - 0 - #{dose}"
+    when /once a day|one time a day|1 time a day|od|o\.?d\.?/i
+      "#{dose} - 0 - 0"
+    when /four times a day|4 times a day|qid|q\.?i\.?d\.?/i
+      "#{dose} - #{dose} - #{dose} - #{dose}"
+    else
+      ""
+    end
   end
 
   def self.dash_formatter(id)
