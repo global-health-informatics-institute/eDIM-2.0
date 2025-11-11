@@ -222,7 +222,7 @@ input.radio:checked ~ label {
   <%= hidden_field_tag :prepacking, true %>
 
   <!-- DISPENSE FORM MODAL -->
-  <div id="dispenseForm" style="display:none; position:absolute; top:5vh; left:5vw; width:90vw; height:90vh; background-color:#eeeeff; border:3px outset black; overflow:auto; z-index:1000;">
+  <div id="dispenseForm2" style="display:none; position:absolute; top:5vh; left:5vw; width:90vw; height:90vh; background-color:#eeeeff; border:3px outset black; overflow:auto; z-index:1000;">
       <table style="width:100%; border-bottom:2px solid black; border-collapse: collapse;">
           <tr>
               <td style="font-weight:bold; width:100px;">Item</td>
@@ -479,7 +479,7 @@ input.radio:checked ~ label {
 
   // MAIN MODAL DISPLAY FUNCTIONS
   function showDispenseForm() {
-    const f = document.getElementById('dispenseForm'); 
+    const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
@@ -490,7 +490,7 @@ input.radio:checked ~ label {
   }
 
   function cancelDispense() {
-    const form = document.getElementById('dispenseForm');
+    const form = document.getElementById('dispenseForm2');
     const overlay = document.getElementById('modalOverlay');
     if (form) form.style.display = 'none';
     if (overlay) overlay.style.display = 'none';
@@ -722,7 +722,7 @@ input.radio:checked ~ label {
 
   // MAIN MODAL DISPLAY FUNCTIONS
   function showDispenseForm() {
-    const f = document.getElementById('dispenseForm'); 
+    const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
@@ -733,7 +733,7 @@ input.radio:checked ~ label {
   }
 
   function cancelDispense() {
-    const form = document.getElementById('dispenseForm');
+    const form = document.getElementById('dispenseForm2');
     const overlay = document.getElementById('modalOverlay');
     if (form) form.style.display = 'none';
     if (overlay) overlay.style.display = 'none';
@@ -965,7 +965,7 @@ input.radio:checked ~ label {
 
   // MAIN MODAL DISPLAY FUNCTIONS
   function showDispenseForm() {
-    const f = document.getElementById('dispenseForm'); 
+    const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
@@ -976,7 +976,7 @@ input.radio:checked ~ label {
   }
 
   function cancelDispense() {
-    const form = document.getElementById('dispenseForm');
+    const form = document.getElementById('dispenseForm2');
     const overlay = document.getElementById('modalOverlay');
     if (form) form.style.display = 'none';
     if (overlay) overlay.style.display = 'none';

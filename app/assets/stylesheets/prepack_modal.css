@@ -1,5 +1,5 @@
 /* --- Modal container --- */
-#dispenseForm {
+#dispenseForm2 {
   display: none;
   position: absolute;
   top: 5vh;
@@ -9,7 +9,7 @@
   background-color: #eeeeff;
   border: 3px outset #003366;
   border-radius: 15px;
-  overflow: auto;
+  overflow: flex;
   z-index: 1000;
   padding: 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);

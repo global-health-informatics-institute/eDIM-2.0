@@ -1,7 +1,14 @@
 class DispensationController < ApplicationController
   def create
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
-    return_path = params[:patient_id].present? ? "/patients/#{@patient.id}" : "/"
+    return_path =
+      if params[:prepacking] == 'true'
+        '/general_inventory/prepack_labels'
+      elsif params[:patient_id].present?
+        "/patients/#{@patient.id}"
+      else
+        '/'
+      end
 
     # Find stock for current location (could be backstore or dispensary)
     item = GeneralInventory.where(
