@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_11_06_091811) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_11_133852) do
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -1525,6 +1525,17 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_06_091811) do
     t.string "void_reason", limit: 225
   end
 
+  create_table "prepack_labels", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.bigint "prepack_id", null: false
+    t.integer "bottle_id", null: false
+    t.string "label_identifier", null: false
+    t.boolean "dispensed", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bottle_id"], name: "fk_prepack_labels_bottle"
+    t.index ["prepack_id"], name: "fk_rails_cadc42c7d0"
+  end
+
   create_table "prepacks", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "bottle_id", null: false
     t.integer "drug_id", null: false
@@ -1534,12 +1545,16 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_06_091811) do
     t.string "directions"
     t.integer "prepacked_by_id", null: false
     t.string "status", default: "created", null: false
+    t.datetime "dispensed_at", precision: nil
+    t.integer "dispensed_to"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "pack_identifier", limit: 50
     t.string "gn_identifier"
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
     t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
+    t.index ["pack_identifier"], name: "pack_identifier", unique: true
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
   end
@@ -2364,6 +2379,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_06_091811) do
   add_foreign_key "person_name", "users", column: "creator", primary_key: "user_id", name: "user_who_made_name"
   add_foreign_key "person_name", "users", column: "voided_by", primary_key: "user_id", name: "user_who_voided_name"
   add_foreign_key "person_name_code", "person_name", primary_key: "person_name_id", name: "code for name", on_update: :cascade
+  add_foreign_key "prepack_labels", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id", name: "fk_prepack_labels_bottle"
+  add_foreign_key "prepack_labels", "prepacks"
   add_foreign_key "prepacks", "drugs", primary_key: "drug_id"
   add_foreign_key "prepacks", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
   add_foreign_key "prepacks", "users", column: "prepacked_by_id", primary_key: "user_id"

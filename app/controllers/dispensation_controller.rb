@@ -10,7 +10,7 @@ class DispensationController < ApplicationController
         '/'
       end
 
-    # Find stock for current location (could be backstore or dispensary)
+    # Find stock for current location
     item = GeneralInventory.where(
       gn_identifier: params[:bottle_id],
       location_id: session[:location]
@@ -86,9 +86,10 @@ class DispensationController < ApplicationController
           dispensed_by:      User.current.id
         )
 
-        # Record prepack if applicable
+        # Record prepack batch and individual labels
         if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
-          Prepack.create!(
+          # Prepack batch
+          batch = Prepack.create!(
             bottle_id:        item.gn_inventory_id,
             gn_identifier:    item.gn_identifier,
             drug_id:          item.drug_id,
@@ -96,8 +97,25 @@ class DispensationController < ApplicationController
             num_packs:        num_packs,
             total_quantity:   total_qty,
             directions:       directions,
-            prepacked_by_id:  User.current.id
+            prepacked_by_id:  User.current.id,
+            pack_identifier:  SecureRandom.uuid
           )
+
+          # Find the last numeric part
+          last_label = PrepackLabel
+            .where("label_identifier LIKE ?", "PK-#{item.gn_identifier}-%")
+            .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
+            .first
+
+          last_index = last_label ? last_label.label_identifier.split('-').last.to_i : 0
+
+          (1..num_packs).each do |i|
+            PrepackLabel.create!(
+              prepack_id:      batch.id,
+              bottle_id:       batch.bottle_id,
+              label_identifier: "PK-#{item.gn_identifier}-#{last_index + i}"
+            )
+          end
         end
 
         dispense_success = true
@@ -129,6 +147,125 @@ class DispensationController < ApplicationController
     else
       redirect_to return_path
     end
+  end
+
+  def print_dispensation_label
+    print_string = ""
+
+    # helper to find bottle record given a prepack or inventory id
+    find_bottle_by_possible_ids = lambda do |maybe_gn_id|
+      GeneralInventory.find_by(gn_inventory_id: maybe_gn_id) ||
+        GeneralInventory.find_by(id: maybe_gn_id)
+    end
+
+    # helper to normalize expiration_date to a Date (or nil)
+    normalize_expiration = lambda do |exp|
+      return nil if exp.blank?
+      return exp if exp.is_a?(Date) || exp.is_a?(Time)
+      begin
+        Date.parse(exp.to_s)
+      rescue => _e
+        nil
+      end
+    end
+
+    if Prescription.exists?(params[:id])
+      @prescription = Prescription.find(params[:id])
+      date = @prescription.date_prescribed # raw Date/Time
+
+      # Try to find prepack that matches this prescription
+      prepack = Prepack.find_by(drug_id: @prescription.drug_id, total_quantity: @prescription.amount_dispensed)
+
+      if prepack.present?
+        # find bottle record using stored bottle_id (which holds gn_inventory_id or id)
+        bottle = find_bottle_by_possible_ids.call(prepack.bottle_id)
+        expiration_date = normalize_expiration.call(bottle&.expiration_date)
+
+        prepack.num_packs.times do
+          print_string += Misc.create_dispensation_label(
+            @prescription.drug_name,
+            prepack.quantity_per_pack,
+            prepack.directions,
+            @prescription.patient_name,
+            date,
+            pack_index: nil,
+            total_packs: nil,
+            bottle_id: prepack.gn_identifier,
+            expiration_date: expiration_date
+          )
+        end
+      else
+        # no prepack found — print single prescription label
+        print_string = Misc.create_dispensation_label(
+          @prescription.drug_name,
+          @prescription.amount_dispensed,
+          @prescription.directions,
+          @prescription.patient_name,
+          date,
+          pack_index: nil,
+          total_packs: nil,
+          bottle_id: "UNKNOWN",
+          expiration_date: nil
+        )
+      end
+
+    elsif Dispensation.exists?(params[:id])
+      @dispensation = Dispensation.find(params[:id])
+      date = @dispensation.dispensation_date
+
+      drug_name = @dispensation.drug_name
+      directions = @dispensation.dispensation_dir
+      patient_name = @dispensation.patient&.full_name || "Unknown Patient"
+
+      # Try to find matching prepack for this dispensation
+      prepack = Prepack.find_by(drug_id: @dispensation.drug_id, total_quantity: @dispensation.quantity)
+
+      if prepack.present?
+        bottle = find_bottle_by_possible_ids.call(prepack.bottle_id)
+        expiration_date = normalize_expiration.call(bottle&.expiration_date)
+
+        prepack.num_packs.times do
+          print_string += Misc.create_dispensation_label(
+            drug_name,
+            prepack.quantity_per_pack,
+            prepack.directions,
+            patient_name,
+            date,
+            pack_index: nil,
+            total_packs: nil,
+            bottle_id: prepack.gn_identifier,
+            expiration_date: expiration_date
+          )
+        end
+      else
+        # Fallback: try to locate the inventory referenced by this dispensation
+        inventory = find_bottle_by_possible_ids.call(@dispensation.inventory_id)
+        expiration_date = normalize_expiration.call(inventory&.expiration_date)
+
+        print_string = Misc.create_dispensation_label(
+          drug_name,
+          @dispensation.quantity,
+          directions,
+          patient_name,
+          date,
+          pack_index: nil,
+          total_packs: nil,
+          bottle_id: inventory&.gn_identifier || "UNKNOWN",
+          expiration_date: expiration_date
+        )
+      end
+
+    else
+      render plain: "Invalid label request", status: :not_found and return
+    end
+
+    send_data(
+      print_string,
+      type: "application/label; charset=utf-8",
+      stream: false,
+      filename: "#{('a'..'z').to_a.shuffle[0,8].join}.lbl",
+      disposition: "inline"
+    )
   end
 
   def refill
@@ -165,92 +302,6 @@ class DispensationController < ApplicationController
       end
     end
     redirect_to (return_path || "/") and return
-  end
-
-  def print_dispensation_label
-    if Prescription.exists?(params[:id])
-      @prescription = Prescription.find(params[:id])
-      date = l(@prescription.date_prescribed, format: '%d %B %Y')
-
-      # Check if there is a prepack record for this prescription
-      prepack = Prepack.find_by(drug_id: @prescription.drug_id, total_quantity: @prescription.amount_dispensed)
-
-      if prepack.present?
-        # Print one label per pack
-        print_string = ""
-        prepack.num_packs.times do
-          print_string += Misc.create_dispensation_label(
-            @prescription.drug_name,
-            prepack.quantity_per_pack,
-            prepack.directions,
-            @prescription.patient_name,
-            date,
-            pack_index: nil,
-            total_packs: nil,
-            bottle_id: prepack.gn_identifier
-          )
-        end
-      else
-        # Regular prescription label
-        print_string = Misc.create_dispensation_label(
-          @prescription.drug_name,
-          @prescription.amount_dispensed,
-          @prescription.directions,
-          @prescription.patient_name,
-          date,
-          pack_index: nil,
-          total_packs: nil,
-          bottle_id: "UNKNOWN" # fallback if no prepack
-        )
-      end
-
-    elsif Dispensation.exists?(params[:id])
-      @dispensation = Dispensation.find(params[:id])
-      date = l(@dispensation.dispensation_date, format: '%d %B %Y')
-
-      drug_name = @dispensation.drug_name
-      directions = @dispensation.dispensation_dir
-      patient_name = @dispensation.patient&.full_name || "Unknown Patient"
-
-      # Check if there is a prepack record for this dispensation
-      prepack = Prepack.find_by(drug_id: @dispensation.drug_id, total_quantity: @dispensation.quantity)
-
-      if prepack.present?
-        print_string = ""
-        prepack.num_packs.times do
-          print_string += Misc.create_dispensation_label(
-            drug_name,
-            prepack.quantity_per_pack,
-            prepack.directions,
-            patient_name,
-            date,
-            pack_index: nil,
-            total_packs: nil,
-            bottle_id: prepack.gn_identifier
-          )
-        end
-      else
-        print_string = Misc.create_dispensation_label(
-          drug_name,
-          @dispensation.quantity,
-          directions,
-          patient_name,
-          date,
-          pack_index: nil,
-          total_packs: nil,
-          bottle_id: "UNKNOWN" # fallback
-        )
-      end
-
-    else
-      render plain: "Invalid label request", status: :not_found and return
-    end
-
-    send_data(print_string,
-              type: "application/label; charset=utf-8",
-              stream: false,
-              filename: "#{('a'..'z').to_a.shuffle[0,8].join}.lbl",
-              disposition: "inline")
   end
 
   def list

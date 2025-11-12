@@ -60,9 +60,10 @@ module Misc
     label.print(1)
   end
 
-  def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_index: nil, total_packs: nil, bottle_id:)
+  def self.create_dispensation_label(item, quantity, directions, patient_name, date, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
     puts "DEBUG - Directions received: '#{directions}'"
     puts "DEBUG - Bottle ID: '#{bottle_id}'"
+    puts "DEBUG - Expiration date: '#{expiration_date}'"
 
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 4
@@ -78,7 +79,8 @@ module Misc
     label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
 
     label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
-    label.draw_multi_text("Date: ____/____/________", column_width: 2700)
+    label.draw_multi_text("Expiry: #{expiration_date.strftime('%d/%m/%Y')}", column_width: 2700)
+    label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
 
     if pack_index && total_packs
       label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
@@ -88,10 +90,8 @@ module Misc
     label.draw_barcode(150, 230, 0, 1, 3, 5, 100, false, bottle_id)
     label.draw_multi_text("Bottle ID: #{bottle_id}", column_width: 2700)
 
-    # Return ZPL code instead of printing directly
     label.print(1)
   end
-
 
   def self.extract_dose_pattern(directions)
     return "" if directions.blank?
