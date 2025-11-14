@@ -700,29 +700,54 @@
 
     // Fetch bottle details
     function getBottle(bottleId) {
-      var xmlhttp = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+      var xmlhttp = (window.XMLHttpRequest)
+        ? new XMLHttpRequest()
+        : new ActiveXObject("Microsoft.XMLHTTP");
+
+      // Detect current context dynamically
+      var context = window.location.pathname.includes('/prepack_labels')
+        ? 'prepacking'
+        : 'patient';
 
       xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4) {
-          if (xmlhttp.status == 200) {
+        if (xmlhttp.readyState === 4) {
+          if (xmlhttp.status === 200) {
             var results = xmlhttp.responseText;
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
             if (!results || results === 'undefined' || results === 'null' || results === 'false' || results === '{}') {
               showFlashMessage(`Bottle ID ${bottleId} not found in inventory.`, true);
               initializeListener();
-            } else {
-              try {
-                var result = JSON.parse(results);
-                document.getElementById('item').innerHTML = result['name'];
-                document.getElementById('currQty').innerHTML = result['currentQty'];
+              return;
+            }
 
-                // Only open modal when valid
+            try {
+              var result = JSON.parse(results);
+
+              // Handle auto-dispensed prepack for patient context
+              if (result.prepack && context === 'patient' && result.dispensation_id) {
+                showFlashMessage(result.message || "Prepack dispensed successfully.");
+                initializeListener();
+                return; // Stop here — don’t open modal
+              }
+
+              // Update info (works for both contexts)
+              document.getElementById('item').innerHTML = result['name'] || '';
+              document.getElementById('currQty').innerHTML = result['currentQty'] || 0;
+
+              // Open modal only in patient context when not auto-dispensed
+              if (context === 'patient') {
                 showDispenseForm();
                 showDispenseDiv('routesDiv');
-              } catch (e) {
-                alert(`Bottle ID ${bottleId} returned invalid data.`);
+              }
+
+              // Reinitialize listener for prepacking context
+              if (context === 'prepacking') {
                 initializeListener();
               }
+
+            } catch (e) {
+              alert(`Bottle ID ${bottleId} returned invalid data.`);
+              initializeListener();
             }
           } else {
             alert(`Bottle ID ${bottleId} could not be fetched.`);
@@ -730,7 +755,8 @@
           }
         }
       };
-      xmlhttp.open("GET", "/ajax_bottle/" + bottleId, true);
+
+      xmlhttp.open("GET", "/ajax_bottle/" + bottleId + "?context=" + context, true);
       xmlhttp.send();
     }
 

@@ -10,7 +10,51 @@ class DispensationController < ApplicationController
         '/'
       end
 
-    # Find stock for current location
+    # Check if this scan is from a prepack label
+    prepack_label = PrepackLabel.find_by(label_identifier: params[:bottle_id])
+    if prepack_label.present?
+      prepack = prepack_label.prepack
+      if prepack.present?
+        item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id, location_id: session[:location])
+        if item.blank?
+          flash[:errors] = "Parent bottle for #{params[:bottle_id]} not found in inventory"
+          redirect_to return_path and return
+        end
+
+        # Automatically dispense from prepack
+        begin
+          GeneralInventory.transaction do
+            if item.current_quantity <= 0
+              flash[:errors] = "Insufficient stock for prepack bottle #{prepack.gn_identifier}"
+              redirect_to return_path and return
+            end
+
+            # Decrease stock by one pack worth
+            item.update!(current_quantity: item.current_quantity - prepack.quantity_per_pack)
+
+            # Create dispensation record
+            disp = Dispensation.create!(
+              rx_id: nil,
+              inventory_id: item.gn_inventory_id,
+              patient_id: @patient&.id,
+              quantity: prepack.quantity_per_pack,
+              dispensation_date: Time.current,
+              dispensed_by: User.current.id
+            )
+
+            flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
+            print_and_redirect("/print_dispensation_label/#{disp.id}", return_path)
+          end
+        rescue => e
+          Rails.logger.error "Prepack dispensation failed: #{e.message}"
+          flash[:errors] = "Could not complete prepack dispensation"
+          redirect_to return_path
+        end
+        return
+      end
+    end
+
+    # Continue with normal bottle dispensing flow
     item = GeneralInventory.where(
       gn_identifier: params[:bottle_id],
       location_id: session[:location]
@@ -154,6 +198,7 @@ class DispensationController < ApplicationController
 
     # helper to find bottle record given a prepack or inventory id
     find_bottle_by_possible_ids = lambda do |maybe_gn_id|
+      # try gn_inventory_id first, then id
       GeneralInventory.find_by(gn_inventory_id: maybe_gn_id) ||
         GeneralInventory.find_by(id: maybe_gn_id)
     end
@@ -162,6 +207,7 @@ class DispensationController < ApplicationController
     normalize_expiration = lambda do |exp|
       return nil if exp.blank?
       return exp if exp.is_a?(Date) || exp.is_a?(Time)
+      # if it's a string try parse, otherwise nil
       begin
         Date.parse(exp.to_s)
       rescue => _e

@@ -274,18 +274,56 @@ class GeneralInventoryController < ApplicationController
   end
    
   def ajax_bottle
-    entry = GeneralInventory
-              .includes(:drug)
-              .find_by(gn_identifier: params[:id], location_id: session[:location], voided: false)
+    # Determine context
+    context = params[:context] || (request.referer&.include?('/prepack_labels') ? 'prepacking' : 'patient')
+
+    entry = GeneralInventory.includes(:drug)
+                            .find_by(gn_identifier: params[:id], location_id: session[:location], voided: false)
 
     if entry.blank?
-      render plain: 'false'
-    else
-      render json: {
-        name: entry.drug.name,
-        currentQty: entry.current_quantity
-      }
+      render plain: 'false' and return
     end
+
+    # Check if any prepacks exist
+    prepack_label = PrepackLabel.where("label_identifier LIKE ?", "PK-#{params[:id]}-%").first
+
+    if context == 'patient' && prepack_label.present?
+      prepack = prepack_label.prepack
+      item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id, location_id: session[:location])
+
+      if item.blank? || item.current_quantity <= 0
+        render json: { error: "Cannot dispense prepack #{params[:id]}" } and return
+      end
+
+      # Automatically dispense for patient
+      disp = nil
+      GeneralInventory.transaction do
+        item.update!(current_quantity: item.current_quantity - prepack.quantity_per_pack)
+        disp = Dispensation.create!(
+          rx_id: nil,
+          inventory_id: item.gn_inventory_id,
+          patient_id: session[:patient_id],
+          quantity: prepack.quantity_per_pack,
+          dispensation_date: Time.current,
+          dispensed_by: User.current.id
+        )
+      end
+
+      # Return immediately after dispensing — do NOT fall through to modal
+      render json: {
+        prepack: true,
+        message: "Successfully dispensed #{item.drug.name} to patient",
+        currentQty: item.current_quantity,
+        dispensation_id: disp.id
+      } and return
+    end
+
+    # Only open modal in the normal case
+    render json: {
+      name: entry.drug.name,
+      currentQty: entry.current_quantity,
+      prepack: prepack_label.present?
+    }
   end
 
   def show
