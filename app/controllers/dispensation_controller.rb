@@ -1,7 +1,7 @@
 class DispensationController < ApplicationController
   def create
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
-    session[:patient_id] = @patient.id if @patient.present?   # <-- FIX 1
+    session[:patient_id] = @patient.id if @patient.present?
 
     return_path =
       if params[:prepacking] == 'true'
@@ -38,7 +38,7 @@ class DispensationController < ApplicationController
             disp = Dispensation.create!(
               rx_id: nil,
               inventory_id: item.gn_inventory_id,
-              patient_id: @patient&.id || session[:patient_id],   # <-- FIX 2
+              patient_id: @patient&.id || session[:patient_id],
               quantity: prepack.quantity_per_pack,
               dispensation_date: Time.current,
               dispensed_by: User.current.id
@@ -110,7 +110,7 @@ class DispensationController < ApplicationController
           )
 
           @new_prescription = Prescription.create!(
-            patient_id:       @patient&.id || session[:patient_id],   # <-- FIX 2
+            patient_id:       @patient&.id || session[:patient_id],
             drug_id:          item.drug_id,
             directions:       directions,
             quantity:         qty_per_pack,
