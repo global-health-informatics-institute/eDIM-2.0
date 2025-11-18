@@ -1,6 +1,8 @@
 class DispensationController < ApplicationController
   def create
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
+    session[:patient_id] = @patient.id if @patient.present?   # <-- FIX 1
+
     return_path =
       if params[:prepacking] == 'true'
         '/general_inventory/prepack_labels'
@@ -36,7 +38,7 @@ class DispensationController < ApplicationController
             disp = Dispensation.create!(
               rx_id: nil,
               inventory_id: item.gn_inventory_id,
-              patient_id: @patient&.id,
+              patient_id: @patient&.id || session[:patient_id],   # <-- FIX 2
               quantity: prepack.quantity_per_pack,
               dispensation_date: Time.current,
               dispensed_by: User.current.id
@@ -76,7 +78,6 @@ class DispensationController < ApplicationController
         num_packs   = params[:numPacks].to_i
         total_qty   = qty_per_pack * num_packs
 
-        # Use total quantity if prepacking, else just qty_per_pack
         amount_dispensed = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
                             [item.current_quantity.to_i, total_qty].min
                           else
@@ -109,7 +110,7 @@ class DispensationController < ApplicationController
           )
 
           @new_prescription = Prescription.create!(
-            patient_id:       @patient&.id,
+            patient_id:       @patient&.id || session[:patient_id],   # <-- FIX 2
             drug_id:          item.drug_id,
             directions:       directions,
             quantity:         qty_per_pack,
@@ -120,19 +121,18 @@ class DispensationController < ApplicationController
           rx_id = @new_prescription.id
         end
 
-        # Record dispensation (local to this location)
+        # Record dispensation
         @dispensation = Dispensation.create!(
           rx_id:             rx_id,
           inventory_id:      item.gn_inventory_id,
-          patient_id:        @patient&.id,
+          patient_id:        @patient&.id || session[:patient_id],  
           quantity:          amount_dispensed,
           dispensation_date: Time.current,
           dispensed_by:      User.current.id
         )
 
-        # Record prepack batch and individual labels
+        # Prepack batch logic (unchanged)
         if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
-          # Prepack batch
           batch = Prepack.create!(
             bottle_id:        item.gn_inventory_id,
             gn_identifier:    item.gn_identifier,
@@ -145,7 +145,6 @@ class DispensationController < ApplicationController
             pack_identifier:  SecureRandom.uuid
           )
 
-          # Find the last numeric part
           last_label = PrepackLabel
             .where("label_identifier LIKE ?", "PK-#{item.gn_identifier}-%")
             .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
@@ -198,7 +197,6 @@ class DispensationController < ApplicationController
 
     # helper to find bottle record given a prepack or inventory id
     find_bottle_by_possible_ids = lambda do |maybe_gn_id|
-      # try gn_inventory_id first, then id
       GeneralInventory.find_by(gn_inventory_id: maybe_gn_id) ||
         GeneralInventory.find_by(id: maybe_gn_id)
     end
@@ -207,47 +205,49 @@ class DispensationController < ApplicationController
     normalize_expiration = lambda do |exp|
       return nil if exp.blank?
       return exp if exp.is_a?(Date) || exp.is_a?(Time)
-      # if it's a string try parse, otherwise nil
       begin
         Date.parse(exp.to_s)
-      rescue => _e
+      rescue
         nil
       end
     end
 
     if Prescription.exists?(params[:id])
       @prescription = Prescription.find(params[:id])
-      date = @prescription.date_prescribed # raw Date/Time
+      date = @prescription.date_prescribed
 
-      # Try to find prepack that matches this prescription
       prepack = Prepack.find_by(drug_id: @prescription.drug_id, total_quantity: @prescription.amount_dispensed)
 
       if prepack.present?
-        # find bottle record using stored bottle_id (which holds gn_inventory_id or id)
         bottle = find_bottle_by_possible_ids.call(prepack.bottle_id)
         expiration_date = normalize_expiration.call(bottle&.expiration_date)
 
-        prepack.num_packs.times do
+        # fetch all labels for this prepack
+        labels = PrepackLabel.where(prepack_id: prepack.id).order(:id)
+        labels.each_with_index do |label_record, index|
           print_string += Misc.create_dispensation_label(
             @prescription.drug_name,
             prepack.quantity_per_pack,
             prepack.directions,
             @prescription.patient_name,
             date,
-            pack_index: nil,
-            total_packs: nil,
-            bottle_id: prepack.gn_identifier,
+            pack_id: label_record.label_identifier, # always set pack_id
+            pack_index: index + 1,
+            total_packs: labels.size,
+            bottle_id: prepack.bottle_id,
             expiration_date: expiration_date
           )
         end
       else
-        # no prepack found — print single prescription label
+        # generate a temporary pack_id
+        temp_pack_id = "RX-#{@prescription.id}"
         print_string = Misc.create_dispensation_label(
           @prescription.drug_name,
           @prescription.amount_dispensed,
           @prescription.directions,
           @prescription.patient_name,
           date,
+          pack_id: temp_pack_id,
           pack_index: nil,
           total_packs: nil,
           bottle_id: "UNKNOWN",
@@ -263,30 +263,32 @@ class DispensationController < ApplicationController
       directions = @dispensation.dispensation_dir
       patient_name = @dispensation.patient&.full_name || "Unknown Patient"
 
-      # Try to find matching prepack for this dispensation
       prepack = Prepack.find_by(drug_id: @dispensation.drug_id, total_quantity: @dispensation.quantity)
 
       if prepack.present?
         bottle = find_bottle_by_possible_ids.call(prepack.bottle_id)
         expiration_date = normalize_expiration.call(bottle&.expiration_date)
 
-        prepack.num_packs.times do
+        labels = PrepackLabel.where(prepack_id: prepack.id).order(:id)
+        labels.each_with_index do |label_record, index|
           print_string += Misc.create_dispensation_label(
             drug_name,
             prepack.quantity_per_pack,
             prepack.directions,
             patient_name,
             date,
-            pack_index: nil,
-            total_packs: nil,
-            bottle_id: prepack.gn_identifier,
+            pack_id: label_record.label_identifier,
+            pack_index: index + 1,
+            total_packs: labels.size,
+            bottle_id: prepack.bottle_id,
             expiration_date: expiration_date
           )
         end
       else
-        # Fallback: try to locate the inventory referenced by this dispensation
+        # fallback: use inventory GN identifier as pack_id if prepack labels do not exist
         inventory = find_bottle_by_possible_ids.call(@dispensation.inventory_id)
         expiration_date = normalize_expiration.call(inventory&.expiration_date)
+        temp_pack_id = inventory&.gn_identifier || "RX-#{@dispensation.id}"
 
         print_string = Misc.create_dispensation_label(
           drug_name,
@@ -294,13 +296,13 @@ class DispensationController < ApplicationController
           directions,
           patient_name,
           date,
+          pack_id: temp_pack_id,
           pack_index: nil,
           total_packs: nil,
           bottle_id: inventory&.gn_identifier || "UNKNOWN",
           expiration_date: expiration_date
         )
       end
-
     else
       render plain: "Invalid label request", status: :not_found and return
     end

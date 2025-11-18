@@ -274,81 +274,102 @@ class GeneralInventoryController < ApplicationController
   end
    
   def ajax_bottle
+    scanned = params[:id].to_s.strip
+
     # Determine context
-    context = params[:context] || (request.referer&.include?('/prepack_labels') ? 'prepacking' : 'patient')
+    context = params[:context] || 
+              (request.referer&.include?('/prepack_labels') ? 'prepacking' : 'patient')
 
-    entry = GeneralInventory.includes(:drug)
-                            .find_by(gn_identifier: params[:id],
-                                    location_id: session[:location],
-                                    voided: false)
-
-    if entry.blank?
-      render plain: 'false' and return
+    # Fix malformed PK codes → PKG0000737-11 → PK-G0000737-11
+    if scanned =~ /\APK(G\d{7}-\d+)\z/i
+      scanned = scanned.sub("PKG", "PK-G")
     end
 
-    # Only undispensed labels matter
-    active_label = PrepackLabel
-                    .where("label_identifier LIKE ?", "PK-#{params[:id]}-%")
-                    .where(dispensed: 0)
-                    .order(:id)
-                    .first
+    # -----------------------------
+    # Handle Prepack labels (PK-)
+    # -----------------------------
+    if scanned.start_with?("PK-")
+      # Fetch **undispensed** label only
+      label = PrepackLabel.find_by(label_identifier: scanned, dispensed: 0)
 
-    # Auto-dispense ONLY if:
-    # - In patient mode
-    # - There is an undispensed label
-    if context == 'patient' && active_label.present?
-      prepack = active_label.prepack
-      bottle = GeneralInventory.find_by(
-        gn_inventory_id: prepack.bottle_id,
-        location_id: session[:location]
-      )
-
-      if bottle.blank? || bottle.current_quantity <= 0
-        render json: { error: "Cannot dispense prepack #{params[:id]}" } and return
+      if label.nil?
+        # Either invalid or already dispensed
+        return render json: { error: "This prepack has already been dispensed or is invalid" }
       end
 
-      disp = nil
+      prepack = label.prepack
 
-      GeneralInventory.transaction do
-        # Reduce stock
-        bottle.update!(current_quantity: bottle.current_quantity - prepack.quantity_per_pack)
-
-        # Record dispensation
-        disp = Dispensation.create!(
-          rx_id: nil,
-          inventory_id: bottle.gn_inventory_id,
-          patient_id: session[:patient_id],
-          quantity: prepack.quantity_per_pack,
-          dispensation_date: Time.current,
-          dispensed_by: User.current.id
+      if context == "patient"
+        bottle = GeneralInventory.find_by(
+          gn_inventory_id: prepack.bottle_id,
+          location_id: session[:location]
         )
 
-        # Mark THIS label dispensed
-        active_label.update!(dispensed: 1)
-
-        # If all labels now dispensed → close prepack
-        if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
-          prepack.update!(
-            status: 'dispensed',
-            dispensed_at: Time.current,
-            dispensed_to: session[:patient_id]
-          )
+        if bottle.nil? || bottle.current_quantity <= 0
+          return render json: { error: "Bottle empty for this prepack" }
         end
+
+        disp = nil
+
+        GeneralInventory.transaction do
+          # Record dispensation
+          disp = Dispensation.create!(
+            rx_id: nil,
+            inventory_id: bottle.gn_inventory_id,
+            patient_id: session[:patient_id],
+            quantity: prepack.quantity_per_pack,
+            dispensation_date: Time.current,
+            dispensed_by: User.current.id
+          )
+
+          # Mark THIS individual pack used
+          label.update!(dispensed: 1)
+
+          # Close prepack if all packs used
+          if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
+            prepack.update!(
+              status: 'dispensed',
+              dispensed_at: Time.current,
+              dispensed_to: session[:patient_id]
+            )
+          end
+        end
+
+        return render json: {
+          prepack: true,
+          message: "Successfully dispensed #{bottle.drug.name}",
+          quantity: prepack.quantity_per_pack,
+          dispensation_id: disp.id,
+          currentQty: bottle.current_quantity
+        }
       end
 
-      # Return auto-dispense result (frontend will NOT open modal)
-      render json: {
+      # Prepacking mode → return info about this pack
+      return render json: {
         prepack: true,
-        message: "Successfully dispensed #{bottle.drug.name} to patient",
-        currentQty: bottle.current_quantity,
-        dispensation_id: disp.id
-      } and return
+        drug_id: prepack.bottle_id,
+        quantity_per_pack: prepack.quantity_per_pack,
+        label: label.label_identifier
+      }
     end
 
-    # Instead of ANY label existing → only care about active labels
+    # -----------------------------
+    # Handle regular bottle scan
+    # -----------------------------
+    entry = GeneralInventory.includes(:drug)
+                            .find_by(
+                              gn_identifier: scanned,
+                              location_id: session[:location],
+                              voided: false
+                            )
+
+    if entry.nil?
+      return render plain: "false"
+    end
+
+    # Check if any active prepacks exist for this bottle
     has_active_prepacks = PrepackLabel
-                            .where("label_identifier LIKE ?", "PK-#{params[:id]}-%")
-                            .where(dispensed: 0)
+                            .where(bottle_id: entry.gn_inventory_id, dispensed: 0)
                             .exists?
 
     render json: {
@@ -357,7 +378,6 @@ class GeneralInventoryController < ApplicationController
       prepack: has_active_prepacks
     }
   end
-
 
   def show
     @item = GeneralInventory.find_by(

@@ -60,9 +60,10 @@ module Misc
     label.print(1)
   end
 
-  def self.create_dispensation_label(item, quantity, directions, patient_name, date, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
+  def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_id:, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
     puts "DEBUG - Directions received: '#{directions}'"
-    puts "DEBUG - Bottle ID: '#{bottle_id}'"
+    puts "DEBUG - Pack ID (barcode): '#{pack_id}'"
+    puts "DEBUG - Bottle ID (text): '#{bottle_id}'"
     puts "DEBUG - Expiration date: '#{expiration_date}'"
 
     label = ZebraPrinter::StandardLabel.new
@@ -71,25 +72,32 @@ module Misc
     label.font_vertical_multiplier = 1
     label.left_margin = 10
 
+    # Patient & drug info
     label.draw_multi_text("Patient: #{patient_name}", column_width: 2700) if patient_name.present?
     label.draw_multi_text("Drug: #{item}", column_width: 2700)
     label.draw_multi_text("Dir : #{directions}", column_width: 2700)
 
+    # Optional dose pattern extraction
     dose_pattern = Misc.extract_dose_pattern(directions)
     label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
 
+    # Quantity, expiry, and date
     label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
     label.draw_multi_text("Expiry: #{expiration_date.strftime('%d/%m/%Y')}", column_width: 2700)
     label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
 
+    # Optional pack numbering
     if pack_index && total_packs
       label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
     end
 
-    # Add barcode properly
-    label.draw_barcode(150, 230, 0, 1, 3, 5, 100, false, bottle_id)
+    # Barcode = pack identifier (unique per pack)
+    label.draw_barcode(150, 230, 0, 1, 3, 5, 100, false, pack_id)
+
+    # Text = parent bottle id
     label.draw_multi_text("Bottle ID: #{bottle_id}", column_width: 2700)
 
+    # Print label
     label.print(1)
   end
 
@@ -98,7 +106,7 @@ module Misc
 
     normalized = directions.downcase.strip
     
-    # Capture numeric dose
+    # Capture numeric dose dose
     dose_match = normalized.match(/take\s+(\d+)\s*(tablet|tab|capsule|cap)?/)
     dose = dose_match ? dose_match[1] : "1"
 

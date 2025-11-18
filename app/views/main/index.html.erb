@@ -56,28 +56,78 @@
 </div>
 
 <script>
-let modalOpen = false;
-let focusInterval;
-let timerHand;
+// --- Focus / scanner management ---
+let barcodeInput = null;
+let barcodeTimer = null;
 
-// Main scanner polling
+// Whether we're in dispensary mode (ERB logic from your original script)
 const isDispensary = <%= current_location.name.match(/store/i).blank? %>;
-function checkBarcode() {
-  if (modalOpen) return;
 
-  const barcodeTxt = document.getElementById("barcode");
-  if (!barcodeTxt) return;
-
-  const val = barcodeTxt.value.trim().replace(/\-/,"");
-  if (val.length >= 8) {
-    if (isDispensary) window.location = "/patient_identifiers/" + val;
-    else window.location = "/general_inventory/" + val;
-    barcodeTxt.value = '';
+// --- Helper to focus immediately ---
+function focusBarcodeInputImmediate() {
+  const barcode = document.getElementById("barcode");
+  if (barcode) {
+    barcode.focus();
+    barcode.select();
   }
-
-  if (!modalOpen) timerHand = setTimeout(checkBarcode, 3000);
 }
 
-// Start scanner
-setTimeout(checkBarcode, 3000);
+// --- Initialize the scanner (event-based instead of timer polling) ---
+function initializeBarcodeListener() {
+  barcodeInput = document.getElementById("barcode");
+  if (!barcodeInput) return;
+
+  // Remove possible old listeners
+  barcodeInput.removeEventListener('input', handleBarcodeInput);
+  barcodeInput.removeEventListener('blur', handleBarcodeBlur);
+
+  // Prepare field
+  barcodeInput.value = "";
+  barcodeInput.focus();
+
+  // Add listeners
+  barcodeInput.addEventListener('input', handleBarcodeInput);
+  barcodeInput.addEventListener('blur', handleBarcodeBlur);
+}
+
+// --- Input handler with debounce (lets scanner finish typing) ---
+function handleBarcodeInput(event) {
+  if (barcodeTimer) clearTimeout(barcodeTimer);
+
+  barcodeTimer = setTimeout(() => {
+    const raw = event.target.value.trim().toUpperCase().replace(/-/g, "");
+    if (raw.length >= 8) {
+      processBarcode(raw);
+    }
+  }, 120);
+}
+
+// --- Refocus on blur ---
+function handleBarcodeBlur() {
+  setTimeout(() => focusBarcodeInputImmediate(), 100);
+}
+
+// --- Main processing: redirect to patient or inventory ---
+function processBarcode(code) {
+  // Show scanned code briefly
+  if (barcodeInput) barcodeInput.value = code;
+
+  // Clear & refocus quickly
+  setTimeout(() => {
+    if (barcodeInput) {
+      barcodeInput.value = "";
+      barcodeInput.focus();
+    }
+  }, 50);
+
+  // Redirect
+  if (isDispensary) {
+    window.location = "/patient_identifiers/" + encodeURIComponent(code);
+  } else {
+    window.location = "/general_inventory/" + encodeURIComponent(code);
+  }
+}
+
+// Start scanner when page loads
+document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
 </script>
