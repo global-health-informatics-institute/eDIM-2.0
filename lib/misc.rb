@@ -61,11 +61,6 @@ module Misc
   end
 
 def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_id:, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
-    puts "DEBUG - Directions received: '#{directions}'"
-    puts "DEBUG - Pack ID (barcode): '#{pack_id}'"
-    puts "DEBUG - Bottle ID (text): '#{bottle_id}'"
-    puts "DEBUG - Expiration date: '#{expiration_date}'"
-    puts "DEBUG - Pack index: #{pack_index}, Total packs: #{total_packs}"
 
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 4
@@ -101,15 +96,14 @@ def self.create_dispensation_label(item, quantity, directions, patient_name, dat
       label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
     end
 
-    # FIX: Only draw barcode for PREPACK labels (pack_id starts with "PK-")
+    # Only draw barcode for PREPACK labels
     if pack_id.present? && pack_id.start_with?("PK-")
       puts "DEBUG - DRAWING BARCODE for prepack: #{pack_id}"
       label.draw_barcode(150, 230, 0, 1, 3, 5, 100, false, pack_id)
     else
       puts "DEBUG - SKIPPING BARCODE for: #{pack_id}"
     end
-
-    # Text = parent bottle id
+    
     label.draw_multi_text("Bottle ID: #{bottle_id}", column_width: 2700)
 
     # Print label
