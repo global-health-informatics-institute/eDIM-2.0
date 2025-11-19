@@ -309,11 +309,6 @@
             </div>
           </div>
         </div>
-        <div id="noPrescriptionBtn"
-            style="position: absolute; left: 55vw; top: 81vh; background-color: #053a54; color: white; padding: 15px 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem;"
-            onmousedown="switchToNoPrescription()">
-          <%= t('forms.buttons.continue_without_prescriptions') %>
-        </div>
       </div>
     </div>
     <div style="display: table; width: 99vw;margin-top: 1vh;margin-left: auto;margin-right: auto">
@@ -380,7 +375,7 @@
 
 <script type="text/javascript">
   var timerHand;
-  var noPrescriptionMode = false;
+  // REMOVED: var noPrescriptionMode = false;
 
   // --- Focus / scanner management variables & helpers ---
   let barcodeInput = null;
@@ -511,19 +506,8 @@
       document.getElementById('dispClear').style.display = 'none';
       hideDispensationWarning();
       
-      // Reset no prescription mode
-      noPrescriptionMode = false;
-      
-      // Show the no prescription button
-      document.getElementById('noPrescriptionBtn').style.display = 'flex';
-      
-      // Reset all tabs to be visible
-      ['routesTab','doseTab','directionsTab','qtyTab','doseTypeTab'].forEach(t => {
-          document.getElementById(t).style.display = '';
-      });
-      
-      // Reset the dose label
-      document.getElementById('doseLabel').innerHTML = '<span style="font-weight: bold;font-size: 1.2em;"><%= t("forms.labels.enter_dose") %></span>';
+      // REMOVED: noPrescriptionMode = false;
+      // REMOVED: Show the no prescription button
   }
 
   function updateQuantity() {
@@ -577,12 +561,7 @@
       var currentTab = tabs.indexOf(option);
       var button = document.getElementById('dispNext');
       var clearButton = document.getElementById('dispClear');
-      var noPrescriptionBtn = document.getElementById('noPrescriptionBtn');
-
-      // Reset noPrescriptionMode when opening normally
-      if (!noPrescriptionMode) {
-          noPrescriptionMode = false;
-      }
+      // REMOVED: var noPrescriptionBtn = document.getElementById('noPrescriptionBtn');
 
       $(".mobi-div").css("display", "none");
       $(".tab").css("border", "1px outset silver");
@@ -596,25 +575,15 @@
           clearButton.style.display = "none";
       }
 
-      // Show NoPrescriptionDisp btn only on route
-      if (option === 'routesDiv')  {
-          noPrescriptionBtn.style.display = "inline-block";
-      } else {
-          noPrescriptionBtn.style.display = "none";
-      }
+      // REMOVED: No prescription button logic
 
-      if (noPrescriptionMode) {
-          // In no-prescription mode, Next should just finish directly
+      // Standard prescription mode flow
+      if (option == 'doseTypeDiv') {
           button.setAttribute("onmousedown", "validateDisp()");
           button.innerHTML = '<%= t("forms.buttons.finish") %>';
       } else {
-          if (option == 'doseTypeDiv') {
-              button.setAttribute("onmousedown", "validateDisp()");
-              button.innerHTML = '<%= t("forms.buttons.finish") %>';
-          } else {
-              button.setAttribute("onmousedown", "showDispenseDiv('" + tabs[currentTab + 1] + "')");
-              button.innerHTML = '<%= t("forms.buttons.next") %>';
-          }
+          button.setAttribute("onmousedown", "showDispenseDiv('" + tabs[currentTab + 1] + "')");
+          button.innerHTML = '<%= t("forms.buttons.next") %>';
       }
   }
 
@@ -636,15 +605,8 @@
   }
 
   function validateDisp() {
+      // REMOVED: No prescription mode submission logic
 
-      // submit form immediately when in no-prescription mode
-      if (noPrescriptionMode) {
-        var qty = parseInt(document.getElementById('dose').value, 10) || 0;
-        document.getElementById('dispensed_quantity').value = qty;
-        document.getElementById('qtyDisp').innerHTML = qty;
-        document.forms[0].submit();
-        return;
-      }
       checkRoute = document.getElementsByName("administration");
       checkDoseType = document.getElementsByName("doseType");
       checkdirections = document.getElementsByName("frequency");
@@ -810,89 +772,7 @@
     xmlhttp.send();
   }
 
-  function switchToNoPrescription() {
-    noPrescriptionMode = true;
-
-    // Hide all tabs except Dose
-    ['routes','dose','directions','qty','doseType'].forEach(t => {
-      const div = document.getElementById(t + 'Div');
-      const tab = document.getElementById(t + 'Tab');
-      if (div) div.style.display = 'none';
-      if (tab) tab.style.display = 'none';
-    });
-
-    // Show only Dose tab
-    const doseDiv = document.getElementById('doseDiv');
-    const doseTab = document.getElementById('doseTab');
-    if (doseDiv) doseDiv.style.display = '';
-    if (doseTab) {
-      doseTab.style.display = '';
-      doseTab.style.border = '2px solid #de0404';
-    }
-    // Update Dose label
-    const doseLabel = document.getElementById('doseLabel');
-    if (doseLabel) doseLabel.innerHTML = "<b>Enter quantity to Dispense</b>";
-
-    // Show "Dispensed without prescription" immediately
-    const directionsDisp = document.getElementById('directionsDisp');
-    if (directionsDisp) directionsDisp.innerHTML = "<b>Dispensing without prescription</b>";
-
-    // Force stepper to final step (skip internal steps)
-    if (typeof currentStep !== "undefined") {
-      currentStep = 999;
-    }
-
-    // Replace Next button with Finish button that directly submits
-    const button = document.getElementById('dispNext');
-    if (button) {
-      button.setAttribute('onmousedown', "validateDisp()");
-      button.innerHTML = '<%= t("forms.buttons.finish") %>';
-    }
-
-    // Hide the no prescription button
-    document.getElementById('noPrescriptionBtn').style.display = "none";
-
-    // Number pad buttons only modify dose
-    if (doseDiv) {
-      const doseButtons = doseDiv.querySelectorAll(".customButton");
-      doseButtons.forEach(btn => {
-        btn.onmousedown = function() {
-          append(btn.querySelector('span').innerText, 'dose');
-          if (noPrescriptionMode) {
-            const val = parseFloat(document.getElementById('dose').value) || 0;
-            document.getElementById('qtyDisp').innerHTML = val;
-            document.getElementById('dispensed_quantity').value = val;
-            document.getElementById('directionsDisp').innerHTML = "<b>Dispensing without prescription</b>";
-
-            // Show Clear button if value exists
-            const dispClear = document.getElementById('dispClear');
-            if (dispClear) {
-              dispClear.style.display = (document.getElementById('dose').value.length > 0) ? "inline-block" : "none";
-            }
-          }
-        }
-      });
-    }
-
-    // Update dose field input in real-time
-    const doseInput = document.getElementById('dose');
-    if (doseInput) {
-      doseInput.addEventListener('input', function() {
-        if (noPrescriptionMode) {
-          const val = parseFloat(this.value) || 0;
-          document.getElementById('qtyDisp').innerHTML = val;
-          document.getElementById('dispensed_quantity').value = val;
-          document.getElementById('directionsDisp').innerHTML = "<b>Dispensed without prescription</b>";
-
-          // Show/hide Clear button dynamically
-          const dispClear = document.getElementById('dispClear');
-          if (dispClear) {
-            dispClear.style.display = (this.value.length > 0) ? "inline-block" : "none";
-          }
-        }
-      });
-    }
-  }
+  // REMOVED: Entire switchToNoPrescription() function
 
   // Reset fields and bind dispClear if present
   document.addEventListener("DOMContentLoaded", function() {
@@ -902,20 +782,12 @@
     const dispClear = document.getElementById("dispClear");
     if (dispClear) {
       dispClear.addEventListener("click", function() {
-        if (noPrescriptionMode) {
-          // In no-prescription mode, just clear quantity
-          document.getElementById("dose").value = "";
-          document.getElementById("qtyDisp").innerHTML = "0";
-          document.getElementById("dispensed_quantity").value = "0";
-          document.getElementById("directionsDisp").innerHTML = "<b>Dispensing without prescription</b>";
-        } else {
-          // In normal prescription mode, clear everything relevant
-          document.getElementById("dose").value = "";
-          document.getElementById("qty").value = "";
-          document.getElementById("qtyDisp").innerHTML = "0";
-          document.getElementById("dispensed_quantity").value = "0";
-          document.getElementById("directionsDisp").innerHTML = "";
-        }
+        // In normal prescription mode, clear everything relevant
+        document.getElementById("dose").value = "";
+        document.getElementById("qty").value = "";
+        document.getElementById("qtyDisp").innerHTML = "0";
+        document.getElementById("dispensed_quantity").value = "0";
+        document.getElementById("directionsDisp").innerHTML = "";
 
         // Hide button again
         dispClear.style.display = "none";
