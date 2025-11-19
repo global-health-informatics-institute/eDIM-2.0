@@ -1,204 +1,204 @@
 class DispensationController < ApplicationController
-def create
-  @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
-  session[:patient_id] = @patient.id if @patient.present?
+  def create
+    @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
+    session[:patient_id] = @patient.id if @patient.present?
 
-  return_path =
-    if params[:prepacking] == 'true'
-      '/general_inventory/prepack_labels'
-    elsif params[:patient_id].present?
-      "/patients/#{@patient.id}"
-    else
-      '/'
-    end
-
-  # Check if this scan is from a prepack label
-  prepack_label = PrepackLabel.find_by(label_identifier: params[:bottle_id])
-  if prepack_label.present?
-    prepack = prepack_label.prepack
-    if prepack.present?
-      item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id, location_id: session[:location])
-      if item.blank?
-        flash[:errors] = "Parent bottle for #{params[:bottle_id]} not found in inventory"
-        redirect_to return_path and return
+    return_path =
+      if params[:prepacking] == 'true'
+        '/general_inventory/prepack_labels'
+      elsif params[:patient_id].present?
+        "/patients/#{@patient.id}"
+      else
+        '/'
       end
 
-      # Automatically dispense from prepack
-      begin
-        GeneralInventory.transaction do
-          if item.current_quantity <= 0
-            flash[:errors] = "Insufficient stock for prepack bottle #{prepack.gn_identifier}"
-            redirect_to return_path and return
+    # Check if this scan is from a prepack label
+    prepack_label = PrepackLabel.find_by(label_identifier: params[:bottle_id])
+    if prepack_label.present?
+      prepack = prepack_label.prepack
+      if prepack.present?
+        item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id, location_id: session[:location])
+        if item.blank?
+          flash[:errors] = "Parent bottle for #{params[:bottle_id]} not found in inventory"
+          redirect_to return_path and return
+        end
+
+        # Automatically dispense from prepack
+        begin
+          GeneralInventory.transaction do
+            if item.current_quantity <= 0
+              flash[:errors] = "Insufficient stock for prepack bottle #{prepack.gn_identifier}"
+              redirect_to return_path and return
+            end
+
+            # Decrease stock by one pack worth
+            item.update!(current_quantity: item.current_quantity - prepack.quantity_per_pack)
+
+            # Create prescription for prepack dispensation
+            directions = prepack.directions.presence || "Take as directed"
+            
+            prescription = Prescription.create!(
+              patient_id:       @patient&.id || session[:patient_id],
+              drug_id:          item.drug_id,
+              directions:       directions,
+              quantity:         prepack.quantity_per_pack,
+              amount_dispensed: prepack.quantity_per_pack,
+              provider_id:      User.current.id,
+              date_prescribed:  Time.current
+            )
+
+            # Create dispensation record linked to prescription
+            disp = Dispensation.create!(
+              rx_id: prescription.id,
+              inventory_id: item.gn_inventory_id,
+              patient_id: @patient&.id || session[:patient_id],
+              quantity: prepack.quantity_per_pack,
+              dispensation_date: Time.current,
+              dispensed_by: User.current.id
+            )
+
+            flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
+            print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
+          end
+        rescue => e
+          Rails.logger.error "Prepack dispensation failed: #{e.message}"
+          flash[:errors] = "Could not complete prepack dispensation"
+          redirect_to return_path
+        end
+        return
+      end
+    end
+
+    # Continue with normal bottle dispensing flow
+    item = GeneralInventory.where(
+      gn_identifier: params[:bottle_id],
+      location_id: session[:location]
+    ).lock(true).first
+
+    if item.blank?
+      flash[:errors] = "Bottle ID #{params[:bottle_id]} not found in general inventory for this location"
+      redirect_to return_path and return
+    end
+
+    dispense_success = false
+    @new_prescription = nil
+    @prepack_batch = nil
+
+    begin
+      GeneralInventory.transaction do
+        # Determine requested quantities
+        is_a_bottle = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
+        qty_per_pack = is_a_bottle ? 1 : params[:quantity].to_i
+        num_packs   = params[:numPacks].to_i
+        total_qty   = qty_per_pack * num_packs
+
+        amount_dispensed = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
+                            [item.current_quantity.to_i, total_qty].min
+                          else
+                            [item.current_quantity.to_i, qty_per_pack].min
+                          end
+
+        if amount_dispensed <= 0
+          flash[:errors] = "Insufficient stock in this location"
+          redirect_to return_path and return
+        end
+
+        # Decrement current location stock
+        item.update!(current_quantity: item.current_quantity - amount_dispensed)
+
+        if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
+          # PREPACKING: Create prepack and labels
+          directions = Misc.create_directions(
+            params[:dose].to_s,
+            params[:administration].to_s,
+            params[:frequency].to_s,
+            params[:doseType].to_s
+          )
+
+          @prepack_batch = Prepack.create!(
+            bottle_id:        item.gn_inventory_id,
+            gn_identifier:    item.gn_identifier,
+            drug_id:          item.drug_id,
+            quantity_per_pack: qty_per_pack,
+            num_packs:        num_packs,
+            total_quantity:   total_qty,
+            directions:       directions,
+            prepacked_by_id:  User.current.id,
+            pack_identifier:  SecureRandom.uuid
+          )
+
+          last_label = PrepackLabel
+            .where("label_identifier LIKE ?", "PK-#{item.gn_identifier}-%")
+            .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
+            .first
+
+          last_index = last_label ? last_label.label_identifier.split('-').last.to_i : 0
+
+          (1..num_packs).each do |i|
+            PrepackLabel.create!(
+              prepack_id:      @prepack_batch.id,
+              bottle_id:       @prepack_batch.bottle_id,
+              label_identifier: "PK-#{item.gn_identifier}-#{last_index + i}"
+            )
           end
 
-          # Decrease stock by one pack worth
-          item.update!(current_quantity: item.current_quantity - prepack.quantity_per_pack)
+          dispense_success = true
+        else
+          # DISPENSING: Create prescription and dispensation
+          directions = Misc.create_directions(
+            params[:dose].to_s,
+            params[:administration].to_s,
+            params[:frequency].to_s,
+            params[:doseType].to_s
+          )
 
-          # Create prescription for prepack dispensation
-          directions = prepack.directions.presence || "Take as directed"
-          
-          prescription = Prescription.create!(
+          @new_prescription = Prescription.create!(
             patient_id:       @patient&.id || session[:patient_id],
             drug_id:          item.drug_id,
             directions:       directions,
-            quantity:         prepack.quantity_per_pack,
-            amount_dispensed: prepack.quantity_per_pack,
+            quantity:         qty_per_pack,
+            amount_dispensed: amount_dispensed,
             provider_id:      User.current.id,
             date_prescribed:  Time.current
           )
 
-          # Create dispensation record linked to prescription
-          disp = Dispensation.create!(
-            rx_id: prescription.id,
-            inventory_id: item.gn_inventory_id,
-            patient_id: @patient&.id || session[:patient_id],
-            quantity: prepack.quantity_per_pack,
+          # Record dispensation linked to prescription
+          @dispensation = Dispensation.create!(
+            rx_id:             @new_prescription.id,
+            inventory_id:      item.gn_inventory_id,
+            patient_id:        @patient&.id || session[:patient_id],  
+            quantity:          amount_dispensed,
             dispensation_date: Time.current,
-            dispensed_by: User.current.id
+            dispensed_by:      User.current.id
           )
 
-          flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
-          print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
+          dispense_success = true
         end
-      rescue => e
-        Rails.logger.error "Prepack dispensation failed: #{e.message}"
-        flash[:errors] = "Could not complete prepack dispensation"
-        redirect_to return_path
       end
-      return
+    rescue => e
+      Rails.logger.error "Dispensation failed: #{e.message}"
+      flash[:errors] = 'Could not create the dispensation'
     end
-  end
 
-  # Continue with normal bottle dispensing flow
-  item = GeneralInventory.where(
-    gn_identifier: params[:bottle_id],
-    location_id: session[:location]
-  ).lock(true).first
+    Rails.logger.info "Prepacking param: #{params[:prepacking].inspect}"
 
-  if item.blank?
-    flash[:errors] = "Bottle ID #{params[:bottle_id]} not found in general inventory for this location"
-    redirect_to return_path and return
-  end
-
-  dispense_success = false
-  @new_prescription = nil
-  @prepack_batch = nil
-
-  begin
-    GeneralInventory.transaction do
-      # Determine requested quantities
-      is_a_bottle = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
-      qty_per_pack = is_a_bottle ? 1 : params[:quantity].to_i
-      num_packs   = params[:numPacks].to_i
-      total_qty   = qty_per_pack * num_packs
-
-      amount_dispensed = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
-                          [item.current_quantity.to_i, total_qty].min
-                        else
-                          [item.current_quantity.to_i, qty_per_pack].min
-                        end
-
-      if amount_dispensed <= 0
-        flash[:errors] = "Insufficient stock in this location"
-        redirect_to return_path and return
-      end
-
-      # Decrement current location stock
-      item.update!(current_quantity: item.current_quantity - amount_dispensed)
-
+    if dispense_success
       if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
-        # PREPACKING: Create prepack and labels but NO prescription/dispensation
-        directions = Misc.create_directions(
-          params[:dose].to_s,
-          params[:administration].to_s,
-          params[:frequency].to_s,
-          params[:doseType].to_s
-        )
-
-        @prepack_batch = Prepack.create!(
-          bottle_id:        item.gn_inventory_id,
-          gn_identifier:    item.gn_identifier,
-          drug_id:          item.drug_id,
-          quantity_per_pack: qty_per_pack,
-          num_packs:        num_packs,
-          total_quantity:   total_qty,
-          directions:       directions,
-          prepacked_by_id:  User.current.id,
-          pack_identifier:  SecureRandom.uuid
-        )
-
-        last_label = PrepackLabel
-          .where("label_identifier LIKE ?", "PK-#{item.gn_identifier}-%")
-          .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
-          .first
-
-        last_index = last_label ? last_label.label_identifier.split('-').last.to_i : 0
-
-        (1..num_packs).each do |i|
-          PrepackLabel.create!(
-            prepack_id:      @prepack_batch.id,
-            bottle_id:       @prepack_batch.bottle_id,
-            label_identifier: "PK-#{item.gn_identifier}-#{last_index + i}"
-          )
+        flash[:success] = 'Prepacking labels created successfully'
+        # Print using the prepack batch ID with special prefix
+        print_and_redirect("/print_dispensation_label/PREPACK-#{@prepack_batch.id}", return_path)
+      else
+        if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
+          print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
+        else
+          flash[:notice] = 'Insufficient quantity. Top up from another bottle'
+          redirect_to "/prescriptions/#{@new_prescription.id}"
         end
-
-        dispense_success = true
-      else
-        # NORMAL DISPENSING: Create prescription and dispensation
-        directions = Misc.create_directions(
-          params[:dose].to_s,
-          params[:administration].to_s,
-          params[:frequency].to_s,
-          params[:doseType].to_s
-        )
-
-        @new_prescription = Prescription.create!(
-          patient_id:       @patient&.id || session[:patient_id],
-          drug_id:          item.drug_id,
-          directions:       directions,
-          quantity:         qty_per_pack,
-          amount_dispensed: amount_dispensed,
-          provider_id:      User.current.id,
-          date_prescribed:  Time.current
-        )
-
-        # Record dispensation linked to prescription
-        @dispensation = Dispensation.create!(
-          rx_id:             @new_prescription.id,
-          inventory_id:      item.gn_inventory_id,
-          patient_id:        @patient&.id || session[:patient_id],  
-          quantity:          amount_dispensed,
-          dispensation_date: Time.current,
-          dispensed_by:      User.current.id
-        )
-
-        dispense_success = true
       end
-    end
-  rescue => e
-    Rails.logger.error "Dispensation failed: #{e.message}"
-    flash[:errors] = 'Could not create the dispensation'
-  end
-
-  Rails.logger.info "Prepacking param: #{params[:prepacking].inspect}"
-
-  if dispense_success
-    if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
-      flash[:success] = 'Prepacking labels created successfully'
-      # Print using the prepack batch ID with special prefix
-      print_and_redirect("/print_dispensation_label/PREPACK-#{@prepack_batch.id}", return_path)
     else
-      if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
-        print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
-      else
-        flash[:notice] = 'Insufficient quantity. Top up from another bottle'
-        redirect_to "/prescriptions/#{@new_prescription.id}"
-      end
+      redirect_to return_path
     end
-  else
-    redirect_to return_path
   end
-end
 
   def print_dispensation_label
     print_string = ""
@@ -308,7 +308,7 @@ end
       directions = @dispensation.dispensation_dir
       patient_name = @dispensation.patient&.full_name || "Unknown Patient"
 
-      # FIX: Check if this dispensation is from scanning a prepack label
+      # Check if this dispensation is from scanning a prepack label
       prepack_label = PrepackLabel.find_by(label_identifier: @dispensation.inventory_id)
       
       if prepack_label.present?
@@ -362,7 +362,7 @@ end
   end
 
   def refill
-    #Function to fill a prescription
+    # Function to fill a prescription
     GeneralInventory.transaction do
       item = GeneralInventory.where("gn_identifier = ? ", params[:bottle_id]).lock(true).first
       qty = params[:quantity].to_i
@@ -428,7 +428,6 @@ end
     end
 
     # Fetch dispensations for date range and location
-    # Using associations instead of joins
     @records = Dispensation
              .where(dispensation_date: start_date..end_date, voided: false)
              #.where(patient_id: Patient.where(location_id: session[:location]).select(:patient_id))
@@ -439,7 +438,7 @@ end
   end
 
   def select
-    # In dispensary: always just show the current location
+    # In dispensary, select report type
     @locations = [Location.find(session[:location])&.name].compact
     render layout: 'touch'
   end
