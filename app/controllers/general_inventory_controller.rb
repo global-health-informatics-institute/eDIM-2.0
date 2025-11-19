@@ -280,20 +280,17 @@ class GeneralInventoryController < ApplicationController
     context = params[:context] || 
               (request.referer&.include?('/prepack_labels') ? 'prepacking' : 'patient')
 
-    # Fix malformed PK codes → PKG0000737-11 → PK-G0000737-11
+    # Fix malformed PK codes
     if scanned =~ /\APK(G\d{7}-\d+)\z/i
       scanned = scanned.sub("PKG", "PK-G")
     end
 
-    # -----------------------------
-    # Handle Prepack labels (PK-)
-    # -----------------------------
+    # Handle Prepack labels
     if scanned.start_with?("PK-")
-      # Fetch **undispensed** label only
+      # Fetch undispensed label only
       label = PrepackLabel.find_by(label_identifier: scanned, dispensed: 0)
 
       if label.nil?
-        # Either invalid or already dispensed
         return render json: { error: "This prepack has already been dispensed or is invalid" }
       end
 
@@ -309,20 +306,40 @@ class GeneralInventoryController < ApplicationController
           return render json: { error: "Bottle empty for this prepack" }
         end
 
+        # Get patient_id from session or params
+        patient_id = params[:patient_id] || session[:patient_id]
+
+        # If patient_id is still nil
+        if patient_id.nil?
+          return render json: { error: "Patient context missing" }
+        end
+
         disp = nil
+        prescription = nil
 
         GeneralInventory.transaction do
-          # Record dispensation
+          # Create a prescription record for this prepack dispensing
+          prescription = Prescription.create!(
+            patient_id: patient_id,
+            drug_id: bottle.drug_id,
+            date_prescribed: Time.current,
+            quantity: prepack.quantity_per_pack,
+            amount_dispensed: prepack.quantity_per_pack,
+            directions: prepack.directions || "Dispensed as prepack",
+            provider_id: User.current.id
+          )
+
+          # Record dispensation WITH the newly created prescription_id
           disp = Dispensation.create!(
-            rx_id: nil,
+            rx_id: prescription.id,
             inventory_id: bottle.gn_inventory_id,
-            patient_id: session[:patient_id],
+            patient_id: patient_id,
             quantity: prepack.quantity_per_pack,
             dispensation_date: Time.current,
             dispensed_by: User.current.id
           )
 
-          # Mark THIS individual pack used
+          # Mark pack used
           label.update!(dispensed: 1)
 
           # Close prepack if all packs used
@@ -330,7 +347,7 @@ class GeneralInventoryController < ApplicationController
             prepack.update!(
               status: 'dispensed',
               dispensed_at: Time.current,
-              dispensed_to: session[:patient_id]
+              dispensed_to: patient_id
             )
           end
         end
@@ -340,11 +357,12 @@ class GeneralInventoryController < ApplicationController
           message: "Successfully dispensed #{bottle.drug.name}",
           quantity: prepack.quantity_per_pack,
           dispensation_id: disp.id,
+          prescription_id: prescription.id,
           currentQty: bottle.current_quantity
         }
       end
 
-      # Prepacking mode → return info about this pack
+      # Prepacking mode, return info about this pack
       return render json: {
         prepack: true,
         drug_id: prepack.bottle_id,
@@ -353,9 +371,7 @@ class GeneralInventoryController < ApplicationController
       }
     end
 
-    # -----------------------------
     # Handle regular bottle scan
-    # -----------------------------
     entry = GeneralInventory.includes(:drug)
                             .find_by(
                               gn_identifier: scanned,
@@ -406,7 +422,6 @@ def prepack_labels
 
   render :prepack_labels
 end
-
 
   def pre_packing
     GeneralInventory.transaction do

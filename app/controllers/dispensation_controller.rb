@@ -34,9 +34,22 @@ class DispensationController < ApplicationController
             # Decrease stock by one pack worth
             item.update!(current_quantity: item.current_quantity - prepack.quantity_per_pack)
 
-            # Create dispensation record
+            # Create prescription for prepack dispensation
+            directions = prepack.directions.presence || "Take as directed"
+            
+            prescription = Prescription.create!(
+              patient_id:       @patient&.id || session[:patient_id],
+              drug_id:          item.drug_id,
+              directions:       directions,
+              quantity:         prepack.quantity_per_pack,
+              amount_dispensed: prepack.quantity_per_pack,
+              provider_id:      User.current.id,
+              date_prescribed:  Time.current
+            )
+
+            # Create dispensation record linked to prescription
             disp = Dispensation.create!(
-              rx_id: nil,
+              rx_id: prescription.id,
               inventory_id: item.gn_inventory_id,
               patient_id: @patient&.id || session[:patient_id],
               quantity: prepack.quantity_per_pack,
@@ -45,7 +58,7 @@ class DispensationController < ApplicationController
             )
 
             flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
-            print_and_redirect("/print_dispensation_label/#{disp.id}", return_path)
+            print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
           end
         rescue => e
           Rails.logger.error "Prepack dispensation failed: #{e.message}"
@@ -92,38 +105,27 @@ class DispensationController < ApplicationController
         # Decrement current location stock
         item.update!(current_quantity: item.current_quantity - amount_dispensed)
 
-        # Determine if prescription should be created
-        with_prescription =
-          params[:prepacking] == 'true' ||
-          params[:prescription_mode].to_s == 'with_prescription' ||
-          (params[:administration].present? && params[:frequency].present? && params[:doseType].present?)
+        # Always create prescription (removed the conditional check)
+        directions = Misc.create_directions(
+          params[:dose].to_s,
+          params[:administration].to_s,
+          params[:frequency].to_s,
+          params[:doseType].to_s
+        )
 
-        rx_id = nil
-        directions = nil
+        @new_prescription = Prescription.create!(
+          patient_id:       @patient&.id || session[:patient_id],
+          drug_id:          item.drug_id,
+          directions:       directions,
+          quantity:         qty_per_pack,
+          amount_dispensed: amount_dispensed,
+          provider_id:      User.current.id,
+          date_prescribed:  Time.current
+        )
 
-        if with_prescription
-          directions = Misc.create_directions(
-            params[:dose].to_s,
-            params[:administration].to_s,
-            params[:frequency].to_s,
-            params[:doseType].to_s
-          )
-
-          @new_prescription = Prescription.create!(
-            patient_id:       @patient&.id || session[:patient_id],
-            drug_id:          item.drug_id,
-            directions:       directions,
-            quantity:         qty_per_pack,
-            amount_dispensed: amount_dispensed,
-            provider_id:      User.current.id,
-            date_prescribed:  Time.current
-          )
-          rx_id = @new_prescription.id
-        end
-
-        # Record dispensation
+        # Record dispensation linked to prescription
         @dispensation = Dispensation.create!(
-          rx_id:             rx_id,
+          rx_id:             @new_prescription.id,
           inventory_id:      item.gn_inventory_id,
           patient_id:        @patient&.id || session[:patient_id],  
           quantity:          amount_dispensed,
@@ -131,7 +133,7 @@ class DispensationController < ApplicationController
           dispensed_by:      User.current.id
         )
 
-        # Prepack batch logic (unchanged)
+        # Prepack batch logic
         if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
           batch = Prepack.create!(
             bottle_id:        item.gn_inventory_id,
@@ -174,18 +176,13 @@ class DispensationController < ApplicationController
       if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
         flash[:success] = 'Prepacking labels created successfully'
         print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
-
-      elsif @new_prescription.present?
+      else
         if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
           print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
         else
           flash[:notice] = 'Insufficient quantity. Top up from another bottle'
           redirect_to "/prescriptions/#{@new_prescription.id}"
         end
-
-      else
-        flash[:success] = 'Dispensed without prescriptions'
-        print_and_redirect("/print_dispensation_label/#{@dispensation.id}", return_path)
       end
     else
       redirect_to return_path

@@ -692,9 +692,7 @@
     document.getElementById("dispensed_quantity").value = qty;
   }
 
-  // Fetch bottle details
   function getBottle(bottleId) {
-    // We set isModalOpen true immediately because we'll either open modal or show a message
     isModalOpen = true;
 
     var xmlhttp = (window.XMLHttpRequest)
@@ -704,6 +702,10 @@
     var context = window.location.pathname.includes('/prepack_labels')
       ? 'prepacking'
       : 'patient';
+
+    // Get patient_id and prescription_id from the current page
+    var patientId = getCurrentPatientId();
+    var prescriptionId = getCurrentPrescriptionId();
 
     xmlhttp.onreadystatechange = function() {
       if (xmlhttp.readyState === 4) {
@@ -720,14 +722,11 @@
           try {
             var result = JSON.parse(results);
 
-            // -----------------------------
-            // Stop here if error exists
-            // -----------------------------
             if (result.error) {
-              showFlashMessage(result.error, true);  // Show error to user
+              showFlashMessage(result.error, true);
               isModalOpen = false;
-              initializeBarcodeListener();                  // Reinit listener
-              return;                                // DO NOT open modal
+              initializeBarcodeListener();
+              return;
             }
 
             // Handle auto-dispensed prepack
@@ -749,7 +748,6 @@
               isModalOpen = true;
             }
 
-            // Reinitialize listener for prepacking context
             if (context === 'prepacking') {
               isModalOpen = false;
               initializeBarcodeListener();
@@ -768,11 +766,33 @@
       }
     };
 
-    xmlhttp.open("GET", "/ajax_bottle/" + bottleId + "?context=" + context, true);
+    // Build URL with patient and prescription data
+    var url = "/ajax_bottle/" + bottleId + "?context=" + context;
+    if (patientId) url += "&patient_id=" + patientId;
+    if (prescriptionId) url += "&prescription_id=" + prescriptionId;
+
+    xmlhttp.open("GET", url, true);
     xmlhttp.send();
   }
 
-  // REMOVED: Entire switchToNoPrescription() function
+  // Helper functions to get current patient and prescription IDs
+  function getCurrentPatientId() {
+    // Try different ways to get patient_id
+    return document.getElementById('patient_id')?.value || 
+          document.querySelector('input[name="patient_id"]')?.value ||
+          window.currentPatientId ||
+          new URLSearchParams(window.location.search).get('patient_id') ||
+          sessionStorage.getItem('currentPatientId');
+  }
+
+  function getCurrentPrescriptionId() {
+    // Try different ways to get prescription_id
+    return document.getElementById('prescription_id')?.value || 
+          document.querySelector('input[name="prescription_id"]')?.value ||
+          window.currentPrescriptionId ||
+          new URLSearchParams(window.location.search).get('prescription_id') ||
+          sessionStorage.getItem('currentPrescriptionId');
+  }
 
   // Reset fields and bind dispClear if present
   document.addEventListener("DOMContentLoaded", function() {
