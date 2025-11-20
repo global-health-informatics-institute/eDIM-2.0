@@ -220,7 +220,7 @@ class DispensationController < ApplicationController
       end
     end
 
-    # NEW: Check if this is a prepack batch ID (for prepacking without prescriptions)
+    # Check if this is a prepack batch ID
     if params[:id].to_s.start_with?('PREPACK-')
       prepack_id = params[:id].gsub('PREPACK-', '')
       prepack = Prepack.find_by(id: prepack_id)
@@ -254,7 +254,7 @@ class DispensationController < ApplicationController
       @prescription = Prescription.find(params[:id])
       date = @prescription.date_prescribed
 
-      # FIX: Better prepack detection - look for prepacks created with this prescription
+      # Look for prepacks created with this prescription
       prepack = Prepack.where(drug_id: @prescription.drug_id)
                       .where('created_at BETWEEN ? AND ?', @prescription.created_at - 5.seconds, @prescription.created_at + 5.seconds)
                       .first
@@ -271,7 +271,7 @@ class DispensationController < ApplicationController
             @prescription.drug_name,
             prepack.quantity_per_pack,
             prepack.directions,
-            "",  #No patient name on prepack labels (blank for future use)
+            "",  #No patient name on prepack labels
             date,
             pack_id: label_record.label_identifier,
             pack_index: index + 1,

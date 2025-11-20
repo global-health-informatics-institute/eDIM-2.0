@@ -313,7 +313,7 @@
     </div>
     <div style="display: table; width: 99vw;margin-top: 1vh;margin-left: auto;margin-right: auto">
       <div style="display: table-row;">
-        <div style="width: 75vw;float: left;height: 15vh;" class="header-cell">
+        <div style="width: 75vw;float: left;height: 10vh;" class="header-cell">
           <table style="width: 100%;font-size: 1.2em">
             <tr>
               <td rowspan="2">
@@ -321,35 +321,43 @@
                     <img src="/assets/<%=@patient.sex.downcase%>.png">
                   </div>
               </td>
-              <th style="text-align: left;"><%= t('menu.terms.name') %></th>
+              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.name') %></th>
               <th>:</th>
-              <td><%= @patient.full_name %></td>
-              <th style="text-align: left;"><%= t('menu.terms.age') %></th>
+              <td style="font-size: 1.3em;"><%= @patient.full_name %></td>
+              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.age') %></th>
               <th>:</th>
-              <td><%= @patient.age %></td>
+              <td style="font-size: 1.3em;"><%= @patient.age %></td>
             </tr>
             <tr>
-              <th style="text-align: left;"><%= t('menu.terms.national_id') %></th>
+              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.national_id') %></th>
               <th>:</th>
-              <td><%= @patient.formatted_pnid %></td>
-              <th style="text-align: left;"><%= t('menu.terms.current_address') %></th>
+              <td style="font-size: 1.3em;"><%= @patient.formatted_pnid %></td>
+              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.current_address') %></th>
               <th>:</th>
-              <td><%= @patient.current_address %></td>
+              <td style="font-size: 1.3em;"><%= @patient.current_address %></td>
             </tr>
           </table>
-        </div>
-        <div class="header-cell" style="float: right; width: 20vw;margin-right: 4px;height: 12vh;">
-          <div style="display: table-row">
-            <div style="display: table-cell;vertical-align: top;margin-top: 5px;text-align: center;">
-              <strong><%= t('menu.terms.scan_label')%></strong>
-            </div>
           </div>
-          <div style="display: table-row">
-            <div style="display: table-cell;text-align: center;">
-              <input type="text" id="barcode" class="scanner" style="width: 90%;margin-top: 5px;" autofocus>
+          <div class="header-cell" style="float: right; width: 20vw; margin-right: 4px; height: 10vh;">
+
+            <!-- Title -->
+            <div style="text-align: center; margin-bottom: 6px;">
+              <strong style="font-size: 1.5em;">
+                <%= t('menu.terms.scan_label') %>
+              </strong>
             </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <img src="/assets/barcode.jpg" style="height: 40px; display: block;">
+              
+              <input type="text" 
+                    id="barcode" 
+                    class="scanner" 
+                    style="width: 70%; margin-top: 3px;" 
+                    autofocus>
+            </div>
+
           </div>
-        </div>
       </div>
       <div style="display: table-row;">
         <div style="border: 1px solid blue;margin-top: 10px;">
@@ -732,8 +740,13 @@
             // Handle auto-dispensed prepack
             if (result.prepack && context === 'patient' && result.dispensation_id) {
               showFlashMessage(result.message || "Prepack dispensed successfully.");
+
+              // Refresh page so dispensation appears immediately
+              setTimeout(function() {
+                window.location.reload();
+              }, 600);
+
               isModalOpen = false;
-              initializeBarcodeListener();
               return;
             }
 

@@ -11,10 +11,10 @@
               <div style="display: table;width: 100%;">
                 <div style="display: table-row;">
                   <div style="display: table-cell;padding: 5px;">
-                    <b><%= t('menu.terms.date')%>:</b> <%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%><br/>
-                    <b>Drug:</b> <%= dispensation[0].drug_name %><br/>
-                    <b><%= t('menu.terms.directions')%>:</b> <%= dispensation[0].dispensation_dir %><br/>
-                    <b><%= t('menu.terms.quantity')%>:</b> <%= dispensation[0].quantity %><br/>
+                    <b style="font-size:1.2rem"><%= t('menu.terms.date')%>:</b> <span style="font-size: 1.2rem"><%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%> </span> <br/>
+                    <b style="font-size:1.2rem">Drug:</b> <span style="font-size: 1.2rem"><%= dispensation[0].drug_name %></span><br/>
+                    <b style="font-size:1.2rem"><%= t('menu.terms.directions')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[0].dispensation_dir %></span><br/>
+                    <b style="font-size:1.2rem"><%= t('menu.terms.quantity')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[0].quantity %></span><br/>
                   </div>
                   <div style="display: table-cell;vertical-align: middle;padding: 5px;">
                     <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
@@ -28,15 +28,15 @@
             </div>
           </div>
           <% unless dispensation[1].blank? %>
-              <div style="display: table-cell;width:46vw;float: right;">
+              <div style="display: table-cell;width:51.5vw;float: right;">
                 <div style="border: 1px solid gray; padding: 3px;margin: 3px;">
                   <div style="display: table;width: 100%;">
                     <div style="display: table-row;">
                       <div style="display: table-cell;padding: 5px;">
-                        <b><%= t('menu.terms.date')%>:</b> <%= l(dispensation[1].dispensation_date.to_date, format:"%b %d, %Y")%><br/>
-                        <b>Drug:</b> <%= dispensation[1].drug_name %><br/>
-                        <b><%= t('menu.terms.directions')%>:</b> <%= dispensation[1].dispensation_dir %><br/>
-                        <b><%= t('menu.terms.quantity')%>:</b> <%= dispensation[1].quantity %><br/>
+                        <b style="font-size:1.2rem"><%= t('menu.terms.date')%>:</b> <%= l(dispensation[1].dispensation_date.to_date, format:"%b %d, %Y")%><br/>
+                        <b style="font-size:1.2rem">Drug:</b> <span style="font-size: 1.2rem"><%= dispensation[1].drug_name %></span><br/>
+                        <b style="font-size:1.2rem"><%= t('menu.terms.directions')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[1].dispensation_dir %></span><br/>
+                        <b style="font-size:1.2rem"><%= t('menu.terms.quantity')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[1].quantity %></span><br/>
                       </div>
                       <div style="display: table-cell;vertical-align: middle;padding: 5px;">
                         <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
