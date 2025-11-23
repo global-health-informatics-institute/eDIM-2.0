@@ -477,6 +477,9 @@ input.radio:checked ~ label {
   const tabOrder = ['routesDiv', 'doseDiv', 'directionsDiv', 'qtyDiv', 'labelsDiv'];
   let currentStep = 0;
 
+  // Track completed tabs
+  let completedTabs = new Set();
+
   // --- ADDED: Scanner focus helpers from first setup ---
   let isModalOpen = false;
   let barcodeTimer = null;
@@ -564,6 +567,7 @@ input.radio:checked ~ label {
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
     currentStep = 0;
+    completedTabs.clear();
 
     // Set modal state
     isModalOpen = true;
@@ -627,61 +631,56 @@ input.radio:checked ~ label {
     xmlhttp.send();
   }
 
-  // MODIFIED: Form submission to handle focus properly
-  function validateDisp() {
-    if (!checkRadio(document.getElementsByName("administration"))) {
-      showDispenseDiv('routesDiv');
-      return;
+  // SIMPLE: Mark tab as completed (turns it blue)
+  function markTabCompleted(tabId) {
+    completedTabs.add(tabId);
+    const tab = document.getElementById(tabId);
+    if (tab) {
+      tab.style.backgroundColor = '#2196F3';
+      tab.style.color = 'white';
     }
-
-    if (parseFloat(document.getElementById('dose').value) <= 0) {
-      showDispenseDiv('doseDiv');
-      return;
-    }
-
-    if (!checkRadio(document.getElementsByName("frequency"))) {
-      showDispenseDiv('directionsDiv');
-      return;
-    }
-
-    if (parseFloat(document.getElementById('qty').value) <= 0) {
-      showDispenseDiv('qtyDiv');
-      return;
-    }
-
-    const numPacks = document.getElementById('numPacks').value;
-    if (!numPacks || parseFloat(numPacks) <= 0) {
-      alert("Please enter number of packs to print");
-      showDispenseDiv('labelsDiv');
-      return;
-    }
-
-    updateQuantity();
-    
-    // Before submitting, clear modal state so focus returns after submit
-    isModalOpen = false;
-    document.forms[0].submit();
   }
 
-  // REMOVED: The old polling-based functions
-  // function checkBarcode() { ... } - REMOVE THIS
-  // function resetBarcodeFocus() { ... } - REPLACED BY initializeBarcodeListener
+  // SIMPLE: Check if tab is completed
+  function isTabCompleted(tabId) {
+    return completedTabs.has(tabId);
+  }
 
-  // KEEP ALL YOUR EXISTING FUNCTIONS BELOW (unchanged):
+  // UPDATED: showDispenseDiv with simple tab styling
   function showDispenseDiv(option) {
-    // Hide all and reset styles
+    // Hide all divs
     ['routesDiv','doseDiv','directionsDiv','qtyDiv','labelsDiv'].forEach(d => {
       const div = document.getElementById(d);
       if (div) div.style.display = 'none';
-      const tab = document.getElementById(d.replace('Div','Tab'));
-      if (tab) tab.style.border = '1px outset silver';
     });
 
     // Show selected div
     const sel = document.getElementById(option);
     if (sel) sel.style.display = '';
-    const selTab = document.getElementById(option.replace('Div','Tab'));
-    if (selTab) selTab.style.border = '2px solid #de0404';
+
+    // Update tab styles - current tab gets red border, completed tabs stay blue
+    ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        // Reset all tabs to default except completed ones
+        if (!completedTabs.has(tabId)) {
+          tab.style.backgroundColor = '';
+          tab.style.color = '';
+          tab.style.border = '1px outset silver';
+        } else {
+          // Completed tabs stay blue
+          tab.style.backgroundColor = '#2196F3';
+          tab.style.color = 'white';
+          tab.style.border = '1px solid #1976D2';
+        }
+      }
+    });
+
+    // Current active tab gets red border
+    const currentTab = document.getElementById(option.replace('Div','Tab'));
+    if (currentTab) {
+      currentTab.style.border = '2px solid #de0404';
+    }
 
     // Update step + button label
     currentStep = tabOrder.indexOf(option);
@@ -693,6 +692,10 @@ input.radio:checked ~ label {
   }
 
   function nextStep() {
+    // Mark current tab as completed before moving to next
+    const currentTabId = tabOrder[currentStep].replace('Div', 'Tab');
+    markTabCompleted(currentTabId);
+
     const nextBtn = document.getElementById('nextBtn');
     if (currentStep < tabOrder.length - 1) {
       currentStep++;
@@ -734,6 +737,7 @@ input.radio:checked ~ label {
     clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
   }
 
+  // UPDATED: updateQuantity - mark tabs completed when data is valid
   function updateQuantity() {
     var dose = parseFloat(document.getElementById('dose').value) || 0;
     var duration = parseFloat(document.getElementById('qty').value) || 0;
@@ -763,13 +767,30 @@ input.radio:checked ~ label {
 
     document.getElementById("qtyDisp").innerHTML = qty;
     document.getElementById("dispensed_quantity").value = qty;
+
+    // Mark dose tab as completed when valid dose is entered
+    if (dose > 0 && !completedTabs.has('doseTab')) {
+      markTabCompleted('doseTab');
+    }
+
+    // Mark duration tab as completed when valid duration is entered
+    if (duration > 0 && !completedTabs.has('qtyTab')) {
+      markTabCompleted('qtyTab');
+    }
   }
 
+  // UPDATED: setRoute - mark as completed when route is selected
   function setRoute(route) {
     document.getElementById("route_type").innerHTML = route;
     updateQuantity();
+    
+    // Mark route tab as completed
+    if (route && !completedTabs.has('routesTab')) {
+      markTabCompleted('routesTab');
+    }
   }
 
+  // UPDATED: setDirections - mark as completed when frequency is selected
   function setDirections() {
     var field = document.getElementById("directionsDisp");
     var frequency = document.forms[0].elements["frequency"].value;
@@ -780,6 +801,52 @@ input.radio:checked ~ label {
       "labels"
     );
     updateQuantity();
+    
+    // Mark directions tab as completed when frequency is selected
+    if (frequency && !completedTabs.has('directionsTab')) {
+      markTabCompleted('directionsTab');
+    }
+  }
+
+  // MODIFIED: Form submission to handle focus properly
+  function validateDisp() {
+    if (!checkRadio(document.getElementsByName("administration"))) {
+      showDispenseDiv('routesDiv');
+      return;
+    }
+
+    if (parseFloat(document.getElementById('dose').value) <= 0) {
+      showDispenseDiv('doseDiv');
+      return;
+    }
+
+    if (!checkRadio(document.getElementsByName("frequency"))) {
+      showDispenseDiv('directionsDiv');
+      return;
+    }
+
+    if (parseFloat(document.getElementById('qty').value) <= 0) {
+      showDispenseDiv('qtyDiv');
+      return;
+    }
+
+    const numPacks = document.getElementById('numPacks').value;
+    if (!numPacks || parseFloat(numPacks) <= 0) {
+      alert("Please enter number of packs to print");
+      showDispenseDiv('labelsDiv');
+      return;
+    }
+
+    // Mark labels tab as completed
+    if (!completedTabs.has('labelsTab')) {
+      markTabCompleted('labelsTab');
+    }
+
+    updateQuantity();
+    
+    // Before submitting, clear modal state so focus returns after submit
+    isModalOpen = false;
+    document.forms[0].submit();
   }
 
   function checkRadio(list) {
@@ -803,7 +870,7 @@ input.radio:checked ~ label {
     initializeBarcodeListener();
   });
 
-  // Add your resetDispenseModal function if it exists, or define it:
+  // UPDATED: resetDispenseModal function
   function resetDispenseModal() {
     // Reset all modal fields to initial state
     document.getElementById('dose').value = '';
@@ -819,7 +886,35 @@ input.radio:checked ~ label {
         document.getElementsByName(name).forEach(el => el.checked = false);
     });
     
-    // Reset any other modal state as needed
+    // Reset completed tabs
+    completedTabs.clear();
+    currentStep = 0;
+  }
+
+  // Helper function for keypad
+  function append(value, fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    
+    if (value === 'del') {
+      field.value = field.value.slice(0, -1);
+    } else {
+      field.value += value;
+    }
+    
+    // Trigger update for relevant fields
+    if (fieldId === 'dose' || fieldId === 'qty') {
+      updateQuantity();
+    }
+    
+    // Auto-mark labels tab as completed when valid number is entered
+    if (fieldId === 'numPacks' && field.value && parseFloat(field.value) > 0 && !completedTabs.has('labelsTab')) {
+      markTabCompleted('labelsTab');
+    }
+  }
+
+  function setQuantity(fieldId) {
+    updateQuantity();
   }
 </script>
 </body>

@@ -1,55 +1,86 @@
 <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
   <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.past_dispensations')%></span>
 </div>
-
 <div style="height: 55vh; width: 100%; overflow: auto;">
   <div style="display: table;">
-  <% (@history.each_slice(2).to_a || []).each do |dispensation| %>
-        <div style="display: table-row;">
-          <div style="display: table-cell;width:47vw;float: left;">
-            <div style="border: 1px solid gray; padding: 3px;margin: 3px;">
-              <div style="display: table;width: 100%;">
-                <div style="display: table-row;">
-                  <div style="display: table-cell;padding: 5px;">
-                    <b style="font-size:1.2rem"><%= t('menu.terms.date')%>:</b> <span style="font-size: 1.2rem"><%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%> </span> <br/>
-                    <b style="font-size:1.2rem">Drug:</b> <span style="font-size: 1.2rem"><%= dispensation[0].drug_name %></span><br/>
-                    <b style="font-size:1.2rem"><%= t('menu.terms.directions')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[0].dispensation_dir %></span><br/>
-                    <b style="font-size:1.2rem"><%= t('menu.terms.quantity')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[0].quantity %></span><br/>
-                  </div>
-                  <div style="display: table-cell;vertical-align: middle;padding: 5px;">
-                    <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
-                      onmousedown="window.location='/print_dispensation_label/<%= dispensation[0].rx_id.present? ? dispensation[0].rx_id : dispensation[0].id %>'">
+  <% (@history.each_with_index.each_slice(2).to_a || []).each do |dispensation_pair| %>
+    <div style="display: table-row;">
+      <% dispensation_pair.each do |dispensation, global_index| %>
+        <% next if dispensation.blank? %>
+        <div style="display: table-cell;width:47vw;padding: 5px;">
+          <div style="border: 1px solid <%= global_index == 0 ? '#2E8B57' : 'gray' %>; 
+                      padding: 3px;margin: 3px; 
+                      background-color: <%= global_index == 0 ? '#F0FFF0' : 'white' %>;
+                      position: relative;">
+            
+            <!-- Latest Badge for Most Recent Item -->
+            <% if global_index == 0 %>
+              <div style="position: absolute; top: -8px; right: -8px; background: #FF6B6B; 
+                         color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;
+                         font-weight: bold;">
+                LATEST
+              </div>
+            <% end %>
+            
+            <!-- Age Indicator -->
+            <div style="position: absolute; top: 5px; left: 5px; font-size: 1rem; 
+                      color: <%= 
+                        days_ago = (Time.now - dispensation.dispensation_date).to_i / 1.day
+                        if days_ago == 0
+                          '#2E8B57'
+                        elsif days_ago <= 7
+                          '#1E90FF'
+                        else
+                          '#666'
+                        end
+                      %>;">
+              <%= time_ago_in_words(dispensation.dispensation_date) %> ago
+            </div>
 
-                    <img style="float: right;" src="/assets/delete.png" title="Void Item"
-                         onmousedown="confirmAction('/void_dispensation/<%= dispensation[0].id %>', 'Are you sure you want to void dispensation for <%= dispensation[0].drug_name %> on <%= l(dispensation[0].dispensation_date.to_date, format: "%b %d, %Y")%> ?')">
-                  </div>
+            <div style="display: table;width: 100%; margin-top: 15px;">
+              <div style="display: table-row;">
+                <div style="display: table-cell;padding: 5px;">
+                  <b style="font-size:1.2rem"><%= t('menu.terms.date')%>:</b> 
+                  <span style="font-size: 1.2rem; font-weight: <%= global_index == 0 ? 'bold' : 'normal' %>">
+                    <%= l(dispensation.dispensation_date.to_date, format: "%b %d, %Y") %>
+                  </span>
+                  <span style="font-size: 1rem; color: #666;">
+                    <!-- Fixed timezone issue -->
+                    (<%= dispensation.dispensation_date.localtime.strftime("%I:%M %p") %>)
+                  </span>
+                  <br/>
+                  
+                  <b style="font-size:1.2rem">Drug:</b> 
+                  <span style="font-size: 1.2rem; font-weight: <%= global_index == 0 ? 'bold' : 'normal' %>">
+                    <%= dispensation.drug_name %>
+                  </span><br/>
+                  
+                  <b style="font-size:1.2rem"><%= t('menu.terms.directions')%>:</b> 
+                  <span style="font-size: 1.2rem"><%= dispensation.dispensation_dir %></span><br/>
+                  
+                  <b style="font-size:1.2rem"><%= t('menu.terms.quantity')%>:</b> 
+                  <span style="font-size: 1.2rem"><%= dispensation.quantity %></span><br/>
+                </div>
+                <div style="display: table-cell;vertical-align: middle;padding: 5px;">
+                  <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
+                    onmousedown="window.location='/print_dispensation_label/<%= dispensation.rx_id.present? ? dispensation.rx_id : dispensation.id %>'">
+
+                  <img style="float: right;" src="/assets/delete.png" title="Void Item"
+                       onmousedown="confirmAction('/void_dispensation/<%= dispensation.id %>', 'Are you sure you want to void dispensation for <%= dispensation.drug_name %> on <%= l(dispensation.dispensation_date.to_date, format: "%b %d, %Y")%> ?')">
                 </div>
               </div>
             </div>
           </div>
-          <% unless dispensation[1].blank? %>
-              <div style="display: table-cell;width:51.5vw;float: right;">
-                <div style="border: 1px solid gray; padding: 3px;margin: 3px;">
-                  <div style="display: table;width: 100%;">
-                    <div style="display: table-row;">
-                      <div style="display: table-cell;padding: 5px;">
-                        <b style="font-size:1.2rem"><%= t('menu.terms.date')%>:</b> <%= l(dispensation[1].dispensation_date.to_date, format:"%b %d, %Y")%><br/>
-                        <b style="font-size:1.2rem">Drug:</b> <span style="font-size: 1.2rem"><%= dispensation[1].drug_name %></span><br/>
-                        <b style="font-size:1.2rem"><%= t('menu.terms.directions')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[1].dispensation_dir %></span><br/>
-                        <b style="font-size:1.2rem"><%= t('menu.terms.quantity')%>:</b> <span style="font-size: 1.2rem"><%= dispensation[1].quantity %></span><br/>
-                      </div>
-                      <div style="display: table-cell;vertical-align: middle;padding: 5px;">
-                        <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
-                             onmousedown="window.location='/print_dispensation_label/<%= dispensation[1].rx_id %>'">
-                        <img style="float: right;" src="/assets/delete.png" title="Void Item"
-                             onmousedown="confirmAction('/void_dispensation/<%= dispensation[1].id %>', 'Are you sure you want to void dispensation for <%= dispensation[1].drug_name %> on <%= l(dispensation[1].dispensation_date.to_date, format: "%b %d, %Y")%> ?')">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-          <% end %>
         </div>
+      <% end %>
+      
+      <!-- Fill empty cell if we have an odd number in this pair -->
+      <% if dispensation_pair.length == 1 %>
+        <div style="display: table-cell;width:47vw;padding: 5px;">
+          <!-- Empty cell to maintain layout -->
+        </div>
+      <% end %>
+    </div>
   <% end %>
   </div>
 </div>

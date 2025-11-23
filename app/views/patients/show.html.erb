@@ -380,10 +380,13 @@
   <div id="messageLayer">
     <span id="flashMessage"></span>
   </div>
-
 <script type="text/javascript">
   var timerHand;
   // REMOVED: var noPrescriptionMode = false;
+
+  // Track completed tabs
+  let completedTabs = new Set();
+  const tabOrder = ['routesDiv', 'doseDiv', 'directionsDiv', 'qtyDiv', 'doseTypeDiv'];
 
   // --- Focus / scanner management variables & helpers ---
   let barcodeInput = null;
@@ -476,6 +479,24 @@
 
   // --- Main functions ---
 
+  // SIMPLE: Mark tab as completed (turns it blue)
+  function markTabCompleted(tabId) {
+    completedTabs.add(tabId);
+    const tab = document.getElementById(tabId);
+    if (tab) {
+      tab.style.backgroundColor = '#2196F3';
+      tab.style.color = 'white';
+    }
+  }
+
+  // NEW: Function to handle dose type selection
+  function setDoseType() {
+    // Mark doseType tab as completed when a dose type is selected
+    if (checkRadio(document.getElementsByName("doseType")) && !completedTabs.has('doseTypeTab')) {
+      markTabCompleted('doseTypeTab');
+    }
+  }
+
   // Function to reset the modal to its initial state
   function resetDispenseModal() {
       // Reset input fields
@@ -495,11 +516,19 @@
           document.getElementsByName(name).forEach(el => el.checked = false);
       });
       
-      // Reset tab visibility
+      // Reset tab visibility and styling
       ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'].forEach(t => {
           document.getElementById(t).style.display = 'none';
-          document.getElementById(t.replace('Div','Tab')).style.border = '1px outset silver';
+          const tab = document.getElementById(t.replace('Div','Tab'));
+          if (tab) {
+            tab.style.backgroundColor = '';
+            tab.style.color = '';
+            tab.style.border = '1px outset silver';
+          }
       });
+      
+      // Reset completed tabs
+      completedTabs.clear();
       
       // Show first tab
       document.getElementById('routesDiv').style.display = '';
@@ -551,6 +580,16 @@
 
     document.getElementById("qtyDisp").innerHTML = qty;
     document.getElementById("dispensed_quantity").value = qty;
+
+    // Mark dose tab as completed when valid dose is entered
+    if (dose > 0 && !completedTabs.has('doseTab')) {
+      markTabCompleted('doseTab');
+    }
+
+    // Mark duration tab as completed when valid duration is entered
+    if (duration > 0 && !completedTabs.has('qtyTab')) {
+      markTabCompleted('qtyTab');
+    }
   }
 
   function hasPrescription() {
@@ -572,9 +611,32 @@
       // REMOVED: var noPrescriptionBtn = document.getElementById('noPrescriptionBtn');
 
       $(".mobi-div").css("display", "none");
-      $(".tab").css("border", "1px outset silver");
+      
+      // Update tab styles - current tab gets red border, completed tabs stay blue
+      ['routesTab','doseTab','directionsTab','qtyTab','doseTypeTab'].forEach(tabId => {
+        const tab = document.getElementById(tabId);
+        if (tab) {
+          // Reset all tabs to default except completed ones
+          if (!completedTabs.has(tabId)) {
+            tab.style.backgroundColor = '';
+            tab.style.color = '';
+            tab.style.border = '1px outset silver';
+          } else {
+            // Completed tabs stay blue
+            tab.style.backgroundColor = '#2196F3';
+            tab.style.color = 'white';
+            tab.style.border = '1px solid #1976D2';
+          }
+        }
+      });
+
+      // Current active tab gets red border
+      const currentTabElement = document.getElementById(option.replace('Div','Tab'));
+      if (currentTabElement) {
+        currentTabElement.style.border = '2px solid #de0404';
+      }
+
       document.getElementById(option).style.display = "";
-      document.getElementById(option.replace("Div", "Tab")).style.border = "2px solid #de0404";
 
       // Show Clear button only on doseDiv or qtyDiv
       if (option === 'doseDiv' || option === 'qtyDiv') {
@@ -598,6 +660,11 @@
   function setRoute(route) {
     document.getElementById("route_type").innerHTML = route;
     updateQuantity();
+    
+    // Mark route tab as completed
+    if (route && !completedTabs.has('routesTab')) {
+      markTabCompleted('routesTab');
+    }
   }
 
   function setDirections(){
@@ -610,6 +677,11 @@
         "doseType"
     );
     updateQuantity();
+    
+    // Mark directions tab as completed when frequency is selected
+    if (frequency && !completedTabs.has('directionsTab')) {
+      markTabCompleted('directionsTab');
+    }
   }
 
   function validateDisp() {
@@ -625,6 +697,12 @@
                   if (checkRadio(checkdirections)) {
                       if (parseFloat(document.getElementById('qty').value) > 0) {
                           updateQuantity(); // <-- important
+                          
+                          // Mark doseType tab as completed before submitting
+                          if (!completedTabs.has('doseTypeTab')) {
+                            markTabCompleted('doseTypeTab');
+                          }
+                          
                           // Before submitting, clear modal state so focus returns after submit
                           isModalOpen = false;
                           document.forms[0].submit();
@@ -666,6 +744,7 @@
     document.getElementById("dispensationWarning").style.display = "none";
   }
 
+  // UPDATED: setQuantity function to mark duration tab as completed
   function setQuantity(input) {
     var duration = parseFloat(document.getElementById(input).value) || 0;
     var frequencyCode = document.forms[0].elements["frequency"].value;
@@ -698,6 +777,11 @@
 
     document.getElementById("qtyDisp").innerHTML = qty;
     document.getElementById("dispensed_quantity").value = qty;
+
+    // MARK DURATION TAB AS COMPLETED WHEN VALID DURATION IS ENTERED
+    if (duration > 0 && !completedTabs.has('qtyTab')) {
+      markTabCompleted('qtyTab');
+    }
   }
 
   function getBottle(bottleId) {
@@ -812,6 +896,14 @@
     // Initialize barcode listener (this replaces old timer loop)
     initializeBarcodeListener();
 
+    // Add event listeners to dose type radio buttons
+    const doseTypeRadios = document.getElementsByName("doseType");
+    if (doseTypeRadios.length > 0) {
+      doseTypeRadios.forEach(radio => {
+        radio.addEventListener('change', setDoseType);
+      });
+    }
+
     const dispClear = document.getElementById("dispClear");
     if (dispClear) {
       dispClear.addEventListener("click", function() {
@@ -821,6 +913,20 @@
         document.getElementById("qtyDisp").innerHTML = "0";
         document.getElementById("dispensed_quantity").value = "0";
         document.getElementById("directionsDisp").innerHTML = "";
+
+        // Remove from completed tabs when cleared
+        completedTabs.delete('doseTab');
+        completedTabs.delete('qtyTab');
+        
+        // Update tab styles
+        ['doseTab', 'qtyTab'].forEach(tabId => {
+          const tab = document.getElementById(tabId);
+          if (tab) {
+            tab.style.backgroundColor = '';
+            tab.style.color = '';
+            tab.style.border = '1px outset silver';
+          }
+        });
 
         // Hide button again
         dispClear.style.display = "none";
