@@ -382,7 +382,6 @@
   </div>
 <script type="text/javascript">
   var timerHand;
-  // REMOVED: var noPrescriptionMode = false;
 
   // Track completed tabs
   let completedTabs = new Set();
@@ -479,7 +478,7 @@
 
   // --- Main functions ---
 
-  // SIMPLE: Mark tab as completed (turns it blue)
+  // Mark tab as completed (Turn blue)
   function markTabCompleted(tabId) {
     completedTabs.add(tabId);
     const tab = document.getElementById(tabId);
@@ -489,7 +488,7 @@
     }
   }
 
-  // NEW: Function to handle dose type selection
+  // Handle dose type selection
   function setDoseType() {
     // Mark doseType tab as completed when a dose type is selected
     if (checkRadio(document.getElementsByName("doseType")) && !completedTabs.has('doseTypeTab')) {
@@ -542,9 +541,7 @@
       // Hide Clear button & warnings
       document.getElementById('dispClear').style.display = 'none';
       hideDispensationWarning();
-      
-      // REMOVED: noPrescriptionMode = false;
-      // REMOVED: Show the no prescription button
+
   }
 
   function updateQuantity() {
@@ -630,7 +627,6 @@
         }
       });
 
-      // Current active tab gets red border
       const currentTabElement = document.getElementById(option.replace('Div','Tab'));
       if (currentTabElement) {
         currentTabElement.style.border = '2px solid #de0404';
@@ -644,8 +640,6 @@
       } else {
           clearButton.style.display = "none";
       }
-
-      // REMOVED: No prescription button logic
 
       // Standard prescription mode flow
       if (option == 'doseTypeDiv') {
@@ -685,9 +679,8 @@
   }
 
   function validateDisp() {
-      // REMOVED: No prescription mode submission logic
 
-      checkRoute = document.getElementsByName("administration");
+  checkRoute = document.getElementsByName("administration");
       checkDoseType = document.getElementsByName("doseType");
       checkdirections = document.getElementsByName("frequency");
 
@@ -744,7 +737,7 @@
     document.getElementById("dispensationWarning").style.display = "none";
   }
 
-  // UPDATED: setQuantity function to mark duration tab as completed
+  // setQuantity function to mark duration tab as completed
   function setQuantity(input) {
     var duration = parseFloat(document.getElementById(input).value) || 0;
     var frequencyCode = document.forms[0].elements["frequency"].value;
