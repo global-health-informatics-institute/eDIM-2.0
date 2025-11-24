@@ -204,26 +204,28 @@ input.radio:checked ~ label {
       </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div style="border:3px solid #06425C; margin-top:3vh; height:55vh;">
-      <!-- PREPACK LISTING SECTION -->
-      <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
-        <span style="font-size: 1.5em; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
-      </div>
-      <div style="height: 68vh; width: 100%; overflow: auto;">
-        <div style="display: table;">
-          <% if @prepack_inventory.present? %>
-            <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
-              <div style="display: table-row;">
-                <% prepack_pair.each do |prepack, global_index| %>
-                  <% next if prepack.blank? %>
-                  <div style="display: table-cell; width: 47vw; padding: 5px;">
+  <!-- MAIN CONTENT -->
+  <div style="border:3px solid #06425C; margin-top:3vh; height:71vh; padding: 0;">
+  
+    <!-- PREPACK LISTING SECTION -->
+    <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
+      <span style="font-size: 1.5em; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
+    </div>
+
+    <div style="height: 68vh; width: 100%; overflow: auto; padding: 0 5px;">
+      <div style="display: table; width: 100%;">  
+        <% if @prepack_inventory.present? %>
+          <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
+            <div style="display: table-row; width: 100%;">  <!-- Full width row -->
+              <% prepack_pair.each do |prepack, global_index| %>
+                <% next if prepack.blank? %>
+                <div style="display: table-cell; width: 49vw; padding: 5px;">  
                     <div style="border: 1px solid <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : 'gray' %>; 
                                 padding: 8px; margin: 3px; 
                                 background-color: <%= prepack[:packs_remaining] > 0 ? '#F0FFF0' : '#F8F9FA' %>;
                                 position: relative; border-radius: 8px; min-height: 90px;">
                       
-                      <!-- Top Row: Progress Indicator + Action Buttons -->
+                      <!-- Progress Indicator + Action Buttons -->
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <!-- Progress Indicator -->
                         <div style="font-size: 1rem; font-weight: bold;
@@ -237,14 +239,14 @@ input.radio:checked ~ label {
                           <img style="cursor: pointer; width: 40px; height: 40px;" 
                               src="/assets/print.png" 
                               title="Print prepack labels"
-                              onmousedown="printPrepackLabels(<%= prepack[:bottle_id] %>)">
+                              onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>'">
                           
-                          <!-- Delete/Cancel Button (only for active prepacks) -->
+                          <!-- Delete/Cancel Button -->
                           <% if prepack[:status] == 'active' || prepack[:status] == 'created' %>
                             <img style="cursor: pointer; width: 40px; height: 40px;" 
                                 src="/assets/delete.png" 
                                 title="Cancel prepack"
-                                onmousedown="cancelPrepack(<%= prepack[:bottle_id] %>, '<%= prepack[:drug_name] %>')">
+                                onmousedown="confirmAction('/cancel_prepack/<%= prepack[:bottle_id] %>', 'Are you sure you want to cancel prepack for <%= prepack[:drug_name] %>?')">
                           <% end %>
                         </div>
                       </div>
@@ -263,7 +265,7 @@ input.radio:checked ~ label {
                         <% end %>
                       </div>
 
-                      <!-- Stats Row - FIXED: Single line per stat -->
+                      <!-- Stats Row  -->
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <div style="font-size: 1.2rem;">
                           <span style="color: #666; font-weight: bold;">Qty per pack: </span>
@@ -285,7 +287,7 @@ input.radio:checked ~ label {
                                   width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
                       </div>
 
-                      <!-- Status Badge (positioned absolutely) -->
+                      <!-- Status Badge -->
                       <div style="position: absolute; top: -6px; right: -6px; 
                                 background: <%= 
                                   case prepack[:status]
@@ -299,7 +301,7 @@ input.radio:checked ~ label {
                                     '#ffc107'
                                   end
                                 %>; 
-                                color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem;
+                                color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.9rem;
                                 font-weight: bold;">
                         <% case prepack[:status] %>
                         <% when 'created', 'active' %>
@@ -1089,6 +1091,43 @@ input.radio:checked ~ label {
   function setQuantity(fieldId) {
     updateQuantity();
   }
+
+  // In your application.js or prepack_labels.js
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle void prepack links
+  document.querySelectorAll('.void-prepack-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const prepackId = this.dataset.prepackId;
+      const prepackName = this.dataset.prepackName;
+      const packCount = this.dataset.packCount;
+      
+      if (confirm(`Are you sure you want to void all ${packCount} packs of ${prepackName}? This action cannot be undone.`)) {
+        // If confirmed, make the DELETE request with confirmation
+        fetch(`/prepack_labels/${prepackId}?confirm=true`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.location.href = data.redirect_url;
+          } else {
+            alert('Error: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while voiding the prepack.');
+        });
+      }
+    });
+  });
+});
 </script>
 </body>
 </html>

@@ -1,9 +1,8 @@
-# app/controllers/prepack_labels_controller.rb
 class PrepackLabelsController < ApplicationController
   before_action :ensure_location
   def index
     @prepack_inventory = Prepack.joins(:drug)
-                                .where(prepacked_by_id: User.current.id) # or adjust based on your access logic
+                                .where(prepacked_by_id: User.current.id)
                                 .select("
                                   prepacks.id,
                                   prepacks.bottle_id,
@@ -19,10 +18,8 @@ class PrepackLabelsController < ApplicationController
                                 .order("prepacks.created_at DESC")
   end
   def new
-    # For creating new prepacks
     @prepack = Prepack.new
     
-    # Load existing prepack inventory for display
     @prepack_inventory = load_prepack_inventory
   end
 
@@ -36,6 +33,7 @@ class PrepackLabelsController < ApplicationController
     prepacks.map do |prepack|
       labels = prepack.prepack_labels
       {
+        id: prepack.id,
         bottle_id: prepack.bottle_id,
         gn_identifier: prepack.gn_identifier,
         drug_name: prepack.drug.name,
@@ -65,7 +63,7 @@ class PrepackLabelsController < ApplicationController
     @drug = @bottle.drug
     @records = Issue.where(inventory_id: @bottle.gn_inventory_id).order(issue_date: :desc)
 
-    # Partial for AJAX
+    # Partial for AJAX, not a full page
     render partial: 'prepack_labels/show',
           locals: { bottle: @bottle, drug: @drug, records: @records },
           layout: false

@@ -67,9 +67,20 @@ Rails.application.routes.draw do
   get '/select_report', to: 'dispensation#select', as: :select_report
   post '/dispensation/list', to: 'dispensation#list', as: :dispensation_list
 
+  ###################### Prepack Labels Controller #####################
+  get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
+  get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
+  resources :prepack_labels, only: [:show, :new, :create]
+
   ###################### Resources #####################################
 
   resources :prepack_labels, only: [:new, :show]
+
+  resources :prepack_labels, only: [:show, :new, :create, :destroy] do
+    collection do
+      get 'ajax_bottle_prepack'
+    end
+  end
 
   resources :general_inventory do
     post 'pre_packing'

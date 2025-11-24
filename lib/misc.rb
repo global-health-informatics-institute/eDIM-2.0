@@ -60,47 +60,47 @@ module Misc
     label.print(1)
   end
 
-def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_id:, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
+  def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_id:, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
 
-  label = ZebraPrinter::StandardLabel.new
-  label.font_size = 4
-  label.font_horizontal_multiplier = 1
-  label.font_vertical_multiplier = 1
-  label.left_margin = 10
+    label = ZebraPrinter::StandardLabel.new
+    label.font_size = 4
+    label.font_horizontal_multiplier = 1
+    label.font_vertical_multiplier = 1
+    label.left_margin = 10
 
-  # Your existing text content
-  label.draw_multi_text("ID: #{bottle_id}", column_width: 2700)
-  label.draw_multi_text("Drug: #{item}", column_width: 2700)
-  label.draw_multi_text("Dir : #{directions}", column_width: 2700)
+    # Your existing text content
+    label.draw_multi_text("ID: #{bottle_id}", column_width: 2700)
+    label.draw_multi_text("Drug: #{item}", column_width: 2700)
+    label.draw_multi_text("Dir : #{directions}", column_width: 2700)
 
-  dose_pattern = Misc.extract_dose_pattern(directions)
-  label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
+    dose_pattern = Misc.extract_dose_pattern(directions)
+    label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
 
-  label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
+    label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
 
-  expiry_text = if expiration_date.blank? || expiration_date.to_s.strip.downcase.in?(%w[nil null])
-    "Expiry: Unknown"
-  else
-    "Expiry: #{expiration_date.strftime('%d/%m/%Y')}"
+    expiry_text = if expiration_date.blank? || expiration_date.to_s.strip.downcase.in?(%w[nil null])
+      "Expiry: Unknown"
+    else
+      "Expiry: #{expiration_date.strftime('%d/%m/%Y')}"
+    end
+    label.draw_multi_text(expiry_text, column_width: 2700)
+
+    label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
+
+    #if pack_index && total_packs
+    # label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
+    #end
+
+    # Only draw barcode for PREPACK labels
+    if pack_id.present? && pack_id.start_with?("PK-")
+
+      label.draw_barcode(150, 230, 0, 1, 2, 3, 80, false, pack_id)
+    else
+      puts "DEBUG - SKIPPING BARCODE for: #{pack_id}"
+    end
+
+    label.print(1)
   end
-  label.draw_multi_text(expiry_text, column_width: 2700)
-
-  label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
-
-  #if pack_index && total_packs
-   # label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
-  #end
-
-  # Only draw barcode for PREPACK labels
-  if pack_id.present? && pack_id.start_with?("PK-")
-
-     label.draw_barcode(150, 230, 0, 1, 2, 3, 80, false, pack_id)
-  else
-    puts "DEBUG - SKIPPING BARCODE for: #{pack_id}"
-  end
-
-  label.print(1)
-end
 
   def self.extract_dose_pattern(directions)
     return "" if directions.blank?
