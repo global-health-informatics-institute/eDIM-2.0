@@ -1,7 +1,7 @@
 <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
   <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.past_dispensations')%></span>
 </div>
-<div style="height: 55vh; width: 100%; overflow: auto;">
+<div style="height: 68vh; width: 100%; overflow: auto;">
   <div style="display: table;">
   <% (@history.each_with_index.each_slice(2).to_a || []).each do |dispensation_pair| %>
     <div style="display: table-row;">
@@ -37,7 +37,7 @@
               <%= time_ago_in_words(dispensation.dispensation_date) %> ago
             </div>
 
-            <div style="display: table;width: 100%; margin-top: 15px;">
+            <div style="display: table;width: 48vw; margin-top: 15px;">
               <div style="display: table-row;">
                 <div style="display: table-cell;padding: 5px;">
                   <b style="font-size:1.2rem"><%= t('menu.terms.date')%>:</b> 

@@ -181,37 +181,158 @@ input.radio:checked ~ label {
     <div style="display: table-row;">
       <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:100px;" class="header-cell">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <strong style="font-size:1.3em;">Prepack Labels</strong>
+          <strong style="font-size:1.5em;">Prepack Labels</strong>
           <img src="/assets/barcode.jpg" style="height:32px; vertical-align:middle;">
           <input type="text" id="barcode" class="scanner" style="flex:1; max-width:300px; height:28px;" autofocus>
         </div>
 
         <table style="width:40%; border-collapse:collapse; font-size:1.1em; margin-bottom:8px;">
           <tr>
-            <td style="font-weight:bold; width:100px;">Facility</td>
-            <td style="padding-left:10px;"><%= facility_name rescue '—' %></td>
+            <td style="font-weight:bold; width:100px; font-size:1.2em;">Facility</td>
+            <td style="padding-left:10px; font-size:1.2em;"><%= facility_name rescue '—' %></td>
           </tr>
           <tr>
-            <td style="font-weight:bold;">Location</td>
-            <td style="padding-left:10px;"><%= current_location.name.titleize rescue '—' %></td>
+            <td style="font-weight:bold; font-size:1.2em;">Location</td>
+            <td style="padding-left:10px; font-size:1.2em;"><%= current_location.name.titleize rescue '—' %></td>
           </tr>
         </table>
       </div>
 
-      <div class="header-cell" style="float:right; width:9vw; text-align:center; margin-top:1vh; margin-left:1vw; padding:10px; font-size:1.1em;">
+      <div class="header-cell" style="float:right; width:12vw; text-align:center; margin-top:1vh; margin-left:1vw; padding:10px; font-size:1.1em;">
         <h1>eDIM</h1>
-        <%= l(Date.today, format: '%d %b %Y') %>
+        <span style="font-size:1.2em;"><%= l(Date.today, format: '%d %b %Y') %></span>
       </div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div style="border:3px solid #06425C; margin-top:3vh; height:55vh;">
-      <div style="width:100%; background-color:#006495; height:4vh; text-align:center; color:white; padding-top:1vh;">
-        <span style="font-size:1.5em; font-family:'Arial Black', Gadget, sans-serif;">Prepacking</span>
+      <!-- PREPACK LISTING SECTION -->
+      <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
+        <span style="font-size: 1.5em; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
       </div>
-      <div style="padding:20px; text-align:center;">
-        <h2 style="color:#06425C;">Scan bottle to create labels</h2>
-        <p style="font-size:1.2em;">Once scanned, you'll be able to print or manage prepack labels.</p>
+      <div style="height: 68vh; width: 100%; overflow: auto;">
+        <div style="display: table;">
+          <% if @prepack_inventory.present? %>
+            <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
+              <div style="display: table-row;">
+                <% prepack_pair.each do |prepack, global_index| %>
+                  <% next if prepack.blank? %>
+                  <div style="display: table-cell; width: 47vw; padding: 5px;">
+                    <div style="border: 1px solid <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : 'gray' %>; 
+                                padding: 8px; margin: 3px; 
+                                background-color: <%= prepack[:packs_remaining] > 0 ? '#F0FFF0' : '#F8F9FA' %>;
+                                position: relative; border-radius: 8px; min-height: 90px;">
+                      
+                      <!-- Top Row: Progress Indicator + Action Buttons -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <!-- Progress Indicator -->
+                        <div style="font-size: 1rem; font-weight: bold;
+                                  color: <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : '#666' %>;">
+                          <%= prepack[:packs_remaining] %>/<%= prepack[:total_packs_created] %> left
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div style="position: absolute; top: 43%; right: 8px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
+                          <!-- Print Button -->
+                          <img style="cursor: pointer; width: 40px; height: 40px;" 
+                              src="/assets/print.png" 
+                              title="Print prepack labels"
+                              onmousedown="printPrepackLabels(<%= prepack[:bottle_id] %>)">
+                          
+                          <!-- Delete/Cancel Button (only for active prepacks) -->
+                          <% if prepack[:status] == 'active' || prepack[:status] == 'created' %>
+                            <img style="cursor: pointer; width: 40px; height: 40px;" 
+                                src="/assets/delete.png" 
+                                title="Cancel prepack"
+                                onmousedown="cancelPrepack(<%= prepack[:bottle_id] %>, '<%= prepack[:drug_name] %>')">
+                          <% end %>
+                        </div>
+                      </div>
+
+                      <!-- Drug Name -->
+                      <div style="font-size: 1.2rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
+                        <%= prepack[:drug_name] %>
+                      </div>
+
+                      <!-- Bottle Info -->
+                      <div style="font-size: 1.2rem; color: #666; margin-bottom: 6px;">
+                        <span style="font-size: 1.2rem; font-weight: bold;">Bottle: </span> 
+                        <!--- <strong style="font-size: 1rem;"><%= prepack[:bottle_id] %></strong> --->
+                        <span style="font-size: 1rem;"><% if prepack[:gn_identifier].present? %>
+                          <%= prepack[:gn_identifier] %>
+                        <% end %>
+                      </div>
+
+                      <!-- Stats Row - FIXED: Single line per stat -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <div style="font-size: 1.2rem;">
+                          <span style="color: #666; font-weight: bold;">Qty per pack: </span>
+                          <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
+                        </div>
+                        <div style="font-size: 1.2rem;">
+                          <span style="color: #666; font-size:1.2rem">Total: </span>
+                          <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
+                        </div>
+                        <div style="font-size: 1.2rem;">
+                          <span style="color: #666; font-size:1.2rem">Dispensed: </span>
+                          <span style="font-weight: bold;"><%= prepack[:packs_dispensed] %></span>
+                        </div>
+                      </div>
+
+                      <!-- Progress Bar -->
+                      <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
+                        <div style="height: 100%; background: #28a745; border-radius: 10px; 
+                                  width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
+                      </div>
+
+                      <!-- Status Badge (positioned absolutely) -->
+                      <div style="position: absolute; top: -6px; right: -6px; 
+                                background: <%= 
+                                  case prepack[:status]
+                                  when 'created', 'active'
+                                    '#28a745'
+                                  when 'dispensed'
+                                    '#6c757d'
+                                  when 'cancelled'
+                                    '#dc3545'
+                                  else
+                                    '#ffc107'
+                                  end
+                                %>; 
+                                color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem;
+                                font-weight: bold;">
+                        <% case prepack[:status] %>
+                        <% when 'created', 'active' %>
+                          ACTIVE
+                        <% when 'dispensed' %>
+                          DONE
+                        <% when 'cancelled' %>
+                          CANCELLED
+                        <% else %>
+                          <%= prepack[:status]&.upcase %>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+                
+                <!-- Fill empty cell if we have an odd number in this pair -->
+                <% if prepack_pair.length == 1 %>
+                  <div style="display: table-cell; width: 47vw; padding: 5px;">
+                    <!-- Empty cell to maintain layout -->
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <div style="display: table-row;">
+              <div style="display: table-cell; padding: 40px; text-align: center; color: #666;">
+                <p style="font-size: 1.2em;">No prepack inventory found.</p>
+                <p>Scan a bottle to create your first prepack labels.</p>
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>
@@ -560,7 +681,7 @@ input.radio:checked ~ label {
     getBottle(rawValue);
   }
 
-  // MODIFIED: Main modal display functions
+  // Main modal display functions
   function showDispenseForm() {
     const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
@@ -576,7 +697,7 @@ input.radio:checked ~ label {
     showDispenseDiv(firstDiv);
   }
 
-  // MODIFIED: Cancel dispense function
+  // Cancel dispense function
   function cancelDispense() {
     const form = document.getElementById('dispenseForm2');
     const overlay = document.getElementById('modalOverlay');
@@ -590,9 +711,8 @@ input.radio:checked ~ label {
     initializeBarcodeListener();
   }
 
-  // MODIFIED: Barcode + AJAX function
+  // Barcode + AJAX function
   function getBottle(bottleId) {
-    // We set isModalOpen true immediately because we'll either open modal or show a message
     isModalOpen = true;
 
     const xmlhttp = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
@@ -601,7 +721,7 @@ input.radio:checked ~ label {
         if(xmlhttp.status==200){
           const results = xmlhttp.responseText;
           if(!results || results==='undefined'||results==='null'||results==='false'||results==='{}'){
-            alert(`Bottle ID ${bottleId} not found in inventory.`);
+            showFlashError(`Bottle ID ${bottleId} not found in inventory.`);
             isModalOpen = false;
             initializeBarcodeListener();
           } else {
@@ -611,17 +731,16 @@ input.radio:checked ~ label {
               document.getElementById('currQty').innerHTML = result['currentQty'];
               document.getElementById('bottle_id').innerHTML = bottleId;
               
-              // Show the modal - keep isModalOpen as true
               showDispenseForm();
               showDispenseDiv('routesDiv');
             } catch(e){ 
-              alert(`Bottle ID ${bottleId} returned invalid data.`);
+              showFlashError(`Bottle ID ${bottleId} returned invalid data.`);
               isModalOpen = false;
               initializeBarcodeListener();
             }
           }
         } else {
-          alert(`Bottle ID ${bottleId} could not be fetched.`);
+          showFlashError(`Bottle ID ${bottleId} could not be fetched.`);
           isModalOpen = false;
           initializeBarcodeListener();
         }
@@ -629,6 +748,60 @@ input.radio:checked ~ label {
     };
     xmlhttp.open("GET","/ajax_bottle/"+bottleId,true);
     xmlhttp.send();
+  }
+
+  // Helper functions for different flash types
+  function showFlashError(message) {
+    showFlashMessage(message, 'errors');
+  }
+
+  function showFlashSuccess(message) {
+    showFlashMessage(message, 'success');
+  }
+
+  function showFlashMessage(message, type = 'notice') {
+    // Remove existing flash messages
+    const existingFlash = document.getElementById('flash-messages');
+    if (existingFlash) {
+      existingFlash.remove();
+    }
+
+    // Create flash container
+    const flashContainer = document.createElement('div');
+    flashContainer.id = 'flash-messages';
+    
+    // Create flash message based on your existing Rails structure
+    const flashMessage = document.createElement('div');
+    
+    // Use the same CSS classes as your existing Rails flashes
+    if (type === 'errors') {
+      flashMessage.className = 'flash errors'; // matches flash[:errors]
+      flashMessage.style.cssText = 'background-color: #f8d7da; color: #721c24; padding: 10px; margin: 10px 0; border: 1px solid #f5c6cb; border-radius: 4px;';
+    } else if (type === 'success') {
+      flashMessage.className = 'flash success'; // matches flash[:success]
+      flashMessage.style.cssText = 'background-color: #d4edda; color: #155724; padding: 10px; margin: 10px 0; border: 1px solid #c3e6cb; border-radius: 4px;';
+    } else {
+      flashMessage.className = 'flash notice';
+      flashMessage.style.cssText = 'background-color: #d1ecf1; color: #0c5460; padding: 10px; margin: 10px 0; border: 1px solid #bee5eb; border-radius: 4px;';
+    }
+    
+    flashMessage.innerHTML = `
+      ${message}
+      <span style="float: right; cursor: pointer; font-weight: bold;" onclick="this.parentElement.remove()">&times;</span>
+    `;
+    
+    flashContainer.appendChild(flashMessage);
+    
+    // Insert at the top (adjust based on your layout)
+    const header = document.querySelector('.header') || document.body;
+    header.parentNode.insertBefore(flashContainer, header.nextSibling);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (flashContainer.parentNode) {
+        flashContainer.remove();
+      }
+    }, 5000);
   }
 
   // SIMPLE: Mark tab as completed (turns it blue)
@@ -641,12 +814,12 @@ input.radio:checked ~ label {
     }
   }
 
-  // SIMPLE: Check if tab is completed
+  //Check if tab is completed
   function isTabCompleted(tabId) {
     return completedTabs.has(tabId);
   }
 
-  // UPDATED: showDispenseDiv with simple tab styling
+  // showDispenseDiv with simple tab styling
   function showDispenseDiv(option) {
     // Hide all divs
     ['routesDiv','doseDiv','directionsDiv','qtyDiv','labelsDiv'].forEach(d => {
@@ -737,7 +910,7 @@ input.radio:checked ~ label {
     clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
   }
 
-  // UPDATED: updateQuantity - mark tabs completed when data is valid
+  // UpdateQuantity - mark tabs completed when data is valid
   function updateQuantity() {
     var dose = parseFloat(document.getElementById('dose').value) || 0;
     var duration = parseFloat(document.getElementById('qty').value) || 0;
@@ -779,7 +952,7 @@ input.radio:checked ~ label {
     }
   }
 
-  // UPDATED: setRoute - mark as completed when route is selected
+  // SetRoute - mark as completed when route is selected
   function setRoute(route) {
     document.getElementById("route_type").innerHTML = route;
     updateQuantity();
@@ -790,7 +963,7 @@ input.radio:checked ~ label {
     }
   }
 
-  // UPDATED: setDirections - mark as completed when frequency is selected
+  // SetDirections - mark as completed when frequency is selected
   function setDirections() {
     var field = document.getElementById("directionsDisp");
     var frequency = document.forms[0].elements["frequency"].value;
@@ -808,7 +981,7 @@ input.radio:checked ~ label {
     }
   }
 
-  // MODIFIED: Form submission to handle focus properly
+  // Form submission to handle focus properly
   function validateDisp() {
     if (!checkRadio(document.getElementsByName("administration"))) {
       showDispenseDiv('routesDiv');
@@ -864,13 +1037,13 @@ input.radio:checked ~ label {
     if (w) w.style.display = "none";
   }
 
-  // MODIFIED: DOMContentLoaded - use the new event-driven system
+  // DOMContentLoaded - use the new event-driven system
   document.addEventListener("DOMContentLoaded", function() {
     // Initialize barcode listener (this replaces old timer loop)
     initializeBarcodeListener();
   });
 
-  // UPDATED: resetDispenseModal function
+  // ResetDispenseModal function
   function resetDispenseModal() {
     // Reset all modal fields to initial state
     document.getElementById('dose').value = '';
