@@ -239,7 +239,7 @@ input.radio:checked ~ label {
                           <img style="cursor: pointer; width: 40px; height: 40px;" 
                               src="/assets/print.png" 
                               title="Print prepack labels"
-                              onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>'">
+                              onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'">
                           
                           <!-- Delete/Cancel Button -->
                           <% if prepack[:status] == 'active' || prepack[:status] == 'created' %>
@@ -329,8 +329,8 @@ input.radio:checked ~ label {
           <% else %>
             <div style="display: table-row;">
               <div style="display: table-cell; padding: 40px; text-align: center; color: #666;">
-                <p style="font-size: 1.2em;">No prepack inventory found.</p>
-                <p>Scan a bottle to create your first prepack labels.</p>
+                <p style="font-size: 1.4rem;">No prepack inventory found.</p>
+                <p style="font-size: 1.2rem;">Scan a bottle to create prepack labels.</p>
               </div>
             </div>
           <% end %>
@@ -339,8 +339,8 @@ input.radio:checked ~ label {
     </div>
   </div>
 
-  <!-- Modal Overlay -->
-  <div id="modalOverlay" style="display:none;"></div>
+<!-- Modal Overlay -->
+<div id="modalOverlay" style="display:none;"></div>
 <%= form_for :prescription, method: 'POST', url: dispensation_index_path, html: { id: 'dispenseFormElement' } do |f| %>
   <%= hidden_field_tag :prepacking, true %>
 
