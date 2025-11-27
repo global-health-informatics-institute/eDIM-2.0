@@ -71,7 +71,9 @@ Rails.application.routes.draw do
   get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
   get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
 
-  delete "/prepack_labels/delete/:id", to: "prepack_labels#delete", as: :delete_prepack_label
+  #delete "/prepack_labels/delete/:id", to: "prepack_labels#delete", as: :delete_prepack_label
+
+  get '/prepack_labels/delete/:id', to: 'prepack_labels#delete', as: 'delete_prepack_label'
 
   ###################### Resources #####################################
 

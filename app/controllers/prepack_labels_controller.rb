@@ -36,19 +36,18 @@ class PrepackLabelsController < ApplicationController
     @prepack_inventory = load_prepack_inventory
   end
 
-  # DELETE BATCH
   def delete
     prepack = Prepack.find_by(id: params[:id], deleted: false)
 
-    unless prepack
-      return render json: { error: "Prepack not found" }, status: :not_found
+    if prepack.nil?
+      redirect_to general_inventory_prepack_labels_path, alert: "Prepack not found."
+      return
     end
 
-    # Soft delete the batch and all labels
     prepack.update(deleted: true)
-    prepack.prepack_labels.update_all(deleted: true)
+    PrepackLabel.where(prepack_id: prepack.id).update_all(deleted: true)
 
-    render json: { success: true }
+    redirect_to general_inventory_prepack_labels_path, notice: "Prepack removed successfully."
   end
 
   # SHOW BOTTLE HISTORY
@@ -112,7 +111,6 @@ class PrepackLabelsController < ApplicationController
     flash[:notice] = "Prepack removed successfully"
     redirect_to prepack_labels_path
   end
-
 
   private
 

@@ -339,56 +339,6 @@ input.radio:checked ~ label {
     </div>
   </div>
 
-<script>
-function confirmAction(url, message) {
-  if (!confirm(message)) return;
-
-  fetch(url, {
-    method: "DELETE",
-    headers: {
-      "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      console.log("Deleted successfully");
-      const id = url.split("/").pop(); // extract id from URL
-      const row = document.getElementById(`prepack_row_${id}`);
-      if (row) row.remove();
-    } else {
-      alert("Delete failed");
-      console.error(data);
-    }
-  })
-  .catch(err => console.error(err));
-}
-
-function removePrepackFromList(id) {
-  if (!confirm("Are you sure you want to delete this prepack?")) return;
-
-  fetch(`/prepack_labels/delete/${id}`, {
-    method: "DELETE",
-    headers: { "X-CSRF-Token": csrfToken }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      console.log("Deleted from server");
-      const row = document.getElementById(`prepack_row_${id}`);
-      if (row) row.remove();           // 👈 Now works
-    } else {
-      console.error("Delete failed:", data);
-      alert("Failed to delete. See console for details.");
-    }
-  })
-  .catch(err => console.error("Error:", err));
-}
-</script>
-
-
 <!-- Modal Overlay -->
 <div id="modalOverlay" style="display:none;"></div>
 <%= form_for :prescription, method: 'POST', url: dispensation_index_path, html: { id: 'dispenseFormElement' } do |f| %>
@@ -640,10 +590,33 @@ function removePrepackFromList(id) {
   <!-- FOOTER -->
   <div class="footer">
     <button class="nav-bttn red" style="float:left;" onmousedown="window.location='/'">Cancel</button>
-    <button class="nav-bttn blue" style="float:right;" onclick="window.location='/general_inventory'">View Inventory</button>
+    <button class="nav-bttn blue" style="float:right;" onclick="window.location='/general_inventory'">View Inventoryy</button>
   </div>
 </body>
 </html>
+
+<script>
+function removePrepackFromList(id) {
+  if (!confirm("Are you sure you want to delete this prepack")) return;
+
+  fetch(`/prepack_labels/delete/${id}`, {
+    method: "DELETE",
+    headers: { "X-CSRF-Token": csrfToken }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log("Deleted from server");
+      const row = document.getElementById(`prepack_row_${id}`);
+      if (row) row.remove();           // 👈 Now works
+    } else {
+      console.error("Delete failed:", data);
+      alert("Failed to delete. See console for details.");
+    }
+  })
+  .catch(err => console.error("Error:", err));
+}
+</script>
 
 <script>
   var barcodeTxt = null;
