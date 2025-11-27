@@ -70,11 +70,10 @@ Rails.application.routes.draw do
   ###################### Prepack Labels Controller #####################
   get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
   get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
-  resources :prepack_labels, only: [:show, :new, :create]
+
+  delete "/prepack_labels/delete/:id", to: "prepack_labels#delete", as: :delete_prepack_label
 
   ###################### Resources #####################################
-
-  resources :prepack_labels, only: [:new, :show]
 
   resources :prepack_labels, only: [:show, :new, :create, :destroy] do
     collection do

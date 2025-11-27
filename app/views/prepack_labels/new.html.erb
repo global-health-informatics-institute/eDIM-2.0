@@ -206,138 +206,188 @@ input.radio:checked ~ label {
 
   <!-- MAIN CONTENT -->
   <div style="border:3px solid #06425C; margin-top:3vh; height:71vh; padding: 0;">
-  
-    <!-- PREPACK LISTING SECTION -->
-    <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
-      <span style="font-size: 1.5em; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
-    </div>
 
-    <div style="height: 68vh; width: 100%; overflow: auto; padding: 0 5px;">
-      <div style="display: table; width: 100%;">  
-        <% if @prepack_inventory.present? %>
-          <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
-            <div style="display: table-row; width: 100%;">  <!-- Full width row -->
-              <% prepack_pair.each do |prepack, global_index| %>
-                <% next if prepack.blank? %>
-                <div style="display: table-cell; width: 49vw; padding: 5px;">  
-                    <div style="border: 1px solid <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : 'gray' %>; 
-                                padding: 8px; margin: 3px; 
-                                background-color: <%= prepack[:packs_remaining] > 0 ? '#F0FFF0' : '#F8F9FA' %>;
-                                position: relative; border-radius: 8px; min-height: 90px;">
+  <!-- PREPACK LISTING SECTION -->
+  <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
+    <span style="font-size: 1.5em; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
+  </div>
+
+  <div style="height: 68vh; width: 100%; overflow: auto; padding: 0 5px;">
+    <div style="display: table; width: 100%;">  
+      <% if @prepack_inventory.present? %>
+        <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
+          <div style="display: table-row; width: 100%;">  <!-- Full width row -->
+            <% prepack_pair.each do |prepack, global_index| %>
+              <% next if prepack.blank? %>
+                <div id="prepack_row_<%= prepack[:id] %>" 
+                    style="display: table-cell; width: 49vw; padding: 5px;" 
+                    data-prepack-id="<%= prepack[:id] %>">
+                            <div style="border: 1px solid <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : 'gray' %>; 
+                              padding: 8px; margin: 3px; 
+                              background-color: <%= prepack[:packs_remaining] > 0 ? '#F0FFF0' : '#F8F9FA' %>;
+                              position: relative; border-radius: 8px; min-height: 90px;">
+                    
+                    <!-- Progress Indicator and Action Buttons -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                      <!-- Progress Indicator -->
+                      <div style="font-size: 1rem; font-weight: bold;
+                                color: <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : '#666' %>;">
+                        <%= prepack[:packs_remaining] %>/<%= prepack[:total_packs_created] %> left
+                      </div>
                       
-                      <!-- Progress Indicator + Action Buttons -->
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <!-- Progress Indicator -->
-                        <div style="font-size: 1rem; font-weight: bold;
-                                  color: <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : '#666' %>;">
-                          <%= prepack[:packs_remaining] %>/<%= prepack[:total_packs_created] %> left
-                        </div>
+                      <!-- Action Buttons -->
+                      <div style="position: absolute; top: 43%; right: 8px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
+                        <!-- Print Button -->
+                        <img style="cursor: pointer; width: 40px; height: 40px;" 
+                            src="/assets/print.png" 
+                            title="Print prepack labels"
+                            onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'">
                         
-                        <!-- Action Buttons -->
-                        <div style="position: absolute; top: 43%; right: 8px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
-                          <!-- Print Button -->
+                        <!-- Delete/Cancel Button -->
+                        <% if prepack[:packs_remaining] == 0 %>
                           <img style="cursor: pointer; width: 40px; height: 40px;" 
-                              src="/assets/print.png" 
-                              title="Print prepack labels"
-                              onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'">
-                          
-                          <!-- Delete/Cancel Button -->
-                          <% if prepack[:status] == 'active' || prepack[:status] == 'created' %>
-                            <img style="cursor: pointer; width: 40px; height: 40px;" 
-                                src="/assets/delete.png" 
-                                title="Cancel prepack"
-                                onmousedown="confirmAction('/cancel_prepack/<%= prepack[:bottle_id] %>', 'Are you sure you want to cancel prepack for <%= prepack[:drug_name] %>?')">
-                          <% end %>
-                        </div>
-                      </div>
-
-                      <!-- Drug Name -->
-                      <div style="font-size: 1.2rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
-                        <%= prepack[:drug_name] %>
-                      </div>
-
-                      <!-- Bottle Info -->
-                      <div style="font-size: 1.2rem; color: #666; margin-bottom: 6px;">
-                        <span style="font-size: 1.2rem; font-weight: bold;">Bottle: </span> 
-                        <!--- <strong style="font-size: 1rem;"><%= prepack[:bottle_id] %></strong> --->
-                        <span style="font-size: 1rem;"><% if prepack[:gn_identifier].present? %>
-                          <%= prepack[:gn_identifier] %>
-                        <% end %>
-                      </div>
-
-                      <!-- Stats Row  -->
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <div style="font-size: 1.2rem;">
-                          <span style="color: #666; font-weight: bold;">Qty per pack: </span>
-                          <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
-                        </div>
-                        <div style="font-size: 1.2rem;">
-                          <span style="color: #666; font-size:1.2rem">Total: </span>
-                          <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
-                        </div>
-                        <div style="font-size: 1.2rem;">
-                          <span style="color: #666; font-size:1.2rem">Dispensed: </span>
-                          <span style="font-weight: bold;"><%= prepack[:packs_dispensed] %></span>
-                        </div>
-                      </div>
-
-                      <!-- Progress Bar -->
-                      <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
-                        <div style="height: 100%; background: #28a745; border-radius: 10px; 
-                                  width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
-                      </div>
-
-                      <!-- Status Badge -->
-                      <div style="position: absolute; top: -6px; right: -6px; 
-                                background: <%= 
-                                  case prepack[:status]
-                                  when 'created', 'active'
-                                    '#28a745'
-                                  when 'dispensed'
-                                    '#6c757d'
-                                  when 'cancelled'
-                                    '#dc3545'
-                                  else
-                                    '#ffc107'
-                                  end
-                                %>; 
-                                color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.9rem;
-                                font-weight: bold;">
-                        <% case prepack[:status] %>
-                        <% when 'created', 'active' %>
-                          ACTIVE
-                        <% when 'dispensed' %>
-                          DONE
-                        <% when 'cancelled' %>
-                          CANCELLED
-                        <% else %>
-                          <%= prepack[:status]&.upcase %>
+                              src="/assets/delete.png" 
+                              title="Remove from list"
+                              onmousedown="confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')">
                         <% end %>
                       </div>
                     </div>
+
+                    <!-- Drug Name -->
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
+                      <%= prepack[:drug_name] %>
+                    </div>
+
+                    <!-- Bottle Info -->
+                    <div style="font-size: 1.2rem; color: #666; margin-bottom: 6px;">
+                      <span style="font-size: 1.2rem; font-weight: bold;">Bottle: </span> 
+                      <span style="font-size: 1rem;"><% if prepack[:gn_identifier].present? %>
+                        <%= prepack[:gn_identifier] %>
+                      <% end %>
+                    </div>
+
+                    <!-- Stats Row  -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                      <div style="font-size: 1.2rem;">
+                        <span style="color: #666; font-weight: bold;">Qty per pack: </span>
+                        <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
+                      </div>
+                      <div style="font-size: 1.2rem;">
+                        <span style="color: #666; font-size:1.2rem">Total: </span>
+                        <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
+                      </div>
+                      <div style="font-size: 1.2rem;">
+                        <span style="color: #666; font-size:1.2rem">Dispensed: </span>
+                        <span style="font-weight: bold;"><%= prepack[:packs_dispensed] %></span>
+                      </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
+                      <div style="height: 100%; background: #28a745; border-radius: 10px; 
+                                width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <div style="position: absolute; top: -6px; right: -6px; 
+                              background: <%= 
+                                case prepack[:status]
+                                when 'created', 'active'
+                                  '#28a745'
+                                when 'dispensed'
+                                  '#6c757d'
+                                when 'cancelled'
+                                  '#dc3545'
+                                else
+                                  '#ffc107'
+                                end
+                              %>; 
+                              color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.9rem;
+                              font-weight: bold;">
+                      <% case prepack[:status] %>
+                      <% when 'created', 'active' %>
+                        ACTIVE
+                      <% when 'dispensed' %>
+                        DONE
+                      <% when 'cancelled' %>
+                        CANCELLED
+                      <% else %>
+                        <%= prepack[:status]&.upcase %>
+                      <% end %>
+                    </div>
                   </div>
-                <% end %>
-                
-                <!-- Fill empty cell if we have an odd number in this pair -->
-                <% if prepack_pair.length == 1 %>
-                  <div style="display: table-cell; width: 47vw; padding: 5px;">
-                    <!-- Empty cell to maintain layout -->
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          <% else %>
-            <div style="display: table-row;">
-              <div style="display: table-cell; padding: 40px; text-align: center; color: #666;">
-                <p style="font-size: 1.4rem;">No prepack inventory found.</p>
-                <p style="font-size: 1.2rem;">Scan a bottle to create prepack labels.</p>
-              </div>
+                </div>
+              <% end %>
+              
+              <!-- Fill empty cell if we have an odd number in this pair -->
+              <% if prepack_pair.length == 1 %>
+                <div style="display: table-cell; width: 47vw; padding: 5px;">
+                  <!-- Empty cell to maintain layout -->
+                </div>
+              <% end %>
             </div>
           <% end %>
-        </div>
+        <% else %>
+          <div style="display: table-row;">
+            <div style="display: table-cell; padding: 40px; text-align: center; color: #666;">
+              <p style="font-size: 1.4rem;">No prepack inventory found.</p>
+              <p style="font-size: 1.2rem;">Scan a bottle to create prepack labels.</p>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
+
+<script>
+function confirmAction(url, message) {
+  if (!confirm(message)) return;
+
+  fetch(url, {
+    method: "DELETE",
+    headers: {
+      "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log("Deleted successfully");
+      const id = url.split("/").pop(); // extract id from URL
+      const row = document.getElementById(`prepack_row_${id}`);
+      if (row) row.remove();
+    } else {
+      alert("Delete failed");
+      console.error(data);
+    }
+  })
+  .catch(err => console.error(err));
+}
+
+function removePrepackFromList(id) {
+  if (!confirm("Are you sure you want to delete this prepack?")) return;
+
+  fetch(`/prepack_labels/delete/${id}`, {
+    method: "DELETE",
+    headers: { "X-CSRF-Token": csrfToken }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log("Deleted from server");
+      const row = document.getElementById(`prepack_row_${id}`);
+      if (row) row.remove();           // 👈 Now works
+    } else {
+      console.error("Delete failed:", data);
+      alert("Failed to delete. See console for details.");
+    }
+  })
+  .catch(err => console.error("Error:", err));
+}
+</script>
+
 
 <!-- Modal Overlay -->
 <div id="modalOverlay" style="display:none;"></div>
@@ -1092,7 +1142,6 @@ input.radio:checked ~ label {
     updateQuantity();
   }
 
-  // In your application.js or prepack_labels.js
 document.addEventListener('DOMContentLoaded', function() {
   // Handle void prepack links
   document.querySelectorAll('.void-prepack-btn').forEach(button => {
@@ -1107,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/prepack_labels/${prepackId}?confirm=true`, {
           method: 'DELETE',
           headers: {
-            'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
