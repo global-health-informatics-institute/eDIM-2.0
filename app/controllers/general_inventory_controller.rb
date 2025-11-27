@@ -339,15 +339,16 @@ class GeneralInventoryController < ApplicationController
             dispensed_by: User.current.id
           )
 
-          # Mark pack used
-          label.update!(dispensed: 1)
+          label.assign_attributes(
+            dispensed: 1,
+            patient_id: patient_id
+          )
+          label.save!
 
-          # Close prepack if all packs used
           if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
             prepack.update!(
               status: 'dispensed',
-              dispensed_at: Time.current,
-              dispensed_to: patient_id
+              dispensed_at: Time.current
             )
           end
         end

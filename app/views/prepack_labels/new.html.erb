@@ -175,8 +175,8 @@ input.radio:checked ~ label {
 </style>
 
 </head>
-<body style="margin:0; padding:0;">
-  <div style="width:99vw; margin:auto;">
+<body style="margin:0; padding:0; display: flex; flex-direction: column; min-height: 100vh;">
+  <div style="width: 99vw; margin: auto; flex: 0 0 auto;">
     <!-- HEADER -->
     <div style="display: table-row;">
       <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:100px;" class="header-cell">
@@ -203,9 +203,9 @@ input.radio:checked ~ label {
         <span style="font-size:1.2em;"><%= l(Date.today, format: '%d %b %Y') %></span>
       </div>
     </div>
-
+  
   <!-- MAIN CONTENT -->
-  <div style="border:3px solid #06425C; margin-top:3vh; height:71vh; padding: 0;">
+  <div style="border:3px solid #06425C; margin-top:3vh; height:70vh; padding: 0;">
 
   <!-- PREPACK LISTING SECTION -->
   <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
@@ -588,9 +588,9 @@ input.radio:checked ~ label {
   </div>
 
   <!-- FOOTER -->
-  <div class="footer">
-    <button class="nav-bttn red" style="float:left;" onmousedown="window.location='/'">Cancel</button>
-    <button class="nav-bttn blue" style="float:right;" onclick="window.location='/general_inventory'">View Inventoryy</button>
+  <div class="footer" style="margin-left: -0.5vw; width: 100vw;">
+    <button class="nav-bttn red" style="float:left; margin-left: 1vw;" onmousedown="window.location='/'">Cancel</button>
+    <button class="nav-bttn blue" style="float:right; margin-right: 1vw;" onclick="window.location='/general_inventory'">View Inventory</button>
   </div>
 </body>
 </html>
