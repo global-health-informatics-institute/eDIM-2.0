@@ -3,7 +3,7 @@
       <style type="text/css">
         th.tab{
           border: 1px outset silver;
-          background-color: #2196F3;  /* Changed from #39bf87 to blue */
+          background-color: #2196F3;
           padding: 15px;
           line-height: 6vh;
           margin-top: 5px;
@@ -321,20 +321,20 @@
                     <img src="/assets/<%=@patient.sex.downcase%>.png">
                   </div>
               </td>
-              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.name') %></th>
+              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.name') %></th>
               <th>:</th>
-              <td style="font-size: 1.3em;"><%= @patient.full_name %></td>
-              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.age') %></th>
+              <td style="font-size: 1.5em;"><%= @patient.full_name %></td>
+              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.age') %></th>
               <th>:</th>
-              <td style="font-size: 1.3em;"><%= @patient.age %></td>
+              <td style="font-size: 1.5em;"><%= @patient.age %></td>
             </tr>
             <tr>
-              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.national_id') %></th>
+              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.national_id') %></th>
               <th>:</th>
-              <td style="font-size: 1.3em;"><%= @patient.formatted_pnid %></td>
-              <th style="text-align: left; font-size: 1.2em;"><%= t('menu.terms.current_address') %></th>
+              <td style="font-size: 1.5em;"><%= @patient.formatted_pnid %></td>
+              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.current_address') %></th>
               <th>:</th>
-              <td style="font-size: 1.3em;"><%= @patient.current_address %></td>
+              <td style="font-size: 1.5em;"><%= @patient.current_address %></td>
             </tr>
           </table>
           </div>
@@ -343,7 +343,7 @@
             <!-- Title -->
             <div style="text-align: center; margin-bottom: 6px;">
               <strong style="font-size: 1.5em;">
-                <%= t('menu.terms.scan_label') %>
+               <span style="font-size: 1.3rem; padding-top: 4px;"><%= t('menu.terms.scan_label_barcode') %></span>
               </strong>
             </div>
 

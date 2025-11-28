@@ -179,28 +179,27 @@ input.radio:checked label {
   <div style="width: 99vw; margin: auto; flex: 0 0 auto;">
     <!-- HEADER -->
     <div style="display: table-row;">
-      <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:100px;" class="header-cell">
+      <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:10vh;" class="header-cell">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <strong style="font-size:1.5em;">Prepack Labels</strong>
+          <strong style="font-size:1.5rem;">Scan Barcode</strong>
           <img src="/assets/barcode.jpg" style="height:32px; vertical-align:middle;">
           <input type="text" id="barcode" class="scanner" style="flex:1; max-width:300px; height:28px;" autofocus>
         </div>
 
         <table style="width:40%; border-collapse:collapse; font-size:1.1em; margin-bottom:8px;">
           <tr>
-            <td style="font-weight:bold; width:100px; font-size:1.2em;">Facility</td>
-            <td style="padding-left:10px; font-size:1.2em;"><%= facility_name rescue '—' %></td>
+            <td style="font-weight:bold; width:100px; font-size:1.5rem;">Facility</td>
+            <td style="padding-left:10px; font-size:1.5rem;"><%= facility_name rescue '—' %></td>
           </tr>
           <tr>
-            <td style="font-weight:bold; font-size:1.2em;">Location</td>
-            <td style="padding-left:10px; font-size:1.2em;"><%= current_location.name.titleize rescue '—' %></td>
+            <td style="font-weight:bold; font-size:1.5rem;">Location</td>
+            <td style="padding-left:10px; font-size:1.5rem;"><%= current_location.name.titleize rescue '—' %></td>
           </tr>
         </table>
       </div>
-
       <div class="header-cell" style="float:right; width:12vw; text-align:center; margin-top:1vh; margin-left:1vw; padding:10px; font-size:1.1em;">
-        <h1>eDIM</h1>
-        <span style="font-size:1.2em;"><%= l(Date.today, format: '%d %b %Y') %></span>
+        <h1 style="font-size:2.2rem;">eDIM</h1>
+        <span style="font-size:1.5rem;"><%= l(Date.today, format: '%d %b %Y') %></span>
       </div>
     </div>
   
@@ -209,7 +208,7 @@ input.radio:checked label {
 
   <!-- PREPACK LISTING SECTION -->
   <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
-    <span style="font-size: 1.5em; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
+    <span style="font-size: 1.5rem; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
   </div>
 
   <div style="height: 68vh; width: 100%; overflow: auto; padding: 0 5px;">
@@ -222,18 +221,18 @@ input.radio:checked label {
                 <div id="prepack_row_<%= prepack[:id] %>" 
                     style="display: table-cell; width: 49vw; padding: 5px;" 
                     data-prepack-id="<%= prepack[:id] %>">
-                            <div style="border: 1px solid <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : 'gray' %>; 
-                              padding: 8px; margin: 3px; 
-                              background-color: <%= prepack[:packs_remaining] > 0 ? '#F0FFF0' : '#F8F9FA' %>;
-                              position: relative; border-radius: 8px; min-height: 90px;">
-                    
-                    <!-- Progress Indicator and Action Buttons -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                      <!-- Progress Indicator -->
-                      <div style="font-size: 1rem; font-weight: bold;
-                                color: <%= prepack[:packs_remaining] > 0 ? '#2E8B57' : '#666' %>;">
-                        <%= prepack[:packs_remaining] %>/<%= prepack[:total_packs_created] %> left
-                      </div>
+                          <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
+                            padding: 8px; margin: 3px; 
+                            background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
+                            position: relative; border-radius: 8px; min-height: 90px;">
+                  
+                  <!-- Progress Indicator and Action Buttons -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <!-- Progress Indicator -->
+                    <div style="font-size: 1.3rem; font-weight: bold;
+                              color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
+                      <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
+                    </div>
                       
                       <!-- Action Buttons -->
                       <div style="position: absolute; top: 43%; right: 8px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
@@ -254,31 +253,31 @@ input.radio:checked label {
                     </div>
 
                     <!-- Drug Name -->
-                    <div style="font-size: 1.2rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
                       <%= prepack[:drug_name] %>
                     </div>
 
                     <!-- Bottle Info -->
-                    <div style="font-size: 1.2rem; color: #666; margin-bottom: 6px;">
-                      <span style="font-size: 1.2rem; font-weight: bold;">Bottle: </span> 
-                      <span style="font-size: 1rem;"><% if prepack[:gn_identifier].present? %>
+                    <div style="font-size: 1.5rem; color: #666; margin-bottom: 6px;">
+                      <span style="font-size: 1.5rem; font-weight: bold;">Bottle: </span> 
+                      <span style="font-size: 1.5rem;"><% if prepack[:gn_identifier].present? %>
                         <%= prepack[:gn_identifier] %>
                       <% end %>
                     </div>
 
                     <!-- Stats Row  -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                      <div style="font-size: 1.2rem;">
+                      <div style="font-size: 1.5rem;">
                         <span style="color: #666; font-weight: bold;">Qty per pack: </span>
                         <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
                       </div>
-                      <div style="font-size: 1.2rem;">
-                        <span style="color: #666; font-size:1.2rem">Total: </span>
+                      <div style="font-size: 1.5rem;">
+                        <span style="color: #666; font-size:1.5rem">Total: </span>
                         <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
                       </div>
-                      <div style="font-size: 1.2rem;">
-                        <span style="color: #666; font-size:1.2rem">Dispensed: </span>
-                        <span style="font-weight: bold;"><%= prepack[:packs_dispensed] %></span>
+                      <div style="font-size: 1.5rem;">
+                        <span style="color: #666; font-size:1.5rem">Dispensed: </span>
+                        <span style="font-weight: bold; font-size:1.5rem;"><%= prepack[:packs_dispensed] %></span>
                       </div>
                     </div>
 
@@ -295,7 +294,7 @@ input.radio:checked label {
                                 when 'created', 'active'
                                   '#28a745'
                                 when 'dispensed'
-                                  '#6c757d'
+                                  '#a10e0e'
                                 when 'cancelled'
                                   '#dc3545'
                                 else
@@ -588,7 +587,7 @@ input.radio:checked label {
   </div>
 
   <!-- FOOTER -->
-  <div class="footer" style="margin-left: -0.5vw; width: 100vw;">
+  <div class="footer" style="margin-left: -0.5vw; width: 100vw; font-size: 1.2rem">
     <button class="nav-bttn red" style="float:left; margin-left: 1vw;" onmousedown="window.location='/'">Cancel</button>
     <button class="nav-bttn blue" style="float:right; margin-right: 1vw;" onclick="window.location='/general_inventory'">View Inventory</button>
   </div>

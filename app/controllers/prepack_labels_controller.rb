@@ -136,7 +136,7 @@ class PrepackLabelsController < ApplicationController
       }
     end
 
-    inventory.sort_by { |p| p[:packs_remaining] == 0 ? 1 : 0 }
+    inventory.sort_by { |p| p[:packs_dispensed] == p[:total_packs_created] ? 1 : 0 }
   end
 
   # Ensure user location exists
