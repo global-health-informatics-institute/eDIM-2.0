@@ -3,12 +3,13 @@
       <style type="text/css">
         th.tab{
           border: 1px outset silver;
-          background-color: #39bf87;
+          background-color: #2196F3;  /* Changed from #39bf87 to blue */
           padding: 15px;
           line-height: 6vh;
           margin-top: 5px;
           margin-bottom: 5px;
           font-size: 1.2em !important;
+          color: white;
         }
         div.mobi-div{
           padding-left: 5px;
@@ -88,9 +89,8 @@
               </div>
               <div style="position: absolute; left: 62vw; top: 80vh; background-color: #053a54; color: white; justify-content: flex-end" 
                   class="nextButton" id="dispClear" 
-                  onmousedown="clearCurrentTab()" 
                   style="display:none;">
-                <%= t('forms.buttons.clear') %>
+                <%= t('forms.buttons.clears') %>
               </div>
 
               <div class="mobi-div" id="routesDiv" >
@@ -478,13 +478,24 @@
 
   // --- Main functions ---
 
-  // Mark tab as completed (Turn blue)
+  // Mark a tab as completed
   function markTabCompleted(tabId) {
     completedTabs.add(tabId);
     const tab = document.getElementById(tabId);
     if (tab) {
-      tab.style.backgroundColor = '#2196F3';
+      tab.style.backgroundColor = '#28a745';  // Green
       tab.style.color = 'white';
+      
+      // Add checkmark icon if not already present
+      if (!tab.querySelector('.checkmark')) {
+        const checkmark = document.createElement('span');
+        checkmark.className = 'checkmark';
+        checkmark.innerHTML = ' ✔';
+        checkmark.style.fontWeight = 'bold';
+        checkmark.style.marginLeft = '8px';
+        checkmark.style.fontSize = '1.1rem';
+        tab.appendChild(checkmark);
+      }
     }
   }
 
@@ -613,16 +624,16 @@
       ['routesTab','doseTab','directionsTab','qtyTab','doseTypeTab'].forEach(tabId => {
         const tab = document.getElementById(tabId);
         if (tab) {
-          // Reset all tabs to default except completed ones
+          // Reset all tabs to blue (default) except completed ones
           if (!completedTabs.has(tabId)) {
-            tab.style.backgroundColor = '';
-            tab.style.color = '';
+            tab.style.backgroundColor = '#2196F3';  // Blue (default)
+            tab.style.color = 'white';
             tab.style.border = '1px outset silver';
           } else {
-            // Completed tabs stay blue
-            tab.style.backgroundColor = '#2196F3';
+            // Completed tabs stay green
+            tab.style.backgroundColor = '#28a745';  // Green
             tab.style.color = 'white';
-            tab.style.border = '1px solid #1976D2';
+            tab.style.border = '1px solid #1e7e34';
           }
         }
       });
@@ -900,26 +911,40 @@
     const dispClear = document.getElementById("dispClear");
     if (dispClear) {
       dispClear.addEventListener("click", function() {
-        // In normal prescription mode, clear everything relevant
-        document.getElementById("dose").value = "";
-        document.getElementById("qty").value = "";
-        document.getElementById("qtyDisp").innerHTML = "0";
-        document.getElementById("dispensed_quantity").value = "0";
-        document.getElementById("directionsDisp").innerHTML = "";
+        const visibleTab = document.querySelector('.mobi-div:not([style*="display: none"])');
+        if (!visibleTab) return;
 
-        // Remove from completed tabs when cleared
-        completedTabs.delete('doseTab');
-        completedTabs.delete('qtyTab');
+        const currentTabId = visibleTab.id.replace('Div', 'Tab');
         
-        // Update tab styles
-        ['doseTab', 'qtyTab'].forEach(tabId => {
-          const tab = document.getElementById(tabId);
-          if (tab) {
-            tab.style.backgroundColor = '';
-            tab.style.color = '';
-            tab.style.border = '1px outset silver';
+        if (visibleTab.id === "doseDiv") {
+          document.getElementById("dose").value = "";
+          setDirections();
+          updateQuantity();
+          // Remove completed status for dose tab
+          completedTabs.delete('doseTab');
+        } else if (visibleTab.id === "qtyDiv") {
+          document.getElementById("qty").value = "";
+          // Manually update without calling setQuantity to avoid re-marking dose tab
+          document.getElementById("qtyDisp").innerHTML = "0";
+          document.getElementById("dispensed_quantity").value = "0";
+          hideDispensationWarning();
+          // Remove completed status for duration tab
+          completedTabs.delete('qtyTab');
+        }
+
+        // Revert the tab styling to blue and remove checkmark
+        const tab = document.getElementById(currentTabId);
+        if (tab) {
+          tab.style.backgroundColor = '#2196F3';  // Back to blue
+          tab.style.color = 'white';
+          tab.style.border = '1px outset silver';
+          
+          // Remove checkmark
+          const checkmark = tab.querySelector('.checkmark');
+          if (checkmark) {
+            checkmark.remove();
           }
-        });
+        }
 
         // Hide button again
         dispClear.style.display = "none";

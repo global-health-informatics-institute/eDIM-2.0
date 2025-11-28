@@ -1,12 +1,12 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
 <style>
-/* --- Administration Route Boxes: 2 Rows --- */
+/* --- Administration Route --- */
 .routes-container {
   display: grid;
-  grid-template-columns: repeat(3, minmax(140px, 1fr)); /* 3 columns max */
-  grid-template-rows: repeat(2, auto);                  /* 2 rows */
-  gap: 1em 2em;                                         /* vertical | horizontal spacing */
+  grid-template-columns: repeat(3, minmax(140px, 1fr)); 
+  grid-template-rows: repeat(2, auto);                  
+  gap: 1em 2em;                                         
   justify-content: start;
   padding-left: 1.5em;
   margin-top: 0.5em;
@@ -40,7 +40,7 @@ label.custom {
   user-select: none;
 }
 
-input.radio:empty ~ label:before {
+input.radio:empty label:before {
   position: absolute;
   display: block;
   top: 0;
@@ -59,7 +59,7 @@ input.radio:checked ~ label:before {
   background-color: #CCCCCC;
 }
 
-input.radio:checked ~ label {
+input.radio:checked label {
   color: #000;
   font-weight: bold;
 }
@@ -69,21 +69,21 @@ input.radio:checked ~ label {
 .section-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 5px;         /* smaller space between label and input/grid */
-  margin-left: 15px; /* keeps the whole section slightly indented */
+  gap: 5px;         
+  margin-left: 15px; 
 }
 
-/* Optionally, align the text labels slightly */
+/* Align the text labels slightly */
 .section-wrapper h3,
 .section-wrapper label {
-  margin-left: 0;   /* remove extra default margins */
+  margin-left: 0;   
 }
   /* Dose input field styling */
 .section-wrapper input#dose {
-  width: 200px;       /* set a reasonable width */
-  max-width: 50%;     /* optional: prevent from growing too wide on big screens */
-  padding: 5px 8px;   /* add some padding for nicer text */
-  font-size: 1.2em;   /* match the style of other labels */
+  width: 200px;       
+  max-width: 50%;     
+  padding: 5px 8px;   
+  font-size: 1.2em;   
 }
 
 /* --- Dose Keypad  --- */
@@ -94,7 +94,7 @@ input.radio:checked ~ label {
   gap: 60px 60px;
   justify-content: start;
   margin-top: 10px;
-  margin-left: 10px;          /* shift keypad a bit right */
+  margin-left: 10px;         
 }
 
 .customButton {
@@ -109,8 +109,8 @@ input.radio:checked ~ label {
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s, transform 0.1s;
-  width: 60px;      /* fixed width */
-  height: 60px;     /* fixed height */
+  width: 60px;      
+  height: 60px;     
 }
 
 .customButton:hover {
@@ -123,18 +123,18 @@ input.radio:checked ~ label {
   transform: scale(0.95);
 }
 
-/* Directions selection: 2 columns, 5 rows */
+/* Directions selection */
 .directions-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* flexible two columns */
+  grid-template-columns: repeat(2, 1fr); 
   grid-template-rows: repeat(5, auto);
-  gap: 0.5em 1em;  /* vertical | horizontal */
+  gap: 0.5em 1em;  
   justify-content: start;
   padding-left: 1.5em;
 }
 
 .directions-grid .radioDiv {
-  min-width: auto; /* remove forced width */
+  min-width: auto; 
 }
 /* --- Duration tab --- */
 .duration-keypad {
@@ -142,7 +142,7 @@ input.radio:checked ~ label {
   grid-template-columns: repeat(3, 60px);
   grid-auto-rows: 60px;
   gap: 60px 60px;
-  justify-content: start;     /* still left-aligned */
+  justify-content: start;     
   margin-top: 15px;
   margin-left: 25px; 
 }
@@ -839,7 +839,28 @@ function removePrepackFromList(id) {
     }
   }
 
-  //Check if tab is completed
+  // Mark tab as completed with green color and checkmark  
+  function markTabCompleted(tabId) {
+    completedTabs.add(tabId);
+    const tab = document.getElementById(tabId);
+    if (tab) {
+      tab.style.backgroundColor = '#28a745';  // Green
+      tab.style.color = 'white';
+      
+      // Add checkmark icon if not already present
+      if (!tab.querySelector('.checkmark')) {
+        const checkmark = document.createElement('span');
+        checkmark.className = 'checkmark';
+        checkmark.innerHTML = ' ✔';  // Using heavier checkmark character
+        checkmark.style.fontWeight = 'bold';
+        checkmark.style.marginLeft = '8px';
+        checkmark.style.fontSize = '1.1em';
+        tab.appendChild(checkmark);
+      }
+    }
+  }
+
+  // Check if tab is completed
   function isTabCompleted(tabId) {
     return completedTabs.has(tabId);
   }
@@ -856,20 +877,20 @@ function removePrepackFromList(id) {
     const sel = document.getElementById(option);
     if (sel) sel.style.display = '';
 
-    // Update tab styles - current tab gets red border, completed tabs stay blue
+    // Update tab styles - current tab gets red border, completed tabs stay green
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        // Reset all tabs to default except completed ones
+        // Reset all tabs to blue (default) except completed ones
         if (!completedTabs.has(tabId)) {
-          tab.style.backgroundColor = '';
-          tab.style.color = '';
+          tab.style.backgroundColor = '#2196F3';  // Blue (default)
+          tab.style.color = 'white';
           tab.style.border = '1px outset silver';
         } else {
-          // Completed tabs stay blue
-          tab.style.backgroundColor = '#2196F3';
+          // Completed tabs stay green
+          tab.style.backgroundColor = '#28a745';  // Green
           tab.style.color = 'white';
-          tab.style.border = '1px solid #1976D2';
+          tab.style.border = '1px solid #1e7e34';
         }
       }
     });
@@ -914,15 +935,37 @@ function removePrepackFromList(id) {
     const visibleTab = document.querySelector('.mobi-div:not([style*="display: none"])');
     if (!visibleTab) return;
 
+    const currentTabId = visibleTab.id.replace('Div', 'Tab');
+    
     if (visibleTab.id === "doseDiv") {
       document.getElementById("dose").value = "";
       setDirections();
       updateQuantity();
+      // Remove completed status for dose tab
+      completedTabs.delete('doseTab');
     } else if (visibleTab.id === "qtyDiv") {
       document.getElementById("qty").value = "";
       setQuantity("qty");
+      // Remove completed status for duration tab
+      completedTabs.delete('qtyTab');
     } else if (visibleTab.id === "labelsDiv") {
       document.getElementById("numPacks").value = "";
+      // Remove completed status for labels tab
+      completedTabs.delete('labelsTab');
+    }
+
+    // Revert the tab styling to blue and remove checkmark
+    const tab = document.getElementById(currentTabId);
+    if (tab) {
+      tab.style.backgroundColor = '#2196F3';  // Back to blue
+      tab.style.color = 'white';
+      tab.style.border = '1px outset silver';
+      
+      // Remove checkmark
+      const checkmark = tab.querySelector('.checkmark');
+      if (checkmark) {
+        checkmark.remove();
+      }
     }
 
     updateClearButtonVisibility(visibleTab.id);

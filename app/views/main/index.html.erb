@@ -1,11 +1,11 @@
 <div style="width: 99vw; margin-left: auto;margin-right: auto;">
   <div style="display: table-row;">
     <div style="width: 83vw;float: left;margin-top: 1vh;padding: 10px;" class="header-cell">
-      <table >
+      <table>
         <tr>
           <td>
-            <div style="display: table-row">
-              <div style="display: table-cell;vertical-align: top; font-size: 1.2rem;">
+            <div style="display: table-row;">
+              <div style="display: table-cell;vertical-align: top; font-size: 1.4rem;">
                 <strong><%= t('menu.terms.scan_barcode')%></strong>
               </div>
               <div style="display: table-cell;float: right;">
@@ -18,30 +18,49 @@
           </td>
         </tr>
       </table>
-      <div style="display: table;width: 98%;margin-left: auto;margin-right: auto;">
-        <div style="display: table-row; ">
-          <div class="header-content-cell" style=""><%= t('menu.terms.facility') %></div>
-          <div class="header-content-cell"><%= facility_name %></div>
-          <div class="header-content-cell"><%= t('menu.terms.users_name') %></div>
-          <div class="header-content-cell"><%= User.current.display_name %></div>
-        </div>
-        <div style="display: table-row; ">
-          <div class="header-content-cell">Location</div>
-          <div class="header-content-cell"><%= current_location.name.titleize %></div>
-          <div class="header-content-cell">Role</div>
-          <div class="header-content-cell"><%= User.current.role %></div>
+      
+      <!-- TABLE STRUCTURE -->
+      <div style="display: table; width: 100%; margin-left: auto; margin-right: auto; border-spacing: 0 5px;">
+        <div style="display: table-row;">
+          <!-- Facility & Location -->
+          <div style="display: table-cell; width: 45%; vertical-align: top; padding-right: 20px;">
+            <div style="display: table; width: 100%;">
+              <div style="display: table-row;">
+                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;"><%= t('menu.terms.facility') %>:</div>
+                <div class="header-content-cell" style="font-size: 1.4rem;"><%= facility_name %></div>
+              </div>
+              <div style="display: table-row;">
+                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;">Location:</div>
+                <div class="header-content-cell" style="font-size: 1.4rem;"><%= current_location.name.titleize %></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- User Name & Role -->
+          <div style="display: table-cell; width: 45%; vertical-align: top;">
+            <div style="display: table; width: 100%;">
+              <div style="display: table-row;">
+                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;"><%= t('menu.terms.users_name') %>:</div>
+                <div class="header-content-cell" style="font-size: 1.4rem;"><%= User.current.display_name %></div>
+              </div>
+              <div style="display: table-row;">
+                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;">Role:</div>
+                <div class="header-content-cell" style="font-size: 1.4rem;"><%= User.current.role %></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="header-cell" style="float: right; font-size: 1.1em; width: 9vw;text-align: center;vertical-align: middle;margin-top: 1vh;margin-left: 1vw;padding: 10px;">
+    <div class="header-cell" style="float: right; font-size: 1.4em; width: 12vw;text-align: center;vertical-align: middle;margin-top: 1vh;margin-left: 1vw;padding: 10px;">
       <h1>eDIM</h1>
-      <%= l(Date.today, format: '%d %b %Y') %>
+      <span style="font-size: 1.6em; display: block; margin-top: 5px;"><%= l(Date.today, format: '%d %b %Y') %></span>
     </div>
   </div>
 
   <div style="border: 3px solid #06425C;margin-top: 3vh;height: 55vh;">
     <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
-      <span style="font-size: 1.5em;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.actions') %></span>
+      <span style="font-size: 1.6rem;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.actions') %></span>
     </div>
     <% if current_location.name.match(/store/i) %>
         <%= render "/main/storeroom" %>
@@ -49,8 +68,8 @@
         <%= render "/main/dispensary" %>
     <% end %>
   </div>
-
 </div>
+
 <div class="footer">
   <button class="nav-bttn red" style="float: left;" onmousedown="window.location='/sessions/logout'">Logout</button>
 </div>
@@ -60,7 +79,7 @@
 let barcodeInput = null;
 let barcodeTimer = null;
 
-// Whether we're in dispensary mode (ERB logic from your original script)
+// Whether we're in dispensary mode
 const isDispensary = <%= current_location.name.match(/store/i).blank? %>;
 
 // --- Helper to focus immediately ---
