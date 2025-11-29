@@ -6,7 +6,7 @@
         <div class="scanner-compact">
           <div class="scanner-label-compact">
             <strong><%= t('menu.terms.scan_barcode')%></strong>
-            <img src="/assets/barcode.jpg" alt="Barcode">
+            <img style="height:56px; width:42px" src="/assets/barcode.jpg" alt="Barcode">
           </div>
           <input type="text" id="barcode" class="scanner-input-compact" autofocus>
         </div>
@@ -67,9 +67,86 @@
 </div>
 
 <!-- Footer -->
-<div class="footer" style="padding-left:15px;">
+<div class="footer" style="padding-left:15px; font-size:1.2rem">
   <button class="nav-bttn red" style="float: left;" onmousedown="window.location='/sessions/logout'">Logout</button>
 </div>
+
+<script>
+// --- Focus / scanner management ---
+let barcodeInput = null;
+let barcodeTimer = null;
+
+// Whether we're in dispensary mode
+const isDispensary = <%= current_location.name.match(/store/i).blank? %>;
+
+// --- Helper to focus immediately ---
+function focusBarcodeInputImmediate() {
+  const barcode = document.getElementById("barcode");
+  if (barcode) {
+    barcode.focus();
+    barcode.select();
+  }
+}
+
+// --- Initialize the scanner (event-based instead of timer polling) ---
+function initializeBarcodeListener() {
+  barcodeInput = document.getElementById("barcode");
+  if (!barcodeInput) return;
+
+  // Remove possible old listeners
+  barcodeInput.removeEventListener('input', handleBarcodeInput);
+  barcodeInput.removeEventListener('blur', handleBarcodeBlur);
+
+  // Prepare field
+  barcodeInput.value = "";
+  barcodeInput.focus();
+
+  // Add listeners
+  barcodeInput.addEventListener('input', handleBarcodeInput);
+  barcodeInput.addEventListener('blur', handleBarcodeBlur);
+}
+
+// --- Input handler with debounce (lets scanner finish typing) ---
+function handleBarcodeInput(event) {
+  if (barcodeTimer) clearTimeout(barcodeTimer);
+
+  barcodeTimer = setTimeout(() => {
+    const raw = event.target.value.trim().toUpperCase().replace(/-/g, "");
+    if (raw.length >= 8) {
+      processBarcode(raw);
+    }
+  }, 120);
+}
+
+// --- Refocus on blur ---
+function handleBarcodeBlur() {
+  setTimeout(() => focusBarcodeInputImmediate(), 100);
+}
+
+// --- Main processing: redirect to patient or inventory ---
+function processBarcode(code) {
+  // Show scanned code briefly
+  if (barcodeInput) barcodeInput.value = code;
+
+  // Clear & refocus quickly
+  setTimeout(() => {
+    if (barcodeInput) {
+      barcodeInput.value = "";
+      barcodeInput.focus();
+    }
+  }, 50);
+
+  // Redirect
+  if (isDispensary) {
+    window.location = "/patient_identifiers/" + encodeURIComponent(code);
+  } else {
+    window.location = "/general_inventory/" + encodeURIComponent(code);
+  }
+}
+
+// Start scanner when page loads
+document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
+</script>
 
 <style>
 .modern-header-container {
@@ -90,7 +167,7 @@
   padding: 15px;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border: 1px solid #e5e7eb;
   min-height: 140px;
 }
@@ -177,7 +254,7 @@
 
 .info-label-modern {
   display: table-cell;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #374151;
   white-space: nowrap;
@@ -188,18 +265,19 @@
 
 .info-value-modern {
   display: table-cell;
-  font-size: 1.2rem;
-  color: #1f2937;
+  font-size: 1.4rem;
+  color: #455e75;
   font-weight: 500;
   vertical-align: top;
   padding-bottom: 4px;
 }
 
+/* Compact Brand Section */
 .brand-section-compact {
-  padding: 23px 20px;
+  padding: 27px 28px;
   background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border: 1px solid #d1d5db;
   min-width: 160px; 
   min-height: 140px; 
@@ -212,8 +290,8 @@
 }
 
 .brand-logo-image {
-  width: 200px; 
-  height: 200px; 
+  width: 210px; 
+  height: 210px; 
   object-fit: contain;
   filter: brightness(0) invert(0);
   max-width: 100%;
@@ -227,6 +305,7 @@
   display: block;
   line-height: 1.2;
   margin-top: 5px;
+  padding-left: 18px;
 }
 
 /* Actions Section */
@@ -247,7 +326,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: white; 
 }
 
 .actions-title-modern {
@@ -332,79 +411,3 @@
   }
 }
 </style>
-<script>
-// --- Focus / scanner management ---
-let barcodeInput = null;
-let barcodeTimer = null;
-
-// Whether we're in dispensary mode
-const isDispensary = <%= current_location.name.match(/store/i).blank? %>;
-
-// --- Helper to focus immediately ---
-function focusBarcodeInputImmediate() {
-  const barcode = document.getElementById("barcode");
-  if (barcode) {
-    barcode.focus();
-    barcode.select();
-  }
-}
-
-// --- Initialize the scanner (event-based instead of timer polling) ---
-function initializeBarcodeListener() {
-  barcodeInput = document.getElementById("barcode");
-  if (!barcodeInput) return;
-
-  // Remove possible old listeners
-  barcodeInput.removeEventListener('input', handleBarcodeInput);
-  barcodeInput.removeEventListener('blur', handleBarcodeBlur);
-
-  // Prepare field
-  barcodeInput.value = "";
-  barcodeInput.focus();
-
-  // Add listeners
-  barcodeInput.addEventListener('input', handleBarcodeInput);
-  barcodeInput.addEventListener('blur', handleBarcodeBlur);
-}
-
-// --- Input handler with debounce (lets scanner finish typing) ---
-function handleBarcodeInput(event) {
-  if (barcodeTimer) clearTimeout(barcodeTimer);
-
-  barcodeTimer = setTimeout(() => {
-    const raw = event.target.value.trim().toUpperCase().replace(/-/g, "");
-    if (raw.length >= 8) {
-      processBarcode(raw);
-    }
-  }, 120);
-}
-
-// --- Refocus on blur ---
-function handleBarcodeBlur() {
-  setTimeout(() => focusBarcodeInputImmediate(), 100);
-}
-
-// --- Main processing: redirect to patient or inventory ---
-function processBarcode(code) {
-  // Show scanned code briefly
-  if (barcodeInput) barcodeInput.value = code;
-
-  // Clear & refocus quickly
-  setTimeout(() => {
-    if (barcodeInput) {
-      barcodeInput.value = "";
-      barcodeInput.focus();
-    }
-  }, 50);
-
-  // Redirect
-  if (isDispensary) {
-    window.location = "/patient_identifiers/" + encodeURIComponent(code);
-  } else {
-    window.location = "/general_inventory/" + encodeURIComponent(code);
-  }
-}
-
-// Start scanner when page loads
-document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
-</script>
