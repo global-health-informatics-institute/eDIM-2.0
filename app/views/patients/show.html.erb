@@ -24,10 +24,10 @@
       <div style="margin-top: 5vh;margin-left: 5vw; height: 90vh;width: 90vw;background-color: #eeeeff;border: 3px outset black;">
           <table style="width: 100%; border: 2px solid black; border-width: 0px 0px 2px 0px;">
             <tr>
-              <td class='heading'><%= t('menu.terms.item')%></td>
-              <th id="item" style="text-align: left;width: 30%;">&nbsp;</th>
-              <td class='heading' style="text-align: left;"><%= t('menu.terms.route')%></td>
-              <th style="text-align: left;width: 30%;" id="route_type">&nbsp;</th>
+              <td class='heading' style="font-size: 1.3rem; font-weight: bold;"><%= t('menu.terms.item:')%></td>
+              <th id="item" style="text-align: left;width: 30%; font-size: 1.2rem; font-weight: normal;">&nbsp;</th>
+              <td class='heading' style="text-align: left; font-size: 1.2rem; font-weight: bold;"><%= t('menu.terms.route:')%></td>
+              <th style="text-align: left;width: 30%; font-size: 1.2rem; font-weight: normal;" id="route_type">&nbsp;</th>
               <!-- Warning Cell -->
               <td style="width:20%; text-align:right; vertical-align:middle;">
                 <span id="dispensationWarning" 
@@ -39,16 +39,16 @@
               </td>
             </tr>
             <tr>
-              <td class='heading'><%= t('menu.terms.bottle_id')%></td>
-              <th id="bottle_id" style="text-align: left;width: 20%;">&nbsp;</th>
-              <td class='heading' style="text-align: left;"><%= t('menu.terms.directions')%></td>
-              <th style="text-align: left;" id="directionsDisp">&nbsp;</th>
+              <td class='heading' style="font-size: 1.2rem; font-weight: bold;"><%= t('menu.terms.bottle_id:')%></td>
+              <th id="bottle_id" style="text-align: left;width: 20%; font-size: 1.2rem; font-weight: normal; ">&nbsp;</th>
+              <td class='heading' style="text-align: left; font-size: 1.2rem; font-weight: bold;"><%= t('menu.terms.directions:')%></td>
+              <th style="text-align: left; font-size: 1.2rem; font-weight: normal;" id="directionsDisp">&nbsp;</th>
             </tr>
             <tr>
-              <td class='heading'><%= t('menu.terms.current_quantity')%></td>
-              <th style="text-align: left;" id="currQty">&nbsp;</th>
-              <td class='heading'><%= t('menu.terms.quantity')%></td>
-              <th style="text-align: left;" id="qtyDisp">&nbsp;</th>
+              <td class='heading' style="font-size: 1.2rem; font-weight: bold;"><%= t('menu.terms.current_quantity:')%></td>
+              <th style="text-align: left; font-size: 1.2rem; font-weight: normal;" id="currQty" >&nbsp;</th>
+              <td class='heading' style="font-size: 1.2rem; font-weight: bold;"><%= t('menu.terms.quantity:')%></td>
+              <th style="text-align: left; font-size: 1.4rem; font-weight: normal;" id="qtyDisp">&nbsp;</th>
             </tr>
           </table>
         <div style="display: table;width: 100%;">
@@ -57,27 +57,27 @@
                 <table width="100%" style="border-collapse:separate;border-spacing:0 10px;">
                   <tr>
                     <th class="tab" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">
-                      <%= t('forms.buttons.administration_route')%>
+                     <span style="font-size: 1.4rem;"><%= t('forms.buttons.administration_route')%></span>
                     </th>
                   </tr>
                   <tr>
                     <th class="tab" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">
-                      <%= t('forms.buttons.dose')%>
+                      <span style="font-size: 1.4rem;"><%= t('forms.buttons.dose')%></span>
                     </th>
                   </tr>
                   <tr>
                     <th class="tab" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">
-                      <%= t('forms.buttons.directions')%>
+                      <span style="font-size: 1.4rem;"><%= t('forms.buttons.directions')%></span>
                     </th>
                   </tr>
                   <tr>
                     <th class="tab" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">
-                      <%= t('forms.buttons.duration')%>
+                      <span style="font-size: 1.4rem;"><%= t('forms.buttons.duration')%></span>
                     </th>
                   </tr>
                   <tr>
                     <th class="tab" id="doseTypeTab" onmousedown="showDispenseDiv('doseTypeDiv')">
-                      <%= t('forms.buttons.dose_type')%>
+                      <span style="font-size: 1.4rem;"><%= t('forms.buttons.dose_type')%></span>
                     </th>
                   </tr>
                 </table>
@@ -90,11 +90,11 @@
               <div style="position: absolute; left: 62vw; top: 80vh; background-color: #053a54; color: white; justify-content: flex-end" 
                   class="nextButton" id="dispClear" 
                   style="display:none;">
-                <%= t('forms.buttons.clears') %>
+                <%= t('forms.buttons.clear') %>
               </div>
 
               <div class="mobi-div" id="routesDiv" >
-                <h3><%= t('forms.labels.select_administration_route')%></h3>
+                <h3 style="font-size: 1.5rem;"><%= t('forms.labels.select_administration_route')%></h3>
                 <table width="100" style="border-collapse: collapse">
                   <tr>
                     <td>
@@ -140,8 +140,8 @@
               </div>
               <div class="mobi-div" id="doseDiv" style="display: none;">
                 <div style="margin-top: 5px;">
-                  <label for="dose"><span style="font-weight: bold;font-size: 1.2em;"><%= t('forms.labels.enter_dose')%></span></label> <br/>
-                  <input type="text" id="dose" name="dose" style="font-size: 1.2em;" required>
+                  <label for="dose"><span style="font-weight: bold;font-size: 1.2rem;"><%= t('forms.labels.enter_dose')%></span></label> <br/>
+                  <input type="text" id="dose" name="dose" style="font-size: 1.2rem;" required>
                 </div>
                 <div style="margin-top: 5px;">
                   <table width="70%" cellspacing="15" >
@@ -169,7 +169,7 @@
                 </div>
               </div>
               <div class="mobi-div" id="doseTypeDiv" style="display: none;">
-                <h3><%= t('forms.labels.select_dose_type')%></h3>
+                <h3 style="font-size: 1.3rem;"><%= t('forms.labels.select_dose_type')%></h3>
                 <table width="100" style="border-collapse: collapse">
                   <tr>
                     <td>
@@ -190,7 +190,7 @@
                 </table>
               </div>
               <div class="mobi-div" id="directionsDiv" style="display: none;">
-                <h3><%= t('forms.labels.select_directions')%></h3>
+                <h3 style="font-size: 1.3rem;"><%= t('forms.labels.select_directions')%></h3>
                 <div style="height: 55vh; overflow-x: hidden; overflow-y: auto;">
                   <table width="100" style="border-collapse: collapse">
                     <tr>
@@ -268,8 +268,8 @@
               </div>
               <div class="mobi-div" id="qtyDiv" style="display: none;">
                 <div style="margin-top: 5px;">
-                  <label for="qty"><span style="font-weight: bold;font-size: 1.2em;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
-                  <input type="text" id="qty" style="font-size: 1.2em;" name="duration" required>
+                  <label for="qty"><span style="font-weight: bold;font-size: 1.2rem;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
+                  <input type="text" id="qty" style="font-size: 1.2rem;" name="duration" required>
                 </div>
                 <div style="margin-top: 5px;">
                   <table width="70%" cellspacing="15" >
@@ -486,7 +486,7 @@
       tab.style.backgroundColor = '#28a745';  // Green
       tab.style.color = 'white';
       
-      // Add checkmark icon if not already present
+      // Add checkmark icon
       if (!tab.querySelector('.checkmark')) {
         const checkmark = document.createElement('span');
         checkmark.className = 'checkmark';
@@ -507,7 +507,7 @@
     }
   }
 
-  // Function to reset the modal to its initial state
+ // Function to reset the modal to its initial state - UPDATED
   function resetDispenseModal() {
       // Reset input fields
       document.getElementById('dose').value = '';
@@ -526,23 +526,33 @@
           document.getElementsByName(name).forEach(el => el.checked = false);
       });
       
-      // Reset tab visibility and styling
-      ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'].forEach(t => {
-          document.getElementById(t).style.display = 'none';
-          const tab = document.getElementById(t.replace('Div','Tab'));
-          if (tab) {
-            tab.style.backgroundColor = '';
-            tab.style.color = '';
-            tab.style.border = '1px outset silver';
-          }
-      });
-      
       // Reset completed tabs
       completedTabs.clear();
       
-      // Show first tab
+      // Reset ALL tabs to their default styling and remove checkmarks
+      ['routesTab','doseTab','directionsTab','qtyTab','doseTypeTab'].forEach(tabId => {
+          const tab = document.getElementById(tabId);
+          if (tab) {
+              tab.style.backgroundColor = '#2196F3';  // Blue (default)
+              tab.style.color = 'white';
+              tab.style.border = '1px outset silver';
+              
+              // Remove checkmark if present
+              const checkmark = tab.querySelector('.checkmark');
+              if (checkmark) {
+                  checkmark.remove();
+              }
+          }
+      });
+      
+      // Reset tab visibility
+      ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'].forEach(t => {
+          document.getElementById(t).style.display = 'none';
+      });
+      
+      // Show first tab with active styling
       document.getElementById('routesDiv').style.display = '';
-      document.getElementById('routesTab').style.border = '2px solid #de0404';
+      document.getElementById('routesTab').style.border = '5px solid #de0404'; // Red border for active tab
       
       // Reset buttons
       var button = document.getElementById('dispNext');
@@ -552,7 +562,6 @@
       // Hide Clear button & warnings
       document.getElementById('dispClear').style.display = 'none';
       hideDispensationWarning();
-
   }
 
   function updateQuantity() {
@@ -610,37 +619,37 @@
     return checkRadio(route) && checkRadio(doseType) && checkRadio(frequency) && dose > 0 && qty > 0;
   }
 
+  // showDispenseDiv function - UPDATED to ensure proper tab styling
   function showDispenseDiv(option) {
-      
       var tabs = ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'];
       var currentTab = tabs.indexOf(option);
       var button = document.getElementById('dispNext');
       var clearButton = document.getElementById('dispClear');
-      // REMOVED: var noPrescriptionBtn = document.getElementById('noPrescriptionBtn');
 
       $(".mobi-div").css("display", "none");
       
-      // Update tab styles - current tab gets red border, completed tabs stay blue
+      // Update tab styles - current tab gets red border, completed tabs stay green
       ['routesTab','doseTab','directionsTab','qtyTab','doseTypeTab'].forEach(tabId => {
-        const tab = document.getElementById(tabId);
-        if (tab) {
-          // Reset all tabs to blue (default) except completed ones
-          if (!completedTabs.has(tabId)) {
-            tab.style.backgroundColor = '#2196F3';  // Blue (default)
-            tab.style.color = 'white';
-            tab.style.border = '1px outset silver';
-          } else {
-            // Completed tabs stay green
-            tab.style.backgroundColor = '#28a745';  // Green
-            tab.style.color = 'white';
-            tab.style.border = '1px solid #1e7e34';
+          const tab = document.getElementById(tabId);
+          if (tab) {
+              // Reset all tabs to blue (default) except completed ones
+              if (!completedTabs.has(tabId)) {
+                  tab.style.backgroundColor = '#2196F3';  // Blue (default)
+                  tab.style.color = 'white';
+                  tab.style.border = '1px outset silver';
+              } else {
+                  // Completed tabs stay green
+                  tab.style.backgroundColor = '#28a745';  // Green
+                  tab.style.color = 'white';
+                  tab.style.border = '1px solid #1e7e34';
+              }
           }
-        }
       });
 
+      // Current active tab gets red border
       const currentTabElement = document.getElementById(option.replace('Div','Tab'));
       if (currentTabElement) {
-        currentTabElement.style.border = '2px solid #de0404';
+          currentTabElement.style.border = '5px solid #de0404'; 
       }
 
       document.getElementById(option).style.display = "";
@@ -956,28 +965,27 @@
     if (doseLabel) doseLabel.id = "doseLabel";
   });
 
-  // Update cancelDispense
+  // Update cancelDispense - UPDATED
   function cancelDispense() {
-
       isModalOpen = false;
 
       // Hide the modal
       hideLayer('shadow', 'dispenseForm');
       
-      // Reset the modal
+      // Reset the modal (this now properly resets tabs)
       resetDispenseModal();
 
       // Reset barcode input
       if (!barcodeInput) barcodeInput = document.getElementById("barcode");
       if (barcodeInput) {
-        barcodeInput.value = "";
-        // allow modal hide animation to finish then refocus
-        setTimeout(() => {
-          barcodeInput.focus();
-          initializeBarcodeListener();
-        }, 150);
+          barcodeInput.value = "";
+          // allow modal hide animation to finish then refocus
+          setTimeout(() => {
+              barcodeInput.focus();
+              initializeBarcodeListener();
+          }, 150);
       } else {
-        initializeBarcodeListener();
+          initializeBarcodeListener();
       }
   }
 </script>

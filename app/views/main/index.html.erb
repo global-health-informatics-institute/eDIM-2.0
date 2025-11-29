@@ -1,79 +1,337 @@
-<div style="width: 99vw; margin-left: auto;margin-right: auto;">
-  <div style="display: table-row;">
-    <div style="width: 83vw;float: left;margin-top: 1vh;padding: 10px;" class="header-cell">
-      <table>
-        <tr>
-          <td>
-            <div style="display: table-row;">
-              <div style="display: table-cell;vertical-align: top; font-size: 1.4rem;">
-                <strong><%= t('menu.terms.scan_barcode')%></strong>
-              </div>
-              <div style="display: table-cell;float: right;">
-                <img style="display: block;height: 30px;" src="/assets/barcode.jpg">
-              </div>
-            </div>
-          </td>
-          <td style="border: 0em !important;">
-            <input type="text" id="barcode" class="scanner" style="width: 95%;" autofocus>
-          </td>
-        </tr>
-      </table>
-      
-      <!-- TABLE STRUCTURE -->
-      <div style="display: table; width: 100%; margin-left: auto; margin-right: auto; border-spacing: 0 5px;">
-        <div style="display: table-row;">
-          <!-- Facility & Location -->
-          <div style="display: table-cell; width: 45%; vertical-align: top; padding-right: 20px;">
-            <div style="display: table; width: 100%;">
-              <div style="display: table-row;">
-                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;"><%= t('menu.terms.facility') %>:</div>
-                <div class="header-content-cell" style="font-size: 1.4rem;"><%= facility_name %></div>
-              </div>
-              <div style="display: table-row;">
-                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;">Location:</div>
-                <div class="header-content-cell" style="font-size: 1.4rem;"><%= current_location.name.titleize %></div>
-              </div>
-            </div>
+<div class="modern-header-container">
+  <div class="header-row">
+    <div class="main-content-cell">
+      <!-- Compact Scanner Section -->
+      <div class="scanner-section-modern">
+        <div class="scanner-compact">
+          <div class="scanner-label-compact">
+            <strong><%= t('menu.terms.scan_barcode')%></strong>
+            <img src="/assets/barcode.jpg" alt="Barcode">
           </div>
-          
-          <!-- User Name & Role -->
-          <div style="display: table-cell; width: 45%; vertical-align: top;">
-            <div style="display: table; width: 100%;">
-              <div style="display: table-row;">
-                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;"><%= t('menu.terms.users_name') %>:</div>
-                <div class="header-content-cell" style="font-size: 1.4rem;"><%= User.current.display_name %></div>
+          <input type="text" id="barcode" class="scanner-input-compact" autofocus>
+        </div>
+      </div>
+      
+      <!-- Info Section -->
+      <div class="info-section-modern">
+        <div class="info-table">
+          <div class="info-row">
+            <!-- Facility & Location -->
+            <div class="info-column">
+              <div class="info-pair">
+                <div class="info-label-modern"><%= t('menu.terms.facility') %>:</div>
+                <div class="info-value-modern"><%= facility_name %></div>
               </div>
-              <div style="display: table-row;">
-                <div class="header-content-cell" style="font-size: 1.4rem; font-weight: bold; padding-right: 10px; white-space: nowrap;">Role:</div>
-                <div class="header-content-cell" style="font-size: 1.4rem;"><%= User.current.role %></div>
+              <div class="info-pair">
+                <div class="info-label-modern">Location:</div>
+                <div class="info-value-modern"><%= current_location.name.titleize %></div>
+              </div>
+            </div>
+            
+            <!-- User Name & Role -->
+            <div class="info-column">
+              <div class="info-pair">
+                <div class="info-label-modern"><%= t('menu.terms.users_name') %>:</div>
+                <div class="info-value-modern"><%= User.current.display_name %></div>
+              </div>
+              <div class="info-pair">
+                <div class="info-label-modern">Role:</div>
+                <div class="info-value-modern"><%= User.current.role %></div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="header-cell" style="float: right; font-size: 1.4em; width: 12vw;text-align: center;vertical-align: middle;margin-top: 1vh;margin-left: 1vw;padding: 10px;">
-      <h1>eDIM</h1>
-      <span style="font-size: 1.6em; display: block; margin-top: 5px;"><%= l(Date.today, format: '%d %b %Y') %></span>
+    
+    <!-- Compact Brand Section -->
+    <div class="brand-section-compact">
+      <img src="/assets/edim-logo.png" class="brand-logo-image" alt="eDIM Logo">
+      <span class="current-date-compact"><%= l(Date.today, format: '%d %b %Y') %></span>
     </div>
   </div>
 
-  <div style="border: 3px solid #06425C;margin-top: 3vh;height: 55vh;">
-    <div style="width: 100%; background-color: #006495;height: 4vh;text-align: center;color: white;padding-top: 1vh;">
-      <span style="font-size: 1.6rem;font-family: 'Arial Black', Gadget, sans-serif;"><%= t('menu.terms.actions') %></span>
+  <!-- Actions Section -->
+  <div class="actions-container-modern">
+    <div class="actions-header-modern">
+      <span class="actions-title-modern"><%= t('menu.terms.actions') %></span>
     </div>
-    <% if current_location.name.match(/store/i) %>
+    <div class="actions-content-modern">
+      <% if current_location.name.match(/store/i) %>
         <%= render "/main/storeroom" %>
-    <% else %>
+      <% else %>
         <%= render "/main/dispensary" %>
-    <% end %>
+      <% end %>
+    </div>
   </div>
 </div>
 
-<div class="footer">
+<!-- Footer -->
+<div class="footer" style="padding-left:15px;">
   <button class="nav-bttn red" style="float: left;" onmousedown="window.location='/sessions/logout'">Logout</button>
 </div>
 
+<style>
+.modern-header-container {
+  width: 99vw;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+/* Header Row */
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.main-content-cell {
+  flex: 1;
+  padding: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  min-height: 140px;
+}
+
+/* Compact Scanner Section */
+.scanner-section-modern {
+  margin-bottom: 10px;
+}
+
+.scanner-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scanner-label-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  min-width: 180px;
+}
+
+.scanner-label-compact strong {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.scanner-label-compact img {
+  height: 25px;
+  display: block;
+}
+
+.scanner-input-compact {
+  flex: 0 1 320px;
+  padding: 14px 16px;
+  font-size: 1.4rem;
+  border: 1px solid #d1d5db;
+  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  color: #1f2937;
+  font-weight: 500;
+  max-width: 320px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); 
+}
+
+.scanner-input-compact:focus {
+  outline: none;
+  border-left: 4px solid #1d4ed8;
+  border-color: #3b82f6;
+  background: #f8fafc;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Info Section */
+.info-section-modern {
+  margin-top: 12px;
+}
+
+.info-table {
+  display: table;
+  width: 100%;
+  border-spacing: 0 6px;
+}
+
+.info-row {
+  display: table-row;
+}
+
+.info-column {
+  display: table-cell;
+  width: 48%;
+  vertical-align: top;
+  padding-right: 15px;
+}
+
+.info-pair {
+  display: table-row;
+  margin-bottom: 6px;
+}
+
+.info-label-modern {
+  display: table-cell;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+  padding-right: 8px;
+  vertical-align: top;
+  padding-bottom: 4px;
+}
+
+.info-value-modern {
+  display: table-cell;
+  font-size: 1.2rem;
+  color: #1f2937;
+  font-weight: 500;
+  vertical-align: top;
+  padding-bottom: 4px;
+}
+
+.brand-section-compact {
+  padding: 23px 20px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
+  min-width: 160px; 
+  min-height: 140px; 
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-image {
+  width: 200px; 
+  height: 200px; 
+  object-fit: contain;
+  filter: brightness(0) invert(0);
+  max-width: 100%;
+  max-height: 80px; 
+}
+
+.current-date-compact {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4b5563;
+  display: block;
+  line-height: 1.2;
+  margin-top: 5px;
+}
+
+/* Actions Section */
+.actions-container-modern {
+  border: 3px solid #06425C;
+  border-radius: 12px;
+  margin-top: 2vh;
+  height: 55vh;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+}
+
+.actions-header-modern {
+  width: 100%;
+  background: linear-gradient(135deg, #006495 0%, #004d73 100%);
+  height: 5vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.actions-title-modern {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Arial Black', Gadget, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.actions-content-modern {
+  height: calc(55vh - 5vh);
+  overflow: auto;
+  background: #ffffff;
+}
+
+/* Responsiveness*/
+@media (max-width: 768px) {
+  .header-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .main-content-cell {
+    width: 100%;
+    min-height: auto;
+  }
+  
+  .brand-section-compact {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+  }
+  
+  .brand-logo-compact {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .current-date-compact {
+    font-size: 1.1rem;
+  }
+  
+  .scanner-compact {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .scanner-label-compact {
+    justify-content: space-between;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-header-container {
+    padding: 8px;
+  }
+  
+  .main-content-cell {
+    padding: 12px;
+  }
+  
+  .scanner-label-compact strong {
+    font-size: 1.2rem;
+  }
+  
+  .scanner-input-compact {
+    font-size: 1.2rem;
+    padding: 10px 12px;
+  }
+  
+  .info-label-modern,
+  .info-value-modern {
+    font-size: 1.1rem;
+  }
+  
+  .info-column {
+    padding-right: 10px;
+  }
+}
+</style>
 <script>
 // --- Focus / scanner management ---
 let barcodeInput = null;

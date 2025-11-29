@@ -347,10 +347,10 @@ input.radio:checked label {
   <div id="dispenseForm2" style="display:none; position:absolute; top:5vh; left:5vw; width:90vw; height:90vh; background-color:#eeeeff; border:3px outset black; overflow:auto; z-index:1000;">
       <table style="width:100%; border-bottom:2px solid black; border-collapse: collapse;">
           <tr>
-              <td style="font-weight:bold; width:100px;">Item</td>
-              <td id="item">&nbsp;</td>
-              <td style="font-weight:bold;">Route</td>
-              <td id="route_type">&nbsp;</td>
+              <td style="font-weight:bold; width:100px; font-size: 1.2rem; font-weight: bold;">Item:</td>
+              <td id="item" style="font-size: 1.2rem; font-weight: normal;">&nbsp;</td>
+              <td style="font-weight:bold; font-size: 1.2rem; font-weight: bold;">Route:</td>
+              <td id="route_type" style="font-size: 1rem; font-weight: normal;">&nbsp;</td>
               <td rowspan="3">
               <img style="float:right; cursor:pointer;" src="/assets/delete.png" onmousedown="cancelDispense()">
               </td>
@@ -359,16 +359,16 @@ input.radio:checked label {
               </td>
           </tr>
           <tr>
-              <td style="font-weight:bold;">Bottle ID</td>
-              <td id="bottle_id">&nbsp;</td>
-              <td style="font-weight:bold;">Directions</td>
-              <td id="directionsDisp">&nbsp;</td>
+              <td style="font-weight:bold; font-size: 1.2rem; font-weight: bold;">Bottle ID:</td>
+              <td id="bottle_id" style="font-size: 1.2rem; font-weight: normal;">&nbsp;</td>
+              <td style="font-weight:bold; font-size: 1.2rem; font-weight: bold;">Directions:</td>
+              <td id="directionsDisp" style="font-size: 1.2rem; font-weight: normal;">&nbsp;</td>
           </tr>
           <tr>
-              <td style="font-weight:bold;">Current Qty</td>
-              <td id="currQty">&nbsp;</td>
-              <td style="font-weight:bold;">Quantity</td>
-              <td id="qtyDisp">&nbsp;</td>
+              <td style="font-weight:bold; font-size: 1rem; font-weight: bold;">Current Qty:</td>
+              <td id="currQty" style="font-size: 1.2rem; font-weight: normal;">&nbsp;</td>
+              <td style="font-weight:bold; font-size: 1rem; font-weight: bold;">Quantity:</td>
+              <td id="qtyDisp" style="font-size: 1rem; font-weight: normal;">&nbsp;</td>
           </tr>
       </table>
 
@@ -377,11 +377,11 @@ input.radio:checked label {
         <div style="display: table-row;">
           <div style="display: table-cell; width:20%; padding:5px; vertical-align:top;">
             <table style="width:100%; border-spacing:0 10px;">
-              <tr><th class="tab" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">Route</th></tr>
-              <tr><th class="tab" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">Dose</th></tr>
-              <tr><th class="tab" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">Directions</th></tr>
-              <tr><th class="tab" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">Duration</th></tr>
-              <tr><th class="tab" id="labelsTab" onmousedown="showDispenseDiv('labelsDiv')">Labels</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">Route</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">Dose</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">Directions</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">Duration</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="labelsTab" onmousedown="showDispenseDiv('labelsDiv')">Labels</th></tr>
             </table>
           </div>
 
@@ -389,27 +389,27 @@ input.radio:checked label {
             <!-- ROUTES DIV -->
             <div class="mobi-div" id="routesDiv">
              <div class="section-wrapper">
-              <h3 style="font-weight:bold; font-size:1.5em;">Select Administration Route</h3>
+              <h3 style="font-weight:bold; font-size:1.5rem;">Select Administration Route</h3>
               <div class="routes-container">
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-oral" value="oral" required onchange="setRoute('oral');setDirections();">
-                <label class="custom" for="route-oral">Oral</label>
+                <label class="custom" style="font-size:1.2rem;" for="route-oral">Oral</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-topical" value="topical" required onchange="setRoute('topical');setDirections();">
-                <label class="custom" for="route-topical">Topical</label>
+                <label class="custom" style="font-size:1.2rem;" for="route-topical">Topical</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-respiratory" value="respiratory" required onchange="setRoute('respiratory');setDirections();">
-                <label class="custom" for="route-respiratory">Respiratory</label>
+                <label class="custom" style="font-size:1.2rem;" for="route-respiratory">Respiratory</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-injection" value="injection" required onchange="setRoute('injection');setDirections();">
-                <label class="custom" for="route-injection">Injection</label>
+                <label class="custom" style="font-size:1.2rem;" for="route-injection">Injection</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-other" value="other" required onchange="setRoute('other');setDirections();">
-                <label class="custom" for="route-other">Other</label>
+                <label class="custom" style="font-size:1.2rem;" for="route-other">Other</label>
               </div>
               </div>
              </div> 
@@ -418,8 +418,8 @@ input.radio:checked label {
             <!-- DOSE DIV -->
             <div class="mobi-div" id="doseDiv" style="display:none;">
               <div class="section-wrapper">
-                <label for="dose" id="doseLabel" style="font-weight:bold; font-size:1.5em;">Enter Dose</label>
-                <input type="text" id="dose" name="dose" required style="width:200px; max-width:50%; padding:5px 8px; font-size:1.2em;">
+                <label for="dose" id="doseLabel" style="font-weight:bold; font-size:1.5rem;">Enter Dose</label>
+                <input type="text" id="dose" name="dose" required style="width:200px; max-width:50%; padding:5px 8px; font-size:1.2rem;">
 
                 <!-- Keypad container -->
                 <div class="dose-keypad">
@@ -437,7 +437,7 @@ input.radio:checked label {
 
             <!-- DIRECTIONS DIV -->
             <div class="mobi-div" id="directionsDiv" style="display: none;">
-                <h3 style="font-weight:bold; font-size:1.5em; margin-left: 15px;"><%= t('forms.labels.select_directions')%></h3>
+                <h3 style="font-weight:bold; font-size:1.5rem; margin-left: 15px;"><%= t('forms.labels.select_directions')%></h3>
                 <div style="height: 55vh; overflow-x: hidden; overflow-y: auto;">
                   <table width="100" style="border-collapse: collapse">
                     <tr>
@@ -517,8 +517,8 @@ input.radio:checked label {
             <!--- DURATION DIV ---->  
             <div class="mobi-div" id="qtyDiv" style="display: none;">
                 <div style="margin-top: 5px; margin-left: 15px;">
-                  <label for="qty"><span style="font-weight: bold;font-size: 1.5em;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
-                  <input type="text" id="qty" name="duration" required style="width:200px; height: 15px;max-width:50%; padding:5px 8px; font-size:1.2em;">
+                  <label for="qty"><span style="font-weight: bold;font-size: 1.5rem;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
+                  <input type="text" id="qty" name="duration" required style="width:200px; height: 15px;max-width:50%; padding:5px 8px; font-size:1.2rem;">
                 </div>
                 <!-- Duration keypad -->
                 <div class="duration-keypad">
@@ -543,8 +543,8 @@ input.radio:checked label {
             <!-- DOSE TYPE DIV - MOVED INSIDE THE CONTENT CELL -->
             <div class="mobi-div" id="labelsDiv" style="display:none;">
               <div class="section-wrapper">
-                <label for="numPacks" id="numPacksLabel"><span style="font-weight:bold; font-size:1.5em;">Enter number of packs</span></label>
-                <input type="text" id="numPacks" name="numPacks" required style="width:200px; max-width:50%; height: 15px; padding:5px 8px; font-size:1.2em;">
+                <label for="numPacks" id="numPacksLabel"><span style="font-weight:bold; font-size:1.5rem;">Enter number of packs</span></label>
+                <input type="text" id="numPacks" name="numPacks" required style="width:200px; max-width:50%; height: 15px; padding:5px 8px; font-size:1.2rem;">
 
                 <!-- Keypad container (reuse same style as Dose/Duration) -->
                 <div class="duration-keypad" style="margin-top:10px; margin-left:15px;">
@@ -577,7 +577,7 @@ input.radio:checked label {
 
     <div id="dispClear"
      class="nextButton"
-          style="position:absolute; left:73vw; top:83vh; background-color:#888; color:white; display:none; height:25px; border-radius:6px"
+          style="position:absolute; left:73vw; top:84.4vh; background-color:#888; color:white; display:none; height:25px; border-radius:6px"
           onmousedown="clearCurrentTab()">
         <%= t('forms.buttons.clear') %>
      </div>
@@ -721,14 +721,14 @@ function removePrepackFromList(id) {
     showDispenseDiv(firstDiv);
   }
 
-  // Cancel dispense function
+  // Cancel dispense function - UPDATED
   function cancelDispense() {
     const form = document.getElementById('dispenseForm2');
     const overlay = document.getElementById('modalOverlay');
     if (form) form.style.display = 'none';
     if (overlay) overlay.style.display = 'none';
     
-    resetDispenseModal();
+    resetDispenseModal(); // This now properly resets everything
     
     // Reset modal state and reinitialize scanner
     isModalOpen = false;
@@ -897,7 +897,7 @@ function removePrepackFromList(id) {
     // Current active tab gets red border
     const currentTab = document.getElementById(option.replace('Div','Tab'));
     if (currentTab) {
-      currentTab.style.border = '2px solid #de0404';
+      currentTab.style.border = '5px solid #de0404';
     }
 
     // Update step + button label
@@ -1110,7 +1110,7 @@ function removePrepackFromList(id) {
     initializeBarcodeListener();
   });
 
-  // ResetDispenseModal function
+  // ResetDispenseModal function - UPDATED
   function resetDispenseModal() {
     // Reset all modal fields to initial state
     document.getElementById('dose').value = '';
@@ -1126,9 +1126,29 @@ function removePrepackFromList(id) {
         document.getElementsByName(name).forEach(el => el.checked = false);
     });
     
-    // Reset completed tabs
+    // Reset completed tabs and tab styling
     completedTabs.clear();
     currentStep = 0;
+    
+    // Reset ALL tabs to their default styling and remove checkmarks
+    ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.backgroundColor = '#2196F3';  // Blue (default)
+        tab.style.color = 'white';
+        tab.style.border = '1px outset silver';
+        
+        // Remove checkmark if present
+        const checkmark = tab.querySelector('.checkmark');
+        if (checkmark) {
+          checkmark.remove();
+        }
+      }
+    });
+    
+    // Reset to first tab
+    const firstDiv = 'routesDiv';
+    showDispenseDiv(firstDiv);
   }
 
   // Helper function for keypad

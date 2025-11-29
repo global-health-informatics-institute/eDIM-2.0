@@ -1,57 +1,242 @@
-<div style="display: table; padding-top: 4%;padding-left: 10px;width:75%; margin-left: auto;margin-right: auto;">
-  <div style="display: table-row">
-    <div onmousedown="window.location='/dispensary/new?add_mode=true'" style="display: table-cell;text-align: center;">
-      <img src="/assets/add_drug.png" style="width: 68px; height: 68px;">
+<div class="modern-menu-container">
+  <div class="menu-grid">
+    <div class="menu-card" onclick="window.location='/dispensary/new?add_mode=true'">
+      <div class="menu-icon-wrapper">
+        <img src="/assets/add_drug.png" class="menu-icon" alt="Add Drug">
+      </div>
+      <div class="menu-label"><%= t('menu.terms.add_drug') %></div>
     </div>
 
-    <div onmousedown="window.location='/general_inventory/prepack_labels'" style="display: table-cell;text-align: center;">
-      <img src="/assets/prepack.png" style="width: 68px; height: 68px;">
+    <div class="menu-card" onclick="window.location='/general_inventory/prepack_labels'">
+      <div class="menu-icon-wrapper">
+        <img src="/assets/prepack.png" class="menu-icon" alt="Prepack Labels">
+      </div>
+      <div class="menu-label"><%= t('menu.terms.prepack_labels') %></div>
     </div>
 
-    <!--- 
-    <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;">
-      <img src="/assets/add_drugs.png">
-    </div>   
-    --->
-    <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;">
-      <img src="/assets/available_drugs.png">
-    </div>
-    <div onmousedown="window.location='/dispensation/select'" style="display: table-cell;text-align: center;">
-      <img src="/assets/disp_rpt.png">
-    </div>
-    <div onmousedown="window.location='/requests/select'" style="display: table-cell;text-align: center;">
-      <img src="/assets/request_report.png" style="width: 68px; height: 68px;">
-    </div>
-    <div onmousedown="window.location='/main/settings'" style="display: table-cell;text-align: center;">
-      <img src="/assets/settings.png">
-    </div>
-  </div>
-
-  <div style="display: table-row">
-    <div onmousedown="window.location='/dispensary/new?add_mode=true'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.add_drug') %>
+    <div class="menu-card" onclick="window.location='/general_inventory'">
+      <div class="menu-icon-wrapper">
+        <img src="/assets/available_drugs.png" class="menu-icon" alt="View Inventory">
+      </div>
+      <div class="menu-label"><%= t('menu.terms.view_inventory') %></div>
     </div>
 
-    <div onmousedown="window.location='/general_inventory/prepack_labels'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.prepack_labels') %>
+    <div class="menu-card" onclick="window.location='/dispensation/select'">
+      <div class="menu-icon-wrapper">
+        <img src="/assets/disp_rpt.png" class="menu-icon" alt="Dispensation Report">
+      </div>
+      <div class="menu-label"><%= t('menu.terms.dispensation_rpt') %></div>
     </div>
 
-   <!--- 
-   <div onmousedown="window.location='/general_inventory/new'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.request_item') %>
+    <div class="menu-card" onclick="window.location='/requests/select'">
+      <div class="menu-icon-wrapper">
+        <img src="/assets/request_report.png" class="menu-icon" alt="Requests Report">
+      </div>
+      <div class="menu-label"><%= t('menu.terms.requests_report') %></div>
     </div>
-   --->
-    <div onmousedown="window.location='/general_inventory'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.view_inventory') %>
-    </div>
-    <div onmousedown="window.location='/dispensation/select'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.dispensation_rpt') %>
-    </div>
-    <div onmousedown="window.location='/requests/select'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.requests_report') %>
-    </div>
-    <div onmousedown="window.location='/main/settings'" style="display: table-cell;text-align: center;font-size: 1.5rem;">
-      <%= t('menu.terms.settings') %>
+
+    <div class="menu-card" onclick="window.location='/main/settings'">
+      <div class="menu-icon-wrapper">
+        <img src="/assets/settings.png" class="menu-icon" alt="Settings">
+      </div>
+      <div class="menu-label"><%= t('menu.terms.settings') %></div>
     </div>
   </div>
 </div>
+
+<style>
+.modern-menu-container {
+  padding: 40px 20px;
+  max-width: 1700px;
+  margin: 0 auto;
+}
+
+.menu-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.menu-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 25px 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 150px;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.menu-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.menu-card:hover::before {
+  transform: scaleX(1);
+}
+
+.menu-card:active {
+  transform: translateY(-2px);
+  transition: transform 0.1s ease;
+}
+
+.menu-icon-wrapper {
+  width: 120px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%);
+  border-radius: 16px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.menu-card:hover .menu-icon-wrapper {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.menu-icon {
+  width: 70px;
+  height: 70px;
+  /* Remove the filter to keep original icon colors */
+  transition: transform 0.3s ease;
+}
+
+.menu-card:hover .menu-icon {
+  transform: scale(1.05);
+}
+
+.menu-label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+  line-height: 1.3;
+  transition: color 0.3s ease;
+}
+
+.menu-card:hover .menu-label {
+  color: #667eea;
+}
+
+/* Ensure single line layout */
+.menu-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-grid {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 1024px) {
+  .menu-card {
+    min-width: 130px;
+    padding: 20px 12px;
+  }
+  
+  .menu-icon-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .menu-icon {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .menu-label {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .modern-menu-container {
+    padding: 30px 15px;
+  }
+  
+  .menu-grid {
+    gap: 10px;
+  }
+  
+  .menu-card {
+    min-width: 110px;
+    padding: 15px 8px;
+  }
+  
+  .menu-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .menu-icon {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .menu-label {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-grid {
+    gap: 8px;
+  }
+  
+  .menu-card {
+    min-width: 90px;
+    padding: 12px 6px;
+  }
+  
+  .menu-icon-wrapper {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .menu-icon {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .menu-label {
+    font-size: 0.8rem;
+  }
+}
+</style>
