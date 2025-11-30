@@ -203,15 +203,15 @@ input.radio:checked label {
       </div>
     </div>
   
-  <!-- MAIN CONTENT -->
-  <div style="border:3px solid #06425C; margin-top:3vh; height:70vh; padding: 0;">
+<!-- MAIN CONTENT -->
+<div style="border:3px solid #06425C; margin-top:3vh; height:70vh; padding: 0; display: flex; flex-direction: column;">
 
   <!-- PREPACK LISTING SECTION -->
-  <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh;">
+  <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh; flex-shrink: 0;">
     <span style="font-size: 1.5rem; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
   </div>
 
-  <div style="height: 68vh; width: 100%; overflow: auto; padding: 0 5px;">
+  <div style="flex: 1; overflow: auto; padding: 0 5px;">
     <div style="display: table; width: 100%;">  
       <% if @prepack_inventory.present? %>
         <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
