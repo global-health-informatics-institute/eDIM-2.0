@@ -32,10 +32,6 @@ Rails.application.routes.draw do
   get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
   post '/dispensary', to: 'general_inventory#create', as: :create_dispensary_item
 
-  # Prepack labels
-  get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
-  resources :prepack_labels, only: [:show, :new, :create]
-
   ###################### User Controller #############################
   get "/username_availability" => "user#username_availability"
   get "/query_users" => "user#query"
@@ -68,20 +64,26 @@ Rails.application.routes.draw do
   post '/dispensation/list', to: 'dispensation#list', as: :dispensation_list
 
   ###################### Prepack Labels Controller #####################
-  get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
+  # REMOVE THIS CONFLICTING LINE: get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
+  
   get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
-
-  #delete "/prepack_labels/delete/:id", to: "prepack_labels#delete", as: :delete_prepack_label
-
   get '/prepack_labels/delete/:id', to: 'prepack_labels#delete', as: 'delete_prepack_label'
 
   ###################### Resources #####################################
 
+  # ONLY ONE resources :prepack_labels declaration
   resources :prepack_labels, only: [:show, :new, :create, :destroy] do
     collection do
       get 'ajax_bottle_prepack'
+      # Add prepack report routes here
+      get 'select'
+      post 'report'
+      get 'list'
     end
   end
+
+  # Add this AFTER the resources declaration
+  get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
 
   resources :general_inventory do
     post 'pre_packing'

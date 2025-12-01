@@ -1,0 +1,320 @@
+<%= javascript_include_tag 'jquery.dataTables.min.js' %>
+<script type="text/javascript">
+  function debounce(fn, wait) {
+    let t;
+    return function(...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
+  $(document).ready(function() {
+    const table = $('#prepackReport').DataTable({
+      "bLengthChange": false,
+      "bDestroy": true,
+      "pageLength": 10,
+      "paging": true,
+      "pagingType": "full_numbers",
+      "autoWidth": false,
+      "language": {
+        "search": "Search:",
+        "zeroRecords": "No matching records found",
+        "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+        "infoEmpty": "No records available",
+        "infoFiltered": "(filtered from _MAX_ total entries)",
+        "oPaginate": {
+          "sNext": "Next",
+          "sPrevious": "Previous"
+        }
+      },
+      "columnDefs": [
+        { "width": "20%", "targets": 0 },  // Drug
+        { "width": "10%", "targets": 1 },  // Total Packs
+        { "width": "10%", "targets": 2 },  // Qty per Pack
+        { "width": "12%", "targets": 3 },  // Date Created
+        { "width": "12%", "targets": 4 },  // Packs Dispensed
+        { "width": "12%", "targets": 5 },  // Dispensed Date
+        { "width": "12%", "targets": 6 },  // Damages/Expired
+        { "width": "12%", "targets": 7 }   // Dispensed By
+      ],
+      "order": [[3, 'desc']], // Sort by creation date descending
+      "initComplete": function() {
+        // Remove any DataTables default styling conflicts
+        $('.dataTables_wrapper').css('background', 'transparent');
+        $('.dataTables_wrapper .dataTables_filter input').css({
+          'border': '2px solid #d1d5db',
+          'border-radius': '6px',
+          'padding': '8px',
+          'background': 'white'
+        });
+      }
+    });
+
+    const adjustTable = debounce(() => {
+      table.columns.adjust().responsive.recalc();
+    }, 150);
+
+    window.addEventListener('resize', adjustTable);
+    window.addEventListener('orientationchange', adjustTable);
+    
+    const container = document.querySelector('#prepackReport').parentElement;
+    const resizeObserver = new ResizeObserver(adjustTable);
+    resizeObserver.observe(container);
+
+    setTimeout(() => table.columns.adjust().responsive.recalc(), 50);
+  });
+</script>
+
+<!-- MAIN CONTAINER WITH CLEAN BACKGROUND -->
+<div style="background: white; border-radius: 12px; padding: 20px; margin: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
+
+  <div style="height: auto; border-bottom: 3px solid #06425C; padding-bottom: 15px; margin-bottom: 20px;">
+    <h1 style="color: #06425C; margin: 0 0 15px 0; font-size: 1.8rem;">
+      <%= @report_type.titleize %>
+    </h1>
+    
+    <!-- Summary Statistics -->
+    <div style="display: flex; justify-content: space-around; margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 1px solid #dee2e6;">
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Total Packs</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #007bff;"><%= @total_packs %></div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Dispensed</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #28a745;"><%= @total_dispensed %></div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Remaining</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #ffc107;"><%= @total_remaining %></div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Total Quantity</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #dc3545;"><%= @total_quantity %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-container" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden;">
+    <table id="prepackReport" class="display" style="width: 100%; background: white;">
+      <thead>
+        <tr>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Drug</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Total Packs</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Qty per Pack</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Date Created</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed Date</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Damages/Expired</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Dispensed By</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @prepacks&.any? %>
+          <% @prepacks.each do |prepack| %>
+            <% 
+              # Get dispensed label info
+              dispensed_label = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).order(updated_at: :desc).first
+              dispensed_date = dispensed_label&.updated_at
+              dispensed_by_user = dispensed_label ? User.find_by(user_id: dispensed_label.dispensed_by) : nil
+              
+              damages_count = ['cancelled', 'damaged', 'expired'].include?(prepack.status) ? prepack.num_packs : 0
+              dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
+              
+              # Alternate row colors
+              row_class = cycle('even', 'odd')
+            %>
+            <tr style="background: <%= row_class == 'even' ? '#ffffff' : '#f8fafc' %>;">
+              <td style="padding: 12px 10px; font-size:1.2rem; border-bottom: 1px solid #e5e7eb;"><%= prepack.drug_name %></td>
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size:1.2rem;"><%= prepack.num_packs %></td>
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;"><%= prepack.quantity_per_pack %></td>
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;"><%= l(prepack.created_at, format: "%d/%m/%Y") %></td>
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.2rem; color: <%= dispensed_count > 0 ? '#28a745' : '#6c757d' %>">
+                <%= dispensed_count %>
+              </td>
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;">
+                <% if dispensed_date %>
+                  <%= l(dispensed_date, format: "%d/%m/%Y") %>
+                <% else %>
+                  <span style="color: #9ca3af;">-</span>
+                <% end %>
+              </td>
+              <td style="padding: 12px 10px; text-align: center;font-size:1.2rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>">
+                <%= damages_count > 0 ? damages_count : '0' %>
+              </td>
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;">
+                <% if dispensed_by_user %>
+                  <%= dispensed_by_user.display_name %>
+                <% else %>
+                  <span style="color: #9ca3af;">-</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="8" style="text-align: center; padding:font-size:1.2rem; 50px; background: #f8fafc;">
+              <div style="color: #6b7280; font-size: 1.2rem; margin-bottom: 10px;">
+                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
+                No prepack records found for selected period.
+              </div>
+              <div style="color: #9ca3af; font-size: 1rem;">
+                Try adjusting your date range or location filters.
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- FOOTER WITH CLEAN BACKGROUND -->
+<div class="footer" style="background: white; padding: 15px 20px; border-top: 1px solid #e5e7eb; margin-top: 20px; border-radius: 0 0 12px 12px;">
+  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 1vw;">
+    Back
+  </button>
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw; float: right;">
+    Home
+  </button>
+  <button onclick="window.print()" class="nav-bttn blue" style="margin-right: 10px; float: right;">
+    Print Report
+  </button>
+</div>
+
+<style>
+/* Override DataTables default styling */
+.dataTables_wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  border: 2px solid #d1d5db !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  background: white !important;
+  margin-bottom: 15px !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  border: 1px solid #d1d5db !important;
+  background: white !important;
+  color: #374151 !important;
+  border-radius: 4px !important;
+  margin: 0 2px !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #006495 !important;
+  color: white !important;
+  border-color: #006495 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #f3f4f6 !important;
+  border-color: #9ca3af !important;
+}
+
+/* Main container styling */
+.main-report-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  overflow: hidden;
+}
+
+/* Table row hover effect */
+#prepackReport tbody tr:hover {
+  background-color: #f0f9ff !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 100, 149, 0.1);
+}
+
+/* Print styles */
+@media print {
+  .footer, .nav-bttn, .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_paginate, .dataTables_wrapper .dataTables_info {
+    display: none !important;
+  }
+  
+  .table-container {
+    overflow: visible !important;
+    max-height: none !important;
+    border: none !important;
+  }
+  
+  #prepackReport {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  #prepackReport th {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  #prepackReport td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  .main-report-container {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* Ensure table is responsive */
+.table-container {
+  overflow-x: auto;
+  max-height: 60vh;
+}
+
+/* Button styles */
+.nav-bttn {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-bttn.red {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.nav-bttn.blue {
+  background: linear-gradient(135deg, #006495 0%, #004d73 100%);
+  color: white;
+}
+
+.nav-bttn.green {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: white;
+}
+
+.nav-bttn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-bttn:active {
+  transform: translateY(0);
+}
+</style>
+
+<%# Helper for alternating row colors %>
+<% def cycle(*values)
+  @cycle ||= -1
+  @cycle = (@cycle + 1) % values.size
+  values[@cycle]
+end %>

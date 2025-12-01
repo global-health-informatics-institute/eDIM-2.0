@@ -28,11 +28,11 @@
       <div class="menu-label"><%= t('menu.terms.dispensation_rpt') %></div>
     </div>
 
-    <div class="menu-card" onclick="window.location='/requests/select'">
+   <div class="menu-card" onclick="window.location='/prepack_labels/select'">
       <div class="menu-icon-wrapper">
         <img src="/assets/request_report.png" class="menu-icon" alt="Requests Report">
       </div>
-      <div class="menu-label"><%= t('menu.terms.requests_report') %></div>
+      <div class="menu-label"><%= t('menu.terms.prepack_report') %></div>
     </div>
 
     <div class="menu-card" onclick="window.location='/main/settings'">
@@ -46,16 +46,17 @@
 
 <style>
 .modern-menu-container {
-  padding: 40px 20px;
+  padding: 40px 2px;
   max-width: 1700px;
   margin: 0 auto;
 }
 
 .menu-grid {
+  height:24vh;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 15px;
+  gap: 30px;
   flex-wrap: nowrap;
   overflow-x: auto;
   padding: 10px 0;
@@ -73,7 +74,7 @@
     0 2px 8px rgba(0, 0, 0, 0.02);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   min-width: 150px;
   flex: 1;
   position: relative;
@@ -118,7 +119,7 @@
   border-radius: 16px;
   margin-bottom: 15px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
 }
 
 .menu-card:hover .menu-icon-wrapper {
@@ -127,8 +128,8 @@
 }
 
 .menu-icon {
-  width: 70px;
-  height: 70px;
+  width: 75px;
+  height: 75px;
   /* Remove the filter to keep original icon colors */
   transition: transform 0.3s ease;
 }

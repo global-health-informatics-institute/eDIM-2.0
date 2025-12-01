@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_11_11_133852) do
+ActiveRecord::Schema[7.0].define(version: 2025_12_01_121354) do
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -1532,6 +1532,10 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_11_133852) do
     t.boolean "dispensed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "deleted", default: false
+    t.boolean "voided", default: false
+    t.integer "patient_id"
+    t.integer "dispensed_by"
     t.index ["bottle_id"], name: "fk_prepack_labels_bottle"
     t.index ["prepack_id"], name: "fk_rails_cadc42c7d0"
   end
@@ -1546,11 +1550,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_11_133852) do
     t.integer "prepacked_by_id", null: false
     t.string "status", default: "created", null: false
     t.datetime "dispensed_at", precision: nil
-    t.integer "dispensed_to"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "pack_identifier", limit: 50
     t.string "gn_identifier"
+    t.boolean "deleted", default: false
+    t.boolean "voided", default: false
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
     t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
