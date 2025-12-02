@@ -13,6 +13,7 @@
       "bLengthChange": false,
       "bDestroy": true,
       "pageLength": 10,
+      "responsive": true,
       "paging": true,
       "pagingType": "full_numbers",
       "autoWidth": false,
@@ -28,24 +29,60 @@
         }
       },
       "columnDefs": [
-        { "width": "20%", "targets": 0 },  // Drug
-        { "width": "10%", "targets": 1 },  // Total Packs
-        { "width": "10%", "targets": 2 },  // Qty per Pack
-        { "width": "12%", "targets": 3 },  // Date Created
+        { "width": "25%", "targets": 0 },  // Drug
+        { "width": "12%", "targets": 1 },  // Total Packs
+        { "width": "12%", "targets": 2 },  // Qty per Pack
+        { "width": "15%", "targets": 3 },  // Date Created
         { "width": "12%", "targets": 4 },  // Packs Dispensed
-        { "width": "12%", "targets": 5 },  // Dispensed Date
-        { "width": "12%", "targets": 6 },  // Damages/Expired
-        { "width": "12%", "targets": 7 }   // Dispensed By
+        { "width": "12%", "targets": 5 },  // Damages/Expired
+        { "width": "12%", "targets": 6 }   // Dispensed By
       ],
       "order": [[3, 'desc']], // Sort by creation date descending
       "initComplete": function() {
         // Remove any DataTables default styling conflicts
         $('.dataTables_wrapper').css('background', 'transparent');
-        $('.dataTables_wrapper .dataTables_filter input').css({
+        
+        // Style search box with larger font
+        $('.dataTables_wrapper .dataTables_filter label').css({
+          'font-size': '1.4rem',
+          'font-weight': '600',
+          'color': '#06425C',
+          'margin-bottom': '10px'
+        });
+        
+        const searchInput = $('.dataTables_wrapper .dataTables_filter input');
+        searchInput.css({
           'border': '2px solid #d1d5db',
-          'border-radius': '6px',
-          'padding': '8px',
-          'background': 'white'
+          'border-radius': '8px',
+          'padding': '12px 15px',
+          'background': 'white',
+          'font-size': '1.3rem',
+          'width': '300px',
+          'margin-left': '10px'
+        });
+        
+        //Set focus to search input immediately
+        searchInput.focus();
+        
+        // Style pagination buttons
+        $('.dataTables_paginate .paginate_button').css({
+          'font-size': '1.3rem',
+          'padding': '10px 18px',
+          'margin': '0 5px',
+          'padding-top': '16px',
+        });
+        
+        // Style info text
+        $('.dataTables_info').css({
+          'font-size': '1.3rem',
+          'color': '#06425C',
+          'font-weight': '500',
+          'padding-left': '4px',
+        });
+        
+        // Search-as-you-type
+        searchInput.off('keyup').on('keyup', function() {
+          table.search(this.value).draw();
         });
       }
     });
@@ -62,11 +99,102 @@
     resizeObserver.observe(container);
 
     setTimeout(() => table.columns.adjust().responsive.recalc(), 50);
+    
+    // CONSTANT FOCUS MANAGEMENT
+    // Set focus to search input on page load
+    setTimeout(() => {
+      $('.dataTables_filter input').focus();
+    }, 100);
+    
+    // Re-focus on search input whenever user clicks anywhere else
+    $(document).on('click', function(e) {
+      // Don't refocus if user is clicking on the search input itself
+      if (!$(e.target).closest('.dataTables_filter input').length) {
+        // Small delay to ensure any other click handlers have run
+        setTimeout(() => {
+          $('.dataTables_filter input').focus();
+        }, 50);
+      }
+    });
+    
+    // Re-focus when user clicks within the table area
+    $('#prepackReport').on('click', function(e) {
+      if (!$(e.target).closest('.dataTables_filter input').length) {
+        setTimeout(() => {
+          $('.dataTables_filter input').focus();
+        }, 100);
+      }
+    });
+    
+    // Refocus when user presses tab key
+    $(document).on('keydown', function(e) {
+      if (e.key === 'Tab') {
+        setTimeout(() => {
+          $('.dataTables_filter input').focus();
+        }, 10);
+      }
+    });
+    
+    // Keep focus on search input even after DataTable redraws
+    table.on('draw', function() {
+      setTimeout(() => {
+        $('.dataTables_filter input').focus();
+      }, 50);
+    });
+    
+    // Alternative: Use an interval to constantly check and maintain focus
+    // (This is more aggressive but ensures focus stays)
+    const maintainFocusInterval = setInterval(() => {
+      const activeElement = document.activeElement;
+      const searchInputElement = $('.dataTables_filter input')[0];
+      
+      // If search input is not focused and user isn't typing in another input
+      if (activeElement !== searchInputElement && 
+          activeElement.tagName !== 'INPUT' && 
+          activeElement.tagName !== 'TEXTAREA') {
+        searchInputElement.focus();
+        // Place cursor at the end of any existing text
+        const length = searchInputElement.value.length;
+        searchInputElement.setSelectionRange(length, length);
+      }
+    }, 500); // Check every 500ms
+    
+    // Clean up interval when page unloads
+    $(window).on('beforeunload', function() {
+      clearInterval(maintainFocusInterval);
+    });
+    
+    // Select all text when search input gets focus (for easy clearing)
+    $('.dataTables_filter input').on('focus', function() {
+      // Don't select all if there's already text user might want to edit
+      if (this.value.length > 0) {
+        // Just place cursor at the end
+        const length = this.value.length;
+        this.setSelectionRange(length, length);
+      }
+    });
+    
+    // Visual indicator when search input has focus
+    $('.dataTables_filter input')
+      .focus(function() {
+        $(this).css({
+          'border-color': '#006495',
+          'box-shadow': '0 0 0 3px rgba(0, 100, 149, 0.2)',
+          'outline': 'none'
+        });
+      })
+      .blur(function() {
+        $(this).css({
+          'border-color': '#d1d5db',
+          'box-shadow': 'none'
+        });
+      });
   });
 </script>
 
-<!-- MAIN CONTAINER WITH CLEAN BACKGROUND -->
-<div style="background: white; border-radius: 12px; padding: 20px; margin: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
+
+<!-- MAIN CONTAINER -->
+<div style="background: white; border-radius: 12px; padding: 20px; margin: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
 
   <div style="height: auto; border-bottom: 3px solid #06425C; padding-bottom: 15px; margin-bottom: 20px;">
     <h1 style="color: #06425C; margin: 0 0 15px 0; font-size: 1.8rem;">
@@ -95,8 +223,8 @@
   </div>
 
   <!-- Table Container -->
-  <div class="table-container" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden;">
-    <table id="prepackReport" class="display" style="width: 100%; background: white;">
+  <div class="table-container" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; height: 99vh;">
+    <table id="prepackReport" class="display" style="width: 100%; background: white; border-collapse: collapse;">
       <thead>
         <tr>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Drug</th>
@@ -104,7 +232,6 @@
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Qty per Pack</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Date Created</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed</th>
-          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed Date</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Damages/Expired</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Dispensed By</th>
         </tr>
@@ -116,7 +243,6 @@
             <% 
               # Get dispensed label info
               dispensed_label = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).order(updated_at: :desc).first
-              dispensed_date = dispensed_label&.updated_at
               dispensed_by_user = dispensed_label ? User.find_by(user_id: dispensed_label.dispensed_by) : nil
               
               damages_count = ['cancelled', 'damaged', 'expired'].include?(prepack.status) ? prepack.num_packs : 0
@@ -126,24 +252,30 @@
               row_class = cycle('even', 'odd')
             %>
             <tr style="background: <%= row_class == 'even' ? '#ffffff' : '#f8fafc' %>;">
-              <td style="padding: 12px 10px; font-size:1.2rem; border-bottom: 1px solid #e5e7eb;"><%= prepack.drug_name %></td>
-              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size:1.2rem;"><%= prepack.num_packs %></td>
-              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;"><%= prepack.quantity_per_pack %></td>
-              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;"><%= l(prepack.created_at, format: "%d/%m/%Y") %></td>
-              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.2rem; color: <%= dispensed_count > 0 ? '#28a745' : '#6c757d' %>">
+              <!-- Drug Column - Light Blue -->
+              <td style="padding: 12px 10px; font-size:1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;"><%= prepack.drug_name %></td>
+              
+              <!-- Total Packs Column -->
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size:1.4rem; background-color: #f8fafc; border-right: 1px solid #e5e7eb;"><%= prepack.num_packs %></td>
+              
+              <!-- Qty per Pack Column -->
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f0fff4; border-right: 1px solid #e5e7eb;"><%= prepack.quantity_per_pack %></td>
+              
+              <!-- Date Created Column -->
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f8fafc; border-right: 1px solid #e5e7eb;"><%= l(prepack.created_at, format: "%d/%m/%Y") %></td>
+              
+              <!-- Dispensed Column -->
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= dispensed_count > 0 ? '#28a745' : '#6c757d' %>; background-color: <%= dispensed_count > 0 ? '#f0fff4' : '#fffaf0' %>; border-right: 1px solid #e5e7eb;">
                 <%= dispensed_count %>
               </td>
-              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;">
-                <% if dispensed_date %>
-                  <%= l(dispensed_date, format: "%d/%m/%Y") %>
-                <% else %>
-                  <span style="color: #9ca3af;">-</span>
-                <% end %>
-              </td>
-              <td style="padding: 12px 10px; text-align: center;font-size:1.2rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>">
+              
+              <!-- Damages/Expired Column -->
+              <td style="padding: 12px 10px; text-align: center;font-size:1.4rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>; background-color: <%= damages_count > 0 ? '#fff5f5' : '#f8fafc' %>; border-right: 1px solid #e5e7eb;">
                 <%= damages_count > 0 ? damages_count : '0' %>
               </td>
-              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.2rem;">
+              
+              <!-- Dispensed By Column -->
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; text-align: center; background-color: #f0f9ff;">
                 <% if dispensed_by_user %>
                   <%= dispensed_by_user.display_name %>
                 <% else %>
@@ -154,13 +286,13 @@
           <% end %>
         <% else %>
           <tr>
-            <td colspan="8" style="text-align: center; padding:font-size:1.2rem; 50px; background: #f8fafc;">
-              <div style="color: #6b7280; font-size: 1.2rem; margin-bottom: 10px;">
+            <td colspan="7" style="text-align: center; padding: 50px; background: #f8fafc;">
+              <div style="color: #6b7280; font-size: 1.5rem; margin-bottom: 10px;">
                 <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
                 No prepack records found for selected period.
               </div>
-              <div style="color: #9ca3af; font-size: 1rem;">
-                Try adjusting your date range or location filters.
+              <div style="color: #9ca3af; font-size: 1.5rem;">
+                Try adjusting your date range filters.
               </div>
             </td>
           </tr>
@@ -172,15 +304,12 @@
 </div>
 
 <!-- FOOTER WITH CLEAN BACKGROUND -->
-<div class="footer" style="background: white; padding: 15px 20px; border-top: 1px solid #e5e7eb; margin-top: 20px; border-radius: 0 0 12px 12px;">
-  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 1vw;">
+<div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
+  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
     Back
   </button>
-  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw; float: right;">
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 2vw; float: right; font-size: 2rem;">
     Home
-  </button>
-  <button onclick="window.print()" class="nav-bttn blue" style="margin-right: 10px; float: right;">
-    Print Report
   </button>
 </div>
 
@@ -218,21 +347,45 @@
   border-color: #9ca3af !important;
 }
 
-/* Main container styling */
+/* Main container */
 .main-report-container {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin: 20px;
   overflow: hidden;
+  height: 62vh;
 }
 
 /* Table row hover effect */
 #prepackReport tbody tr:hover {
-  background-color: #f0f9ff !important;
+  background-color: #e8f4fe !important;
   transform: translateY(-1px);
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 100, 149, 0.1);
+}
+
+/* Column-specific hover effects */
+#prepackReport tbody tr:hover td:nth-child(1),
+#prepackReport tbody tr:hover td:nth-child(7) {
+  background-color: #d8ecff !important;
+}
+
+#prepackReport tbody tr:hover td:nth-child(2),
+#prepackReport tbody tr:hover td:nth-child(4) {
+  background-color: #e8e8e8 !important;
+}
+
+#prepackReport tbody tr:hover td:nth-child(3) {
+  background-color: #d8f5e3 !important;
+}
+
+#prepackReport tbody tr:hover td:nth-child(5) {
+  background-color: <%= 'dispensed_count > 0' ? '#d8f5e3' : '#fff0d6' %> !important; 
+}
+
+#prepackReport tbody tr:hover td:nth-child(6) {
+  background-color: <%= 'damages_count > 0' ? '#ffd6d6' : '#e8e8e8' %> !important; 
 }
 
 /* Print styles */
@@ -261,6 +414,7 @@
   
   #prepackReport td {
     border: 1px solid #dee2e6 !important;
+    background-color: white !important; 
   }
   
   .main-report-container {
@@ -273,7 +427,7 @@
 /* Ensure table is responsive */
 .table-container {
   overflow-x: auto;
-  max-height: 60vh;
+  max-height: 64vh;
 }
 
 /* Button styles */
@@ -309,6 +463,28 @@
 
 .nav-bttn:active {
   transform: translateY(0);
+}
+
+/* Column color legend*/
+.column-legend {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin: 0 10px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  border: 1px solid #ddd;
 }
 </style>
 

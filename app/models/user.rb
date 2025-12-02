@@ -22,6 +22,12 @@ class User < ActiveRecord::Base
   has_many :user_roles, :foreign_key => :user_id
   has_many :names,-> { where "voided =  false"}, :class_name => 'PersonName', :foreign_key => :person_id
 
+  belongs_to :location
+  
+  def location_id
+    self.location_id_field_name
+  end
+
   def self.get_similar_user(username)
     users = User.where("username LIKE ?", "%#{username}%")
     return users

@@ -341,14 +341,17 @@ class GeneralInventoryController < ApplicationController
 
           label.assign_attributes(
             dispensed: 1,
-            patient_id: patient_id
+            patient_id: patient_id,
+            dispensed_by: User.current.id,
           )
+
           label.save!
 
           if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
             prepack.update!(
               status: 'dispensed',
-              dispensed_at: Time.current
+              dispensed_at: Time.current,
+              location_id: prepack.location_id || session[:location]  
             )
           end
         end

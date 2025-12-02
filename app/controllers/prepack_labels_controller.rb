@@ -74,10 +74,8 @@ class PrepackLabelsController < ApplicationController
            layout: false
   end
 
-  # AJAX BOTTLE LOOKUP
   def ajax_bottle_prepack
-    Rails.logger.info ">>> [PrepackLabels#ajax_bottle_prepack] Searching bottle=#{params[:id]} location=#{session[:location]}"
-
+  
     entry = GeneralInventory.includes(:drug).find_by(
       gn_identifier: params[:id].to_s.strip,
       location_id: session[:location],
@@ -143,10 +141,6 @@ def report
     [today.beginning_of_day, today.end_of_day]
   end
 
-  # Debug logging
-  Rails.logger.info ">>> Prepack report: duration=#{params[:report_duration]}, start_date=#{params[:start_date]}, calculated range=#{start_date} to #{end_date}"
-
-  # If logged in location is not backstore, use session location automatically
   if Location.find(session[:location]).name.downcase != "backstore"
     selected_locations = [session[:location]]
   else
@@ -160,13 +154,10 @@ def report
   # Save filters in session - store as ISO strings
   session[:prepack_report_filter] = {
     start_date: start_time.iso8601,  # Full ISO string with timezone
-    end_date: end_time.iso8601,      # Full ISO string with timezone  
+    end_date: end_time.iso8601,
     locations: selected_locations,
     report_duration: params[:report_duration]
   }
-
-  # Verify session save
-  Rails.logger.info ">>> Session saved: #{session[:prepack_report_filter].inspect}"
 
   redirect_to '/prepack_labels/list'
 end
@@ -174,10 +165,7 @@ end
   def list
     # Try to get filters from session, use default if not found
     filters = session[:prepack_report_filter] || {}
-    
-    # Debug session
-    Rails.logger.info ">>> Session filters received: #{filters.inspect}"
-    
+
     # Parse dates from session
     begin
       start_date_raw = filters["start_date"] || filters[:start_date]
@@ -186,15 +174,15 @@ end
       if start_date_raw && end_date_raw
         start_date = Time.iso8601(start_date_raw)
         end_date   = Time.iso8601(end_date_raw)
-        Rails.logger.info ">>> Successfully parsed dates from session"
+        #Rails.logger.info ">>> Successfully parsed dates from session"
       else
-        Rails.logger.info ">>> Using default dates"
+        #Rails.logger.info ">>> Using default dates"
         start_date = Date.today.beginning_of_day.utc
         end_date   = Date.today.end_of_day.utc
       end
       
     rescue => e
-      Rails.logger.error ">>> Error parsing dates: #{e.message}"
+      #Rails.logger.error "Error parsing dates: #{e.message}"
       # Use default dates on error
       start_date = Date.today.beginning_of_day.utc
       end_date = Date.today.end_of_day.utc
@@ -202,11 +190,6 @@ end
     
     locations = filters[:locations] || ['All Locations']
     duration = filters[:report_duration] || 'Daily'
-
-    Rails.logger.info ">>> Parsed start_date: #{start_date} (#{start_date.class})"
-    Rails.logger.info ">>> Parsed end_date: #{end_date} (#{end_date.class})"
-    Rails.logger.info ">>> Prepack list: Using UTC date range #{start_date} to #{end_date}"
-    Rails.logger.info ">>> Local time: #{start_date.localtime} to #{end_date.localtime}"
     
     # Set report title - use local time for display
     @report_type = case duration
@@ -224,7 +207,7 @@ end
                     "Prepack Report for #{l(Date.today, format:'%d %B, %Y')}"
                   end
 
-    # Fetch prepack records - use UTC times for database query
+    # Fetch prepack records within date range
     base_query = Prepack.joins(:drug)
                         .where(created_at: start_date..end_date)
                         .order("prepacks.created_at DESC")
@@ -233,20 +216,15 @@ end
     record_count = base_query.count
     Rails.logger.info ">>> Found #{record_count} prepack records in UTC date range"
 
-    # Now apply select for the actual records
     @records = base_query.select("prepacks.*, drugs.name as drug_name")
 
-    # If we need to filter by location
     unless locations.include?('All Locations')
-      # Get location IDs from location names
       location_ids = Location.where(name: locations).pluck(:location_id)
       
-      # Get bottle IDs from those locations
       bottle_ids = GeneralInventory.where(location_id: location_ids)
                                   .pluck(:gn_identifier)
                                   .uniq
       
-      # Filter prepacks by bottle IDs
       @records = @records.where(gn_identifier: bottle_ids)
       Rails.logger.info ">>> After location filter: #{@records.count} records"
     end
@@ -254,7 +232,6 @@ end
     # Calculate totals for the report
     @total_packs = @records.sum(:num_packs)
     
-    # Calculate dispensed packs and total quantity
     @total_dispensed = 0
     @total_quantity = 0
     

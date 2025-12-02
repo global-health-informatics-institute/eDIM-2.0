@@ -1,5 +1,10 @@
 class DispensationController < ApplicationController
   def create
+    # Debug logging
+    Rails.logger.info "=== DISPENSATION CREATE DEBUG ==="
+    Rails.logger.info "Session location: #{session[:location].inspect}"
+    Rails.logger.info "Params: #{params.inspect}"
+    
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
     session[:patient_id] = @patient.id if @patient.present?
 
@@ -17,7 +22,8 @@ class DispensationController < ApplicationController
     if prepack_label.present?
       prepack = prepack_label.prepack
       if prepack.present?
-        item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id, location_id: session[:location])
+        # FIXED: Use item.location_id directly, not session[:location]
+        item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id)
         if item.blank?
           flash[:errors] = "Parent bottle for #{params[:bottle_id]} not found in inventory"
           redirect_to return_path and return
@@ -54,7 +60,8 @@ class DispensationController < ApplicationController
               patient_id: @patient&.id || session[:patient_id],
               quantity: prepack.quantity_per_pack,
               dispensation_date: Time.current,
-              dispensed_by: User.current.id
+              dispensed_by: User.current.id,
+              location_id: item.location_id  # Use item's location, not session
             )
 
             flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
@@ -62,6 +69,7 @@ class DispensationController < ApplicationController
           end
         rescue => e
           Rails.logger.error "Prepack dispensation failed: #{e.message}"
+          Rails.logger.error e.backtrace.join("\n")
           flash[:errors] = "Could not complete prepack dispensation"
           redirect_to return_path
         end
@@ -70,6 +78,12 @@ class DispensationController < ApplicationController
     end
 
     # Continue with normal bottle dispensing flow
+    # FIXED: Check if session[:location] exists first
+    if session[:location].blank?
+      flash[:errors] = "Location is not set. Please select a location first."
+      redirect_to return_path and return
+    end
+    
     item = GeneralInventory.where(
       gn_identifier: params[:bottle_id],
       location_id: session[:location]
@@ -124,7 +138,8 @@ class DispensationController < ApplicationController
             total_quantity:   total_qty,
             directions:       directions,
             prepacked_by_id:  User.current.id,
-            pack_identifier:  SecureRandom.uuid
+            pack_identifier:  SecureRandom.uuid,
+            location_id:      session[:location]
           )
 
           last_label = PrepackLabel
