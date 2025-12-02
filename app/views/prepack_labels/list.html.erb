@@ -30,12 +30,13 @@
       },
       "columnDefs": [
         { "width": "25%", "targets": 0 },  // Drug
-        { "width": "12%", "targets": 1 },  // Total Packs
-        { "width": "12%", "targets": 2 },  // Qty per Pack
-        { "width": "15%", "targets": 3 },  // Date Created
-        { "width": "12%", "targets": 4 },  // Packs Dispensed
-        { "width": "12%", "targets": 5 },  // Damages/Expired
-        { "width": "12%", "targets": 6 }   // Dispensed By
+        { "width": "11%", "targets": 1 },  // Total Packs (adjusted)
+        { "width": "11%", "targets": 2 },  // Qty per Pack (adjusted)
+        { "width": "14%", "targets": 3 },  // Date Created (adjusted)
+        { "width": "11%", "targets": 4 },  // Packs Dispensed (adjusted)
+        { "width": "11%", "targets": 5 },  // Packs Remaining (NEW)
+        { "width": "11%", "targets": 6 },  // Damages/Expired
+        { "width": "12%", "targets": 7 }   // Dispensed By (adjusted)
       ],
       "order": [[3, 'desc']], // Sort by creation date descending
       "initComplete": function() {
@@ -142,8 +143,7 @@
       }, 50);
     });
     
-    // Alternative: Use an interval to constantly check and maintain focus
-    // (This is more aggressive but ensures focus stays)
+    // Use an interval to constantly check and maintain focus
     const maintainFocusInterval = setInterval(() => {
       const activeElement = document.activeElement;
       const searchInputElement = $('.dataTables_filter input')[0];
@@ -232,6 +232,7 @@
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Qty per Pack</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Date Created</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Remaining</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Damages/Expired</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Dispensed By</th>
         </tr>
@@ -247,6 +248,7 @@
               
               damages_count = ['cancelled', 'damaged', 'expired'].include?(prepack.status) ? prepack.num_packs : 0
               dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
+              remaining_count = prepack.num_packs - dispensed_count - damages_count
               
               # Alternate row colors
               row_class = cycle('even', 'odd')
@@ -269,12 +271,17 @@
                 <%= dispensed_count %>
               </td>
               
+              <!-- Packs Remaining Column -->
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= remaining_count > 0 ? '#006495' : '#dc3545' %>; background-color: <%= remaining_count > 0 ? '#f0f9ff' : '#f0f9ff' %>; border-right: 1px solid #e5e7eb;">
+                <%= remaining_count %>
+              </td>
+              
               <!-- Damages/Expired Column -->
               <td style="padding: 12px 10px; text-align: center;font-size:1.4rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>; background-color: <%= damages_count > 0 ? '#fff5f5' : '#f8fafc' %>; border-right: 1px solid #e5e7eb;">
                 <%= damages_count > 0 ? damages_count : '0' %>
               </td>
               
-              <!-- Dispensed By Column -->
+              <!-- Dispensed By Column-->
               <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; text-align: center; background-color: #f0f9ff;">
                 <% if dispensed_by_user %>
                   <%= dispensed_by_user.display_name %>
@@ -286,7 +293,7 @@
           <% end %>
         <% else %>
           <tr>
-            <td colspan="7" style="text-align: center; padding: 50px; background: #f8fafc;">
+            <td colspan="8" style="text-align: center; padding: 50px; background: #f8fafc;">
               <div style="color: #6b7280; font-size: 1.5rem; margin-bottom: 10px;">
                 <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
                 No prepack records found for selected period.
@@ -303,7 +310,7 @@
 
 </div>
 
-<!-- FOOTER WITH CLEAN BACKGROUND -->
+<!-- FOOTER -->
 <div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
   <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
     Back

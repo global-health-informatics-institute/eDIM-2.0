@@ -3,7 +3,6 @@ require 'digest/sha2'
 
 class User < ActiveRecord::Base
 
-  #establish_connection :billing_import
   self.table_name = "users"
   self.primary_key = "user_id"
 
@@ -12,7 +11,6 @@ class User < ActiveRecord::Base
   validates :username, presence: true, uniqueness: true, length: { minimum: 5 }
   validates :password, presence: true, length: { minimum: 6 }
 
-  #before_create :before_create
   before_save :encrypt_password
 
   cattr_accessor :current
@@ -23,7 +21,7 @@ class User < ActiveRecord::Base
   has_many :names,-> { where "voided =  false"}, :class_name => 'PersonName', :foreign_key => :person_id
 
   belongs_to :location
-  
+
   def location_id
     self.location_id_field_name
   end

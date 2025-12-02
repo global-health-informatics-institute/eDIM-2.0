@@ -119,48 +119,52 @@ class PrepackLabelsController < ApplicationController
     render layout: 'touch'
   end
 
-def report
-  # Determine date range
-  start_date, end_date = case params[:report_duration]
-  when 'Daily'
-    selected_date = params[:start_date].to_date
-    [selected_date.beginning_of_day, selected_date.end_of_day]
-  when 'Weekly'
-    selected_date = params[:start_date].to_date
-    [selected_date.beginning_of_week, selected_date.end_of_week]
-  when 'Monthly'
-    selected_date = params[:start_date].to_date
-    [selected_date.beginning_of_month, selected_date.end_of_month]
-  when 'Range'
-    start_date = params[:start_date].to_date
-    end_date = params[:end_date].to_date
-    [start_date.beginning_of_day, end_date.end_of_day]
-  else
-    # Default to today
-    today = Date.today
-    [today.beginning_of_day, today.end_of_day]
+  def report
+    # Determine date range based on report_duration
+    start_date, end_date = case params[:report_duration]
+    when 'Daily'
+      selected_date = params[:start_date].to_date
+      [selected_date.beginning_of_day, selected_date.end_of_day]
+
+    when 'Weekly'
+      selected_date = params[:start_date].to_date
+      calculated_end = selected_date + 6.days
+      final_end = [calculated_end, Date.today].min
+      [selected_date.beginning_of_day, final_end.end_of_day]
+
+    when 'Monthly'
+      selected_date = params[:start_date].to_date
+      month_end = selected_date.end_of_month
+      final_end = [month_end, Date.today].min
+      [selected_date.beginning_of_day, final_end.end_of_day]
+
+    when 'Range'
+      start_date = params[:start_date].to_date
+      end_date   = params[:end_date].to_date
+      [start_date.beginning_of_day, end_date.end_of_day]
+
+    else
+      today = Date.today
+      [today.beginning_of_day, today.end_of_day]
+    end
+
+    # Determine locations
+    if Location.find(session[:location]).name.downcase != "backstore"
+      selected_locations = [session[:location]]
+    else
+      selected_locations = params[:locations] || ['All Locations']
+    end
+
+    # Store filters in session as ISO strings
+    session[:prepack_report_filter] = {
+      start_date: start_date.iso8601,
+      end_date:   end_date.iso8601,
+      locations:  selected_locations,
+      report_duration: params[:report_duration]
+    }
+
+    redirect_to '/prepack_labels/list'
   end
-
-  if Location.find(session[:location]).name.downcase != "backstore"
-    selected_locations = [session[:location]]
-  else
-    selected_locations = params[:locations] || ['All Locations']
-  end
-
-  # Convert dates to Time objects and then to UTC
-  start_time = start_date.to_time.utc
-  end_time = end_date.to_time.utc
-
-  # Save filters in session - store as ISO strings
-  session[:prepack_report_filter] = {
-    start_date: start_time.iso8601,  # Full ISO string with timezone
-    end_date: end_time.iso8601,
-    locations: selected_locations,
-    report_duration: params[:report_duration]
-  }
-
-  redirect_to '/prepack_labels/list'
-end
 
   def list
     # Try to get filters from session, use default if not found
@@ -174,33 +178,31 @@ end
       if start_date_raw && end_date_raw
         start_date = Time.iso8601(start_date_raw)
         end_date   = Time.iso8601(end_date_raw)
-        #Rails.logger.info ">>> Successfully parsed dates from session"
+        Rails.logger.info ">>> Successfully parsed dates from session"
       else
-        #Rails.logger.info ">>> Using default dates"
+        Rails.logger.info ">>> Using default dates"
         start_date = Date.today.beginning_of_day.utc
         end_date   = Date.today.end_of_day.utc
       end
       
     rescue => e
-      #Rails.logger.error "Error parsing dates: #{e.message}"
+      Rails.logger.error "Error parsing dates: #{e.message}"
       # Use default dates on error
       start_date = Date.today.beginning_of_day.utc
       end_date = Date.today.end_of_day.utc
     end
     
     locations = filters[:locations] || ['All Locations']
-    duration = filters[:report_duration] || 'Daily'
+    duration = filters["report_duration"] || filters[:report_duration] || 'Daily'
     
     # Set report title - use local time for display
     @report_type = case duration
                   when 'Daily'
                     "Prepack Report for #{l(start_date.to_date, format:'%d %B, %Y')}"
                   when 'Weekly'
-                    week_start = start_date.to_date.beginning_of_week
-                    week_end = end_date.to_date.end_of_week
-                    "Prepack Report from #{l(week_start, format:'%d %B, %Y')} to #{l(week_end, format:'%d %B, %Y')}"
+                    "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
                   when 'Monthly'
-                    "Prepack Report for #{l(start_date.to_date, format:'%B %Y')}"
+                    "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
                   when 'Range'
                     "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
                   else
