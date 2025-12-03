@@ -231,10 +231,19 @@ class PrepackLabelsController < ApplicationController
       Rails.logger.info ">>> After location filter: #{@records.count} records"
     end
 
-    # Calculate totals for the report
-    @total_packs = @records.sum(:num_packs)
+    # Get all prepack bottle IDs for damages query
+    prepack_bottle_ids = @records.pluck(:bottle_id).uniq
     
+    # Get damages for all bottles in one query (optimized)
+    damages_by_bottle = Damage.where(general_inventory_id: prepack_bottle_ids)
+                            .where(damage_date: start_date..end_date)
+                            .group(:general_inventory_id)
+                            .sum(:quantity)
+
+    # Calculate totals for the report
+    @total_packs = 0
     @total_dispensed = 0
+    @total_damaged = 0
     @total_quantity = 0
     
     # Load records as array for iteration
@@ -242,11 +251,18 @@ class PrepackLabelsController < ApplicationController
     
     @prepacks.each do |prepack|
       dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
+      damages_count = damages_by_bottle[prepack.bottle_id] || 0
+      
+      # Store damages_count on the prepack object for use in view
+      prepack.instance_variable_set(:@damages_count, damages_count)
+      
+      @total_packs += prepack.num_packs
       @total_dispensed += dispensed_count
+      @total_damaged += damages_count
       @total_quantity += prepack.quantity_per_pack * prepack.num_packs
     end
     
-    @total_remaining = @total_packs - @total_dispensed
+    @total_remaining = @total_packs - @total_dispensed - @total_damaged
 
     render 'list', layout: 'application'
   end

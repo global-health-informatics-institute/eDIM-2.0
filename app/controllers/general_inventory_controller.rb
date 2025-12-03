@@ -413,7 +413,6 @@ class GeneralInventoryController < ApplicationController
     # Load all transaction records for this inventory item at this location
     @records = Issue.where(inventory_id: @item.gn_inventory_id).order(issue_date: :desc)
 
-    # Show the total issued quantity across all locations
   end
 
   def list
@@ -422,10 +421,10 @@ class GeneralInventoryController < ApplicationController
                                         0, params[:drug_id] ,session[:location], false)
   end
 
-def prepack_labels
+  def prepack_labels
 
-  render :prepack_labels
-end
+    render :prepack_labels
+  end
 
   def pre_packing
     GeneralInventory.transaction do
@@ -491,7 +490,6 @@ end
     #This function prints bottle barcode labels for both inventory types
     id = params[:ids].split(',') rescue params[:id]
     entry = GeneralInventory.find(id)
-#    raise params[:id].inspect
     if entry.is_a?(Array)
       print_string = ""
       (entry || []).each do |bottle|
@@ -506,4 +504,43 @@ end
     1.upto(7) { |i| rand_str << chars[rand(chars.size-1)] }
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{rand_str}.lbl", :disposition => "inline")
   end
+
+  def damage_item
+    item = GeneralInventory.find_by(gn_inventory_id: params[:id])
+    unless item
+      render json: { success: false, message: "Item not found" }, status: 404 and return
+    end
+
+    qty = params[:quantity].to_i
+    reason = params[:reason]
+
+    if qty <= 0
+      render json: { success: false, message: "Quantity must be greater than zero" } and return
+    end
+
+    if qty > item.current_quantity
+      render json: { success: false, message: "Quantity exceeds available stock" } and return
+    end
+
+    ActiveRecord::Base.transaction do
+      Damage.create!(
+        general_inventory_id: item.gn_inventory_id,
+        gn_identifier: item.gn_identifier,
+        quantity: qty,
+        reason: reason,
+        reported_by: User.current.id,
+        location_id: session[:location] || User.current.location_id,
+        damage_date: Time.current
+      )
+
+      item.update!(current_quantity: item.current_quantity - qty)
+    end
+
+    render json: { success: true }
+  rescue => e
+    Rails.logger.error "Damage reporting failed: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    render json: { success: false, message: "Failed to record damage: #{e.message}" }, status: 500
+  end
+
 end

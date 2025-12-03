@@ -172,6 +172,94 @@ input.radio:checked label {
   background-color: #AAAAAA;
   transform: scale(0.95);
 }
+
+
+/* View options animation - Smooth tray slide out */
+.view-options-menu.show {
+  opacity: 1 !important;
+  transform: translateY(-50%) translateX(0) !important;
+  pointer-events: auto !important;
+}
+
+/* Show captions when tray is open */
+.view-options-menu.show .option-caption {
+  opacity: 1 !important;
+}
+
+/* View icon enhancement - no spin, just subtle highlight */
+.view-icon.active {
+  background: #f0f9ff !important;
+  box-shadow: 0 4px 16px rgba(0, 100, 149, 0.25) !important;
+  transform: scale(1.05) !important;
+}
+
+/* When tray is open, add connector line */
+.view-options-container.active::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0, 100, 149, 0.2), transparent);
+  transform: translateY(-50%);
+  z-index: 99;
+  pointer-events: none;
+  animation: extendConnection 0.3s ease-out forwards;
+}
+
+@keyframes extendConnection {
+  to { width: 30px; }
+}
+
+/* Animate the tray handle */
+.view-options-menu.show .tray-handle {
+  opacity: 1 !important;
+  animation: pulseHandle 2s ease-in-out infinite;
+}
+
+@keyframes pulseHandle {
+  0%, 100% { background: #e5e7eb; }
+  50% { background: #006495; }
+}
+
+/* Animate option icons in with stagger */
+.view-options-menu.show .option-item img {
+  animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slideInFromRight {
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0) !important;
+  }
+}
+
+/* Hover effects for option items */
+.option-item:hover img {
+  transform: scale(1.15) !important;
+  background-color: rgba(0, 100, 149, 0.08) !important;
+}
+
+.option-item:hover .option-caption {
+  color: #006495 !important;
+  font-weight: 600 !important;
+}
+
+/* Add a subtle glow to the entire tray when open */
+.view-options-menu.show {
+  box-shadow: 0 10px 30px rgba(0, 100, 149, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Smooth transitions for all icons */
+img[src*="/assets/"] {
+  transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
+}
+
+/* Optional: Add a subtle background to option items on hover */
+.option-item:hover {
+  border-radius: 8px;
+}
 </style>
 
 </head>
@@ -219,103 +307,195 @@ input.radio:checked label {
             <% prepack_pair.each do |prepack, global_index| %>
               <% next if prepack.blank? %>
                 <div id="prepack_row_<%= prepack[:id] %>" 
-                    style="display: table-cell; width: 49vw; padding: 5px;" 
-                    data-prepack-id="<%= prepack[:id] %>">
-                          <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
-                            padding: 8px; margin: 3px; 
-                            background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
-                            position: relative; border-radius: 8px; min-height: 90px;">
-                  
-                  <!-- Progress Indicator and Action Buttons -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <!-- Progress Indicator -->
-                    <div style="font-size: 1.3rem; font-weight: bold;
-                              color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
-                      <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
-                    </div>
+                  style="display: table-cell; width: 49vw; padding: 5px;" 
+                  data-prepack-id="<%= prepack[:id] %>">
+                  <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
+                      padding: 8px; margin: 3px; 
+                      background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
+                      position: relative; border-radius: 8px; min-height: 90px;">
                       
+                      <!-- Progress Indicator and Action Buttons -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                          <!-- Progress Indicator -->
+                          <div style="font-size: 1.3rem; font-weight: bold;
+                                  color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
+                              <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
+                          </div>
+                          
                       <!-- Action Buttons -->
-                      <div style="position: absolute; top: 43%; right: 8px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
+                      <div style="position: absolute; top: 43%; right: 16px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
+                        <!-- View Item Button -->
+                        <div class="view-options-container" style="position: relative; right: 32px;">
+                          <!-- Main View Icon -->
+                          <img id="view_icon_<%= prepack[:id] %>" 
+                              class="view-icon" 
+                              style="cursor: pointer; width: 56px; height: 68px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+                                    position: relative; z-index: 101; border-radius: 50%; 
+                                    padding-top: 8px; padding-left: -6px;" 
+                              src="/assets/view_icon.png" 
+                              title="View Options"
+                              onmousedown="toggleViewOptions('<%= prepack[:id] %>')"
+                              
+                          <!-- Expandable Options -->
+                          <div id="view_options_<%= prepack[:id] %>" 
+                              class="view-options-menu"
+                              style="position: absolute; top: 50%; right: 100%; transform: translateY(-50%) translateX(30px); 
+                                    background: white; border-radius: 12px; 
+                                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); 
+                                    padding: 16px 20px 16px 16px; z-index: 100; opacity: 0; 
+                                    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+                                    display: flex; align-items: center; gap: 8px; pointer-events: none;
+                                    min-width: 280px;">
+                            
+                            <!-- The "tray" container -->
+                            <div style="display: flex; gap: 24px; align-items: flex-start; position: relative; width: 100%; justify-content: space-between;">
+                              <!-- Tray "handle" indicator -->
+                              <div class="tray-handle" style="width: 4px; height: 60px; background: #e5e7eb; border-radius: 2px; margin-right: 16px; opacity: 0; align-self: center;"></div>
+                              
+                              <!-- Edit Button -->
+                              <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.1s;">
+                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
+                                          opacity: 0; transform: scale(0.8) translateX(10px); 
+                                          padding: 6px; border-radius: 10px;" 
+                                    src="/assets/edit.png" 
+                                    title="Edit Prepack"
+                                    onmousedown="window.location='/prepack_labels/<%= prepack[:id] %>/edit'"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+                                    onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
+                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+                                      white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.2s;">
+                                  Edit
+                                </div>
+                              </div>
+                              
+                              <!-- Log Damages Button -->
+                              <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.2s;">
+                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
+                                          opacity: 0; transform: scale(0.8) translateX(10px); 
+                                          padding: 6px; border-radius: 10px;" 
+                                    src="/assets/damage.png" 
+                                    title="Log Damages"
+                                    onmousedown="logDamages('<%= prepack[:id] %>', '<%= prepack[:drug_name] %>', <%= prepack[:packs_remaining] %>)"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+                                    onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
+                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+                                      white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.3s;">
+                                  Log Damages
+                                </div>
+                              </div>
+                              
+                              <!-- Delete Button -->
+                              <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.3s;">
+                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
+                                          opacity: 0; transform: scale(0.8) translateX(10px); 
+                                          padding: 6px; border-radius: 10px;" 
+                                    src="/assets/delete.png" 
+                                    title="Delete Prepack"
+                                    onmousedown="confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+                                    onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
+                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+                                      white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.4s;">
+                                  Delete
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
                         <!-- Print Button -->
-                        <img style="cursor: pointer; width: 40px; height: 40px;" 
+                        <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
                             src="/assets/print.png" 
                             title="Print prepack labels"
-                            onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'">
+                            onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'"
+                            onmouseover="this.style.transform='scale(1.1)'"
+                            onmouseout="this.style.transform='scale(1)'">
                         
                         <!-- Delete/Cancel Button -->
                         <% if prepack[:packs_remaining] == 0 %>
-                          <img style="cursor: pointer; width: 40px; height: 40px;" 
+                          <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
                               src="/assets/delete.png" 
                               title="Remove from list"
-                              onmousedown="confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')">
+                              onmousedown="confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')"
+                              onmouseover="this.style.transform='scale(1.1)'"
+                              onmouseout="this.style.transform='scale(1)'">
                         <% end %>
                       </div>
-                    </div>
-
-                    <!-- Drug Name -->
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
-                      <%= prepack[:drug_name] %>
-                    </div>
-
-                    <!-- Bottle Info -->
-                    <div style="font-size: 1.5rem; color: #666; margin-bottom: 6px;">
-                      <span style="font-size: 1.5rem; font-weight: bold;">Bottle: </span> 
-                      <span style="font-size: 1.5rem;"><% if prepack[:gn_identifier].present? %>
-                        <%= prepack[:gn_identifier] %>
-                      <% end %>
-                    </div>
-
-                    <!-- Stats Row  -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                      <div style="font-size: 1.5rem;">
-                        <span style="color: #666; font-weight: bold;">Qty per pack: </span>
-                        <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
                       </div>
-                      <div style="font-size: 1.5rem;">
-                        <span style="color: #666; font-size:1.5rem">Total: </span>
-                        <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
-                      </div>
-                      <div style="font-size: 1.5rem;">
-                        <span style="color: #666; font-size:1.5rem">Dispensed: </span>
-                        <span style="font-weight: bold; font-size:1.5rem;"><%= prepack[:packs_dispensed] %></span>
-                      </div>
-                    </div>
 
-                    <!-- Progress Bar -->
-                    <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
-                      <div style="height: 100%; background: #28a745; border-radius: 10px; 
-                                width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
-                    </div>
+                      <!-- Drug Name -->
+                      <div style="font-size: 1.5rem; font-weight: bold; color: #006495; margin-bottom: 4px;">
+                          <%= prepack[:drug_name] %>
+                      </div>
 
-                    <!-- Status Badge -->
-                    <div style="position: absolute; top: -6px; right: -6px; 
-                              background: <%= 
-                                case prepack[:status]
-                                when 'created', 'active'
-                                  '#28a745'
-                                when 'dispensed'
-                                  '#a10e0e'
-                                when 'cancelled'
-                                  '#dc3545'
-                                else
-                                  '#ffc107'
-                                end
-                              %>; 
-                              color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.9rem;
-                              font-weight: bold;">
-                      <% case prepack[:status] %>
-                      <% when 'created', 'active' %>
-                        ACTIVE
-                      <% when 'dispensed' %>
-                        DONE
-                      <% when 'cancelled' %>
-                        CANCELLED
-                      <% else %>
-                        <%= prepack[:status]&.upcase %>
-                      <% end %>
-                    </div>
+                      <!-- Bottle Info -->
+                      <div style="font-size: 1.5rem; color: #666; margin-bottom: 6px;">
+                          <span style="font-size: 1.5rem; font-weight: bold;">Bottle: </span> 
+                          <span style="font-size: 1.5rem;">
+                              <% if prepack[:gn_identifier].present? %>
+                                  <%= prepack[:gn_identifier] %>
+                              <% end %>
+                          </span>
+                      </div>
+
+                      <!-- Stats Row -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                          <div style="font-size: 1.5rem;">
+                              <span style="color: #666; font-weight: bold;">Qty per pack: </span>
+                              <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
+                          </div>
+                          <div style="font-size: 1.5rem; right: 8px;">
+                              <span style="color: #666; font-size:1.5rem">Total: </span>
+                              <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
+                          </div>
+                      </div>
+
+                      <!-- Progress Bar -->
+                      <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
+                          <div style="height: 100%; background: #28a745; border-radius: 10px; 
+                                  width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
+                      </div>
+
+                      <!-- Date Created and Status Badge  -->
+                      <div style="position: absolute; top: -6px; right: -6px; display: flex; align-items: flex-start; gap: 8px;">
+                        <!-- Date Created -->
+                        <div style="color: #666; font-size: 1.2rem; font-weight: bold; text-align: center; white-space: nowrap; margin-top: 8px;">
+                          <% if prepack[:created_at].present? %>
+                            <%= l(prepack[:created_at].to_date, format: "%d/%m/%Y") %>
+                          <% else %>
+                            N/A
+                          <% end %>
+                        </div>
+                        
+                        <!-- Status Badge -->
+                        <div style="background: <%= 
+                          case prepack[:status]
+                          when 'created', 'active'
+                            '#28a745'
+                          when 'dispensed'
+                            '#a10e0e'
+                          when 'cancelled'
+                            '#dc3545'
+                          else
+                            '#ffc107'
+                          end
+                        %>; 
+                        color: white; padding: 1px 8px; border-radius: 8px; font-size: 0.9rem;
+                        font-weight: bold; min-width: 70px; text-align: center;">
+                          <% case prepack[:status] %>
+                          <% when 'created', 'active' %>
+                            ACTIVE
+                          <% when 'dispensed' %>
+                            DONE
+                          <% when 'cancelled' %>
+                            CANCELLED
+                          <% else %>
+                            <%= prepack[:status]&.upcase %>
+                          <% end %>
+                        </div>
+                      </div>
                   </div>
-                </div>
+              </div>
               <% end %>
               
               <!-- Fill empty cell if we have an odd number in this pair -->
@@ -330,7 +510,7 @@ input.radio:checked label {
           <div style="display: table-row;">
             <div style="display: table-cell; padding: 40px; text-align: center; color: #666;">
               <p style="font-size: 1.4rem;">No prepack inventory found.</p>
-              <p style="font-size: 1.2rem;">Scan a bottle to create prepack labels.</p>
+              <p style="font-size: 1.2rem;">Scan a bottle to create prepacking labels.</p>
             </div>
           </div>
         <% end %>
@@ -1211,6 +1391,354 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+});
+</script>
+
+<script>
+// Track which view options are open
+let openViewOptionsId = null;
+
+function toggleViewOptions(prepackId) {
+  const viewIcon = document.getElementById('view_icon_' + prepackId);
+  const optionsDiv = document.getElementById('view_options_' + prepackId);
+  const container = viewIcon.closest('.view-options-container');
+  
+  // Close any other open options with animation
+  if (openViewOptionsId && openViewOptionsId !== prepackId) {
+    closeViewOptions(openViewOptionsId);
+  }
+  
+  // Toggle current options with smooth animation
+  if (optionsDiv.classList.contains('show')) {
+    closeViewOptions(prepackId);
+  } else {
+    openViewOptions(prepackId);
+  }
+}
+
+function openViewOptions(prepackId) {
+  const viewIcon = document.getElementById('view_icon_' + prepackId);
+  const optionsDiv = document.getElementById('view_options_' + prepackId);
+  const container = viewIcon.closest('.view-options-container');
+  
+  // Add active class to icon and container
+  viewIcon.classList.add('active');
+  container.classList.add('active');
+  
+  // Show options with tray animation
+  optionsDiv.classList.add('show');
+  
+  // Animate each icon with stagger
+  const optionItems = optionsDiv.querySelectorAll('.option-item img');
+  optionItems.forEach((item, index) => {
+    // Reset styles
+    item.style.opacity = '0';
+    item.style.transform = 'scale(0.8) translateX(10px)';
+    
+    // Animate in with delay
+    setTimeout(() => {
+      item.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      item.style.opacity = '1';
+      item.style.transform = 'scale(1) translateX(0)';
+    }, 100 + (index * 80)); // Stagger delay
+  });
+  
+  // Animate captions with delay
+  setTimeout(() => {
+    const captions = optionsDiv.querySelectorAll('.option-caption');
+    captions.forEach((caption, index) => {
+      caption.style.opacity = '1';
+    });
+  }, 300);
+  
+  openViewOptionsId = prepackId;
+  
+  // Add click outside listener
+  setTimeout(() => {
+    document.addEventListener('click', function closeOptions(e) {
+      if (!e.target.closest('#view_options_' + prepackId) && 
+          e.target.id !== 'view_icon_' + prepackId &&
+          !e.target.closest('#view_icon_' + prepackId)) {
+        closeViewOptions(prepackId);
+        document.removeEventListener('click', closeOptions);
+      }
+    });
+  }, 10);
+  
+  // Add escape key listener
+  document.addEventListener('keydown', function escapeListener(e) {
+    if (e.key === 'Escape') {
+      closeViewOptions(prepackId);
+      document.removeEventListener('keydown', escapeListener);
+    }
+  });
+}
+
+function closeViewOptions(prepackId) {
+  const viewIcon = document.getElementById('view_icon_' + prepackId);
+  const optionsDiv = document.getElementById('view_options_' + prepackId);
+  const container = viewIcon.closest('.view-options-container');
+  
+  // Remove active classes
+  viewIcon.classList.remove('active');
+  container.classList.remove('active');
+  
+  // Hide captions immediately
+  const captions = optionsDiv.querySelectorAll('.option-caption');
+  captions.forEach(caption => {
+    caption.style.opacity = '0';
+  });
+  
+  // Animate out option icons
+  const optionItems = optionsDiv.querySelectorAll('.option-item img');
+  optionItems.forEach((item, index) => {
+    setTimeout(() => {
+      item.style.opacity = '0';
+      item.style.transform = 'scale(0.8) translateX(10px)';
+    }, index * 30); // Stagger delay out
+  });
+  
+  // Hide options after icons have animated out
+  setTimeout(() => {
+    optionsDiv.classList.remove('show');
+    openViewOptionsId = null;
+  }, 200);
+}
+
+function closeViewOptions(prepackId) {
+  const viewIcon = document.getElementById('view_icon_' + prepackId);
+  const optionsDiv = document.getElementById('view_options_' + prepackId);
+  const container = viewIcon.closest('.view-options-container');
+  
+  // Remove active classes
+  viewIcon.classList.remove('active');
+  container.classList.remove('active');
+  
+  // Animate out option icons first
+  const optionItems = optionsDiv.querySelectorAll('.option-item img');
+  optionItems.forEach((item, index) => {
+    setTimeout(() => {
+      item.style.opacity = '0';
+      item.style.transform = 'scale(0.8) translateX(-10px)';
+    }, index * 30); // Stagger delay out
+  });
+  
+  // Hide options after icons have animated out
+  setTimeout(() => {
+    optionsDiv.classList.remove('show');
+    openViewOptionsId = null;
+  }, 150);
+}
+
+// Enhanced logDamages function with modal
+function logDamages(prepackId, drugName, maxQuantity) {
+  // Close any open options
+  if (openViewOptionsId) {
+    closeViewOptions(openViewOptionsId);
+  }
+  
+  // Create and show modal
+  showDamageModal(prepackId, drugName, maxQuantity);
+}
+
+function showDamageModal(prepackId, drugName, maxQuantity) {
+
+  const modalHTML = `
+  <div id="damageModalOverlay"
+       style="position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+              z-index: 9999; display: flex; align-items: center; justify-content: center;
+              opacity: 0; transition: opacity 0.25s ease;">
+    
+    <div id="damageModal"
+         style="width: 550px; background: #fff; padding: 28px; border-radius: 14px;
+                box-shadow: 0 12px 40px rgba(0,0,0,0.25); transform: scale(0.92);
+                transition: transform 0.25s ease;">
+      
+      <h2 style="margin: 0 0 18px 0; font-size: 1.6rem; color: #d9534f; font-weight: 700;">
+        Log Damages
+      </h2>
+
+      <!-- Drug info -->
+      <div style="background: #f1f3f5; border: 1px solid #d7dde3; padding: 14px; 
+                  border-radius: 10px; margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 1.3rem; font-weight: 600;">
+          Drug: <span style="color: #006495;">${drugName}</span>
+        </p>
+      </div>
+
+      <!-- Quantity -->
+      <div style="margin-bottom: 18px; width:95%;">
+        <label style="display: block; margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">
+          Number of Packs Damaged
+        </label>
+        <input type="number" id="damageQuantity" min="1" max="${maxQuantity}" 
+               style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;
+                      border: 2px solid #d0d7de; outline: none;
+                      transition: border-color 0.2s ease;" 
+               onfocus="this.style.borderColor='#006495'"
+               onblur="this.style.borderColor='#d0d7de'">
+      </div>
+
+      <!-- Reason -->
+      <div style="margin-bottom: 18px; width:100%;">
+        <label style="display: block; margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">
+          Reason
+        </label>
+        <select id="damageReason"
+                style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;
+                       border: 2px solid #d0d7de; outline: none;
+                       transition: border-color 0.2s ease;"
+                onfocus="this.style.borderColor='#006495'"
+                onblur="this.style.borderColor='#d0d7de'">
+          <option value="broken">Broken / Dropped</option>
+          <option value="expired">Expired</option>
+          <option value="contaminated">Contaminated</option>
+          <option value="damaged_packaging">Damaged Packaging</option>
+          <!--- <option value="temperature_damage">Temperature Damage</option> -->
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Notes -->
+      <div style="margin-bottom: 24px; width: 95%">
+        <label style="display: block; margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">
+          Notes (Optional)
+        </label>
+        <textarea id="damageNotes" rows="3"
+                  style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;
+                         border: 2px solid #d0d7de; resize: vertical; outline: none;
+                         transition: border-color 0.2s ease;"
+                  onfocus="this.style.borderColor='#006495'"
+                  onblur="this.style.borderColor='#d0d7de'"
+                  placeholder="Additional details..."></textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; justify-content: flex-start; gap: 16px;">
+
+        <button onclick="submitDamage('${prepackId}', '${drugName}')"
+                style="padding: 12px 22px; border: none; border-radius: 8px;
+                      background: #d9534f; color: #fff; font-size: 1.25rem; font-weight: 600;
+                      cursor: pointer; transition: all 0.2s ease; text-align: center;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
+          Log Damage
+        </button>
+
+        <button onclick="closeDamageModal()"
+                style="padding: 12px 22px; border: none; border-radius: 8px;
+                      background: #6c757d; color: #fff; font-size: 1.15rem; font-weight: 600;
+                      cursor: pointer; transition: all 0.2s ease; text-align: center;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
+          Cancel
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+  `;
+
+  
+  // Remove any existing modal
+  const existingModal = document.getElementById('damageModalOverlay');
+  if (existingModal) existingModal.remove();
+  
+  // Add modal to body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Animate in
+  setTimeout(() => {
+    const overlay = document.getElementById('damageModalOverlay');
+    const modal = document.getElementById('damageModal');
+    overlay.style.opacity = '1';
+    modal.style.transform = 'scale(1)';
+  }, 10);
+  
+  // Focus on quantity input
+  setTimeout(() => {
+    document.getElementById('damageQuantity').focus();
+    document.getElementById('damageQuantity').select();
+  }, 100);
+}
+
+function closeDamageModal() {
+  const overlay = document.getElementById('damageModalOverlay');
+  const modal = document.getElementById('damageModal');
+  
+  if (overlay) {
+    // Animate out
+    overlay.style.opacity = '0';
+    modal.style.transform = 'scale(0.9)';
+    
+    // Remove after animation
+    setTimeout(() => {
+      overlay.remove();
+    }, 300);
+  }
+}
+
+function submitDamage(prepackId, drugName) {
+  const quantity = document.getElementById('damageQuantity').value;
+  const reason = document.getElementById('damageReason').value;
+  const notes = document.getElementById('damageNotes').value;
+  
+  if (!quantity || quantity <= 0) {
+    alert('Please enter a valid quantity');
+    return;
+  }
+  
+  // Show loading state
+  const submitBtn = document.querySelector('#damageModal button[onclick^="submitDamage"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Processing...';
+  submitBtn.disabled = true;
+  
+  // AJAX call
+  fetch(`/prepack_labels/${prepackId}/log_damages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+    },
+    body: JSON.stringify({
+      quantity: quantity,
+      reason: reason,
+      notes: notes
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Success animation
+      submitBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #218838 100%)';
+      submitBtn.textContent = '✓ Success';
+      
+      setTimeout(() => {
+        closeDamageModal();
+        // Reload after a brief delay to show success
+        setTimeout(() => location.reload(), 300);
+      }, 800);
+    } else {
+      alert('Error: ' + data.message);
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred. Please try again.');
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  });
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeDamageModal();
+  }
 });
 </script>
 </body>

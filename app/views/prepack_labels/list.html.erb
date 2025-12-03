@@ -201,7 +201,7 @@
       <%= @report_type.titleize %>
     </h1>
     
-    <!-- Summary Statistics -->
+    <!-- Summary Statistics - UPDATED to include Damaged count -->
     <div style="display: flex; justify-content: space-around; margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 1px solid #dee2e6;">
       <div style="text-align: center;">
         <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Total Packs</div>
@@ -212,12 +212,12 @@
         <div style="font-size: 1.8rem; font-weight: bold; color: #28a745;"><%= @total_dispensed %></div>
       </div>
       <div style="text-align: center;">
-        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Remaining</div>
-        <div style="font-size: 1.8rem; font-weight: bold; color: #ffc107;"><%= @total_remaining %></div>
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Damaged</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #dc3545;"><%= @total_damaged %></div>
       </div>
       <div style="text-align: center;">
-        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Total Quantity</div>
-        <div style="font-size: 1.8rem; font-weight: bold; color: #dc3545;"><%= @total_quantity %></div>
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Remaining</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #ffc107;"><%= @total_remaining %></div>
       </div>
     </div>
   </div>
@@ -246,7 +246,8 @@
               dispensed_label = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).order(updated_at: :desc).first
               dispensed_by_user = dispensed_label ? User.find_by(user_id: dispensed_label.dispensed_by) : nil
               
-              damages_count = ['cancelled', 'damaged', 'expired'].include?(prepack.status) ? prepack.num_packs : 0
+              # Get actual damages count from the controller (stored on prepack object)
+              damages_count = prepack.instance_variable_get(:@damages_count) || 0
               dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
               remaining_count = prepack.num_packs - dispensed_count - damages_count
               
@@ -276,7 +277,7 @@
                 <%= remaining_count %>
               </td>
               
-              <!-- Damages/Expired Column -->
+              <!-- Damages/Expired Column - NOW USING ACTUAL DAMAGES DATA -->
               <td style="padding: 12px 10px; text-align: center;font-size:1.4rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>; background-color: <%= damages_count > 0 ? '#fff5f5' : '#f8fafc' %>; border-right: 1px solid #e5e7eb;">
                 <%= damages_count > 0 ? damages_count : '0' %>
               </td>

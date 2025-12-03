@@ -78,6 +78,11 @@
           <td style="text-align: right; padding-right: 1vw;"><%= number_with_delimiter(item.current_quantity) %></td>
           <td style="text-align: center;" ><%= l(item.expiration_date, format: '%b-%Y') rescue ""%></td>
           <td style="text-align: center;">
+            <div style="display: table-cell;min-width: 8vw; vertical-align: middle;">
+              <img  style="width: 48px; height: 48px; padding-top: 1px;" src="/assets/damage.png" title="Record Damage"
+                  onmousedown="openDamageModal(<%= item.id %>)">
+            </div>
+
             <div style="display: table-cell;min-width: 8vw;">
               <img style="" src="/assets/view_icon.png" title="View Item"
                    onmousedown="window.location='/general_inventory/<%= item.gn_identifier %>'">
@@ -100,6 +105,25 @@
 
     </tbody>
   </table>
+
+  <div id="damageModal" 
+     style="display:none; position:fixed; top:20vh; left:25vw; width:50vw; 
+            background:white; border:3px solid #000; padding:2vw; z-index:9999;">
+
+  <h2>Record Damage</h2>
+
+  <label>Quantity:</label><br>
+  <input type="number" id="damage_qty" min="1" style="width: 15vw;"><br><br>
+
+  <label>Reason:</label><br>
+  <input type="text" id="damage_reason" style="width: 30vw;"><br><br>
+
+  <button class="nav-bttn green" onmousedown="submitDamage()">Save</button>
+  <button class="nav-bttn red" onmousedown="closeDamageModal()">Cancel</button>
+
+  <input type="hidden" id="damage_item_id">
+</div>
+
 </div>
 
 <div class="footer" >
@@ -149,4 +173,32 @@
   {
     document.forms[0].submit();
   }
+  
+// Damage Modal Functions
+function openDamageModal(id) {
+  document.getElementById("damage_item_id").value = id;
+  document.getElementById("damageModal").style.display = 'block';
+}
+
+function closeDamageModal() {
+  document.getElementById("damageModal").style.display = 'none';
+}
+
+function submitDamage() {
+  var id = document.getElementById("damage_item_id").value;
+  var qty = document.getElementById("damage_qty").value;
+  var reason = document.getElementById("damage_reason").value;
+
+  $.post(`/general_inventory/${id}/damage_item`, 
+    { quantity: qty, reason: reason }, 
+    function(resp) {
+      if (resp.success) {
+        alert("Damage recorded successfully");
+        location.reload();
+      } else {
+        alert(resp.message);
+      }
+    }
+  );
+}
 </script>

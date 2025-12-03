@@ -2,6 +2,8 @@ class GeneralInventory < ActiveRecord::Base
   belongs_to :drug, foreign_key: :drug_id
   before_create :complete_record
   after_create  :reorder_gn_sequence_for_drug
+  has_many  :damages
+  self.primary_key = 'gn_inventory_id'
 
   validates :expiration_date, :date_received, :received_quantity, :current_quantity, presence: true
   validates :received_quantity, :current_quantity, numericality: { only_integer: true, greater_than: -1 }

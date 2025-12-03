@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   get "/print_bottle_barcode/:id" => "general_inventory#print_bottle_barcode"
   get "/ajax_bottle/:id" => "general_inventory#ajax_bottle"
   get "/general_inventory/print_bottle_barcode"
+  post '/general_inventory/:id/damage_item', to: 'general_inventory#damage_item'
 
   # Dispensary
   get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
