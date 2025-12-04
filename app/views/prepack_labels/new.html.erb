@@ -291,8 +291,8 @@ img[src*="/assets/"] {
       </div>
     </div>
   
-<!-- MAIN CONTENT -->
-<div style="border:3px solid #06425C; margin-top:3vh; height:70vh; padding: 0; display: flex; flex-direction: column;">
+  <!-- MAIN CONTENT -->
+  <div style="border:3px solid #06425C; margin-top:3vh; height:70vh; padding: 0; display: flex; flex-direction: column;">
 
   <!-- PREPACK LISTING SECTION -->
   <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh; flex-shrink: 0;">
@@ -347,7 +347,7 @@ img[src*="/assets/"] {
                                     display: flex; align-items: center; gap: 8px; pointer-events: none;
                                     min-width: 280px;">
                             
-                            <!-- The "tray" container -->
+                            <!-- The tray container -->
                             <div style="display: flex; gap: 24px; align-items: flex-start; position: relative; width: 100%; justify-content: space-between;">
                               <!-- Tray "handle" indicator -->
                               <div class="tray-handle" style="width: 4px; height: 60px; background: #e5e7eb; border-radius: 2px; margin-right: 16px; opacity: 0; align-self: center;"></div>
@@ -444,9 +444,19 @@ img[src*="/assets/"] {
                               <span style="color: #666; font-weight: bold;">Qty per pack: </span>
                               <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
                           </div>
-                          <div style="font-size: 1.5rem; right: 8px;">
-                              <span style="color: #666; font-size:1.5rem">Total: </span>
-                              <span style="font-weight: bold;"><%= prepack[:total_packs_created] %></span>
+                          <div style="font-size: 1.5rem; text-align: center; flex: 1;">
+                              <span style="color: #666; font-weight: bold;">Total: </span>
+                              <span style="font-weight: bold; color: #006495;"><%= prepack[:total_packs_created] %></span>
+                          </div>
+                          <div style="font-size: 1.5rem; text-align: right;">
+                              <span style="color: #666; font-weight: bold;">Date: </span>
+                              <span style="font-weight: bold;">
+                                <% if prepack[:created_at].present? %>
+                                  <%= l(prepack[:created_at].to_date, format: "%d/%m/%Y") %>
+                                <% else %>
+                                  N/A
+                                <% end %>
+                              </span>
                           </div>
                       </div>
 
@@ -456,17 +466,8 @@ img[src*="/assets/"] {
                                   width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
                       </div>
 
-                      <!-- Date Created and Status Badge  -->
-                      <div style="position: absolute; top: -6px; right: -6px; display: flex; align-items: flex-start; gap: 8px;">
-                        <!-- Date Created -->
-                        <div style="color: #666; font-size: 1.2rem; font-weight: bold; text-align: center; white-space: nowrap; margin-top: 8px;">
-                          <% if prepack[:created_at].present? %>
-                            <%= l(prepack[:created_at].to_date, format: "%d/%m/%Y") %>
-                          <% else %>
-                            N/A
-                          <% end %>
-                        </div>
-                        
+                      <!-- Status Badge Only (Date moved to stats row) -->
+                      <div style="position: absolute; top: -6px; right: -6px; z-index: 50;">
                         <!-- Status Badge -->
                         <div style="background: <%= 
                           case prepack[:status]
@@ -805,7 +806,7 @@ function removePrepackFromList(id) {
   // Track completed tabs
   let completedTabs = new Set();
 
-  // --- ADDED: Scanner focus helpers from first setup ---
+  // Scanner focus helpers from first setup
   let isModalOpen = false;
   let barcodeTimer = null;
 
@@ -1543,20 +1544,32 @@ function logDamages(prepackId, drugName, maxQuantity) {
 
 function showDamageModal(prepackId, drugName, maxQuantity) {
 
+  isModalOpen = true;
+
   const modalHTML = `
   <div id="damageModalOverlay"
        style="position: fixed; inset: 0; background: rgba(0,0,0,0.45);
               z-index: 9999; display: flex; align-items: center; justify-content: center;
               opacity: 0; transition: opacity 0.25s ease;">
     
-    <div id="damageModal"
-         style="width: 550px; background: #fff; padding: 28px; border-radius: 14px;
-                box-shadow: 0 12px 40px rgba(0,0,0,0.25); transform: scale(0.92);
-                transition: transform 0.25s ease;">
-      
-      <h2 style="margin: 0 0 18px 0; font-size: 1.6rem; color: #d9534f; font-weight: 700;">
-        Log Damages
-      </h2>
+      <div id="damageModal"
+          style="width: 550px; background: #fff; padding: 28px; border-radius: 14px;
+                  box-shadow: 0 12px 40px rgba(0,0,0,0.25); transform: scale(0.92);
+                  transition: transform 0.25s ease;">
+        
+      <div style="
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 18px;
+      ">
+        <h2 style="margin: 0; font-size: 1.6rem; color: #d9534f; font-weight: 700;">
+          Log Damages
+        </h2>
+
+        <img src="/assets/damage.png" 
+            style="width: 56px; height: 56px; object-fit: contain;">
+      </div>
 
       <!-- Drug info -->
       <div style="background: #f1f3f5; border: 1px solid #d7dde3; padding: 14px; 
@@ -1568,11 +1581,11 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
 
       <!-- Quantity -->
       <div style="margin-bottom: 18px; width:95%;">
-        <label style="display: block; margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">
+        <label style="display: block; margin-bottom: 8px; font-size: 1.5rem; font-weight: 600;">
           Number of Packs Damaged
         </label>
         <input type="number" id="damageQuantity" min="1" max="${maxQuantity}" 
-               style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;
+               style="width: 100%; padding: 12px; font-size: 1.5rem; border-radius: 8px;
                       border: 2px solid #d0d7de; outline: none;
                       transition: border-color 0.2s ease;" 
                onfocus="this.style.borderColor='#006495'"
@@ -1585,7 +1598,7 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
           Reason
         </label>
         <select id="damageReason"
-                style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;
+                style="width: 100%; padding: 12px; font-size: 1.5rem; border-radius: 8px;
                        border: 2px solid #d0d7de; outline: none;
                        transition: border-color 0.2s ease;"
                 onfocus="this.style.borderColor='#006495'"
@@ -1601,11 +1614,11 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
 
       <!-- Notes -->
       <div style="margin-bottom: 24px; width: 95%">
-        <label style="display: block; margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">
+        <label style="display: block; margin-bottom: 8px; font-size: 1.5rem; font-weight: 600;">
           Notes (Optional)
         </label>
         <textarea id="damageNotes" rows="3"
-                  style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;
+                  style="width: 100%; padding: 12px; font-size: 1.4rem; border-radius: 8px;
                          border: 2px solid #d0d7de; resize: vertical; outline: none;
                          transition: border-color 0.2s ease;"
                   onfocus="this.style.borderColor='#006495'"
@@ -1613,13 +1626,14 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
                   placeholder="Additional details..."></textarea>
       </div>
 
-      <!-- Buttons -->
       <div style="display: flex; justify-content: flex-start; gap: 16px;">
 
         <button onclick="submitDamage('${prepackId}', '${drugName}')"
                 style="padding: 12px 22px; border: none; border-radius: 8px;
                       background: #d9534f; color: #fff; font-size: 1.25rem; font-weight: 600;
-                      cursor: pointer; transition: all 0.2s ease; text-align: center;"
+                      cursor: pointer; transition: all 0.2s ease;
+                      display: flex; align-items: center; justify-content: center;
+                      line-height: 1.2; text-align: center;"
                 onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
                 onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
           Log Damage
@@ -1628,11 +1642,15 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
         <button onclick="closeDamageModal()"
                 style="padding: 12px 22px; border: none; border-radius: 8px;
                       background: #6c757d; color: #fff; font-size: 1.15rem; font-weight: 600;
-                      cursor: pointer; transition: all 0.2s ease; text-align: center;"
+                      cursor: pointer; transition: all 0.2s ease;
+                      display: flex; align-items: center; justify-content: center;
+                      line-height: 1.2; text-align: center;"
                 onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
                 onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
-          Cancel
+          Close
         </button>
+
+      </div>
 
       </div>
 
@@ -1664,6 +1682,11 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
 }
 
 function closeDamageModal() {
+
+  // Reset modal state and reinitialize scanner
+  isModalOpen = false;
+  initializeBarcodeListener();
+
   const overlay = document.getElementById('damageModalOverlay');
   const modal = document.getElementById('damageModal');
   
