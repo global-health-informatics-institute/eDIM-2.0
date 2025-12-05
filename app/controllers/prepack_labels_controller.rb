@@ -234,7 +234,7 @@ class PrepackLabelsController < ApplicationController
     # Get all prepack bottle IDs for damages query
     prepack_bottle_ids = @records.pluck(:bottle_id).uniq
     
-    # Get damages for all bottles in one query (optimized)
+    # Get damages for all bottles in one query
     damages_by_bottle = Damage.where(general_inventory_id: prepack_bottle_ids)
                             .where(damage_date: start_date..end_date)
                             .group(:general_inventory_id)
