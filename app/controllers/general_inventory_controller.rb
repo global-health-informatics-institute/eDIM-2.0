@@ -507,7 +507,13 @@ class GeneralInventoryController < ApplicationController
 
   def damage_item
     # Find prepack
-    prepack = Prepack.find_by(id: params[:id], location_id: session[:location] || User.current.location_id, voided: 0)
+    prepack = Prepack.find_by(
+      id: params[:id],
+      location_id: session[:location] || User.current.location_id,
+      voided: 0,
+      deleted: 0
+    )
+
     unless prepack
       render json: { success: false, message: "Prepack not found" }, status: 404 and return
     end
@@ -527,7 +533,9 @@ class GeneralInventoryController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
+
       if damage_type == "bottle"
+        # Bottle damage
         if qty > item.current_quantity
           render json: { success: false, message: "Quantity exceeds available stock" } and return
         end
@@ -535,7 +543,7 @@ class GeneralInventoryController < ApplicationController
         item.update!(current_quantity: item.current_quantity - qty)
 
       else
-
+        # Pack dammage
         labels = PrepackLabel.where(
           prepack_id: prepack.id,
           voided: 0,
@@ -547,8 +555,16 @@ class GeneralInventoryController < ApplicationController
           render json: { success: false, message: "Not enough unvoided packs available" } and return
         end
 
-        # Void labels properly
+        # Void labels
         labels.update_all(voided: 1, updated_at: Time.current)
+
+        prepack.num_packs -= qty
+
+        # Reduce the total quantity based on pack size
+        total_units_lost = prepack.quantity_per_pack * qty
+        prepack.total_quantity -= total_units_lost
+
+        prepack.save!
       end
 
       # Log the damage
@@ -559,11 +575,13 @@ class GeneralInventoryController < ApplicationController
         reason: reason,
         reported_by: User.current.id,
         location_id: session[:location] || User.current.location_id,
-        damage_date: Time.current
+        damage_date: Time.current,
+        damage_type: damage_type
       )
     end
 
     render json: { success: true }
+
   rescue => e
     Rails.logger.error "Damage reporting failed: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")

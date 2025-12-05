@@ -287,7 +287,8 @@ class PrepackLabelsController < ApplicationController
         packs_remaining: labels.where(dispensed: false).count,
         packs_dispensed: labels.where(dispensed: true).count,
         status: prepack.status,
-        created_at: prepack.created_at
+        created_at: prepack.created_at,
+        bottle_quantity: GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)&.current_quantity || 0
       }
     end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_12_02_153000) do
+ActiveRecord::Schema[7.0].define(version: 2025_12_05_082801) do
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -374,6 +374,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_02_153000) do
     t.integer "location_id"
     t.datetime "damage_date"
     t.string "gn_identifier"
+    t.string "damage_type", default: "pack", null: false
+    t.index ["damage_type"], name: "index_damages_on_damage_type"
     t.index ["general_inventory_id"], name: "index_damages_on_general_inventory_id"
     t.index ["gn_identifier"], name: "index_damages_on_gn_identifier"
   end
