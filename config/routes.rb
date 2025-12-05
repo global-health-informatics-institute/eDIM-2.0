@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   get "/ajax_bottle/:id" => "general_inventory#ajax_bottle"
   get "/general_inventory/print_bottle_barcode"
   post '/general_inventory/:id/damage_item', to: 'general_inventory#damage_item'
+  
 
   get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
   post '/dispensary', to: 'general_inventory#create', as: :create_dispensary_item
@@ -68,6 +69,19 @@ Rails.application.routes.draw do
   get '/prepack_labels/delete/:id', to: 'prepack_labels#delete', as: 'delete_prepack_label'
 
   ###################### Resources #####################################
+
+  resources :general_inventory do
+    member do
+      post :damage_item
+    end
+
+    post 'pre_packing'
+    collection do
+      get 'print_pre_packed(/:id)', action: :print_pre_packed
+      get 'list'
+      post 'merge'
+    end
+  end
 
   # prepack_labels declaration
   resources :prepack_labels, only: [:show, :new, :create, :destroy] do

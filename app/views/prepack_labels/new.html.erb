@@ -321,6 +321,16 @@ img[src*="/assets/"] {
                                   color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
                               <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
                           </div>
+
+                          <div style="font-size: 1.5rem; font-weight: bold; margin-right: 315px; margin-top:-2px;">
+                              <span style="font-weight: bold; right:8px;">
+                                <% if prepack[:created_at].present? %>
+                                  <%= l(prepack[:created_at].to_date, format: "%d/%m/%Y") %>
+                                <% else %>
+                                  N/A
+                                <% end %>
+                              </span>
+                          </div>
                           
                       <!-- Action Buttons -->
                       <div style="position: absolute; top: 43%; right: 16px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
@@ -448,16 +458,6 @@ img[src*="/assets/"] {
                               <span style="color: #666; font-weight: bold;">Total: </span>
                               <span style="font-weight: bold; color: #006495;"><%= prepack[:total_packs_created] %></span>
                           </div>
-                          <div style="font-size: 1.5rem; text-align: right;">
-                              <span style="color: #666; font-weight: bold;">Date: </span>
-                              <span style="font-weight: bold;">
-                                <% if prepack[:created_at].present? %>
-                                  <%= l(prepack[:created_at].to_date, format: "%d/%m/%Y") %>
-                                <% else %>
-                                  N/A
-                                <% end %>
-                              </span>
-                          </div>
                       </div>
 
                       <!-- Progress Bar -->
@@ -466,7 +466,7 @@ img[src*="/assets/"] {
                                   width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
                       </div>
 
-                      <!-- Status Badge Only (Date moved to stats row) -->
+                      <!-- Status Badge Only -->
                       <div style="position: absolute; top: -6px; right: -6px; z-index: 50;">
                         <!-- Status Badge -->
                         <div style="background: <%= 
@@ -721,7 +721,7 @@ img[src*="/assets/"] {
                 </div>
             </div>
 
-            <!-- DOSE TYPE DIV - MOVED INSIDE THE CONTENT CELL -->
+            <!-- DOSE TYPE DIV -->
             <div class="mobi-div" id="labelsDiv" style="display:none;">
               <div class="section-wrapper">
                 <label for="numPacks" id="numPacksLabel"><span style="font-weight:bold; font-size:1.5rem;">Enter number of packs</span></label>
@@ -902,7 +902,7 @@ function removePrepackFromList(id) {
     showDispenseDiv(firstDiv);
   }
 
-  // Cancel dispense function - UPDATED
+  // Cancel dispense function
   function cancelDispense() {
     const form = document.getElementById('dispenseForm2');
     const overlay = document.getElementById('modalOverlay');
@@ -1531,7 +1531,7 @@ function closeViewOptions(prepackId) {
   }, 150);
 }
 
-// Enhanced logDamages function with modal
+// logDamages function with modal
 function logDamages(prepackId, drugName, maxQuantity) {
   // Close any open options
   if (openViewOptionsId) {
@@ -1542,8 +1542,7 @@ function logDamages(prepackId, drugName, maxQuantity) {
   showDamageModal(prepackId, drugName, maxQuantity);
 }
 
-function showDamageModal(prepackId, drugName, maxQuantity) {
-
+function showDamageModal(prepackId, drugName, maxQuantity, packSize) {
   isModalOpen = true;
 
   const modalHTML = `
@@ -1579,17 +1578,82 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
         </p>
       </div>
 
-      <!-- Quantity -->
+      <!-- Damage type -->
       <div style="margin-bottom: 18px; width:95%;">
-        <label style="display: block; margin-bottom: 8px; font-size: 1.5rem; font-weight: 600;">
+        <label style="display:block; margin-bottom:8px; font-size:1.4rem; font-weight:600;">
+          Damage Type
+        </label>
+        <div>
+          <label style="margin-right:16px; font-size:1.4rem;">
+            <input style="width:24px; height:24px; accent-color:#006495;" type="radio" name="damageType" value="pack" checked 
+                   onchange="updateDamageQuantityLabel('pack', ${maxQuantity}, ${packSize})">
+            Pack
+          </label>
+          <label style="font-size:1.4rem;">
+            <input style="width:24px; height:24px; accent-color:#006495;" type="radio" name="damageType" value="bottle" 
+                   onchange="updateDamageQuantityLabel('bottle', ${maxQuantity}, ${packSize})">
+            Bottle
+          </label>
+        </div>
+      </div>
+
+      <!-- Quantity - Input field first, then three buttons -->
+      <div style="margin-bottom: 18px; width:100%;">
+        <label id="damageQuantityLabel" style="display: block; margin-bottom: 8px; font-size: 1.5rem; font-weight: 600;">
           Number of Packs Damaged
         </label>
-        <input type="number" id="damageQuantity" min="1" max="${maxQuantity}" 
-               style="width: 100%; padding: 12px; font-size: 1.5rem; border-radius: 8px;
-                      border: 2px solid #d0d7de; outline: none;
-                      transition: border-color 0.2s ease;" 
-               onfocus="this.style.borderColor='#006495'"
-               onblur="this.style.borderColor='#d0d7de'">
+        
+        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+        <!-- Input field (flexible) -->
+        <input type="number" 
+              id="damageQuantity" 
+              min="1" 
+              max="${maxQuantity}" 
+              value="1"
+              style="flex: 1; min-width: 60px; max-width: 120px; padding: 12px; font-size: 1.5rem;
+                      border-radius: 8px; border: 2px solid #d0d7de; outline: none; 
+                      text-align: center; box-sizing: border-box;
+                      -moz-appearance: textfield; appearance: textfield;"
+              onfocus="this.style.borderColor='#006495'"
+              onblur="this.style.borderColor='#d0d7de'">
+
+        <!-- Decrease button -->
+        <button type="button" 
+                id="decreaseBtn"
+                style="width: 50px; height: 55px; border: none; border-radius: 10px;
+                      background: #f8f9fa; color: #dc3545; font-size: 2rem; font-weight: bold;
+                      cursor: pointer; display: flex; align-items: center; justify-content: center;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">
+          −
+        </button>
+
+        <!-- Increase button -->
+        <button type="button" 
+                id="increaseBtn"
+                style="width: 50px; height: 55px; border: none; border-radius: 10px;
+                      background: #f8f9fa; color: #28a745; font-size: 2rem; font-weight: bold;
+                      cursor: pointer; display: flex; align-items: center; justify-content: center;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">
+          +
+        </button>
+
+        <!-- Clear button -->
+        <button type="button" 
+                id="clearBtn"
+                style="width: 65px; height: 55px; border: none; border-radius: 10px;
+                      background: #f8f9fa; color: #6c757d; font-size: 1.3rem; font-weight: 600;
+                      cursor: pointer; display: flex; align-items: center; justify-content: center;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">
+          Clear
+        </button>
+      </div>
+
+        <!-- Hold hint -->
+        <div style="text-align: center; margin-top: 8px;">
+          <span style="font-size: 1.1rem; color: #6c757d; font-style: italic;">
+            Tap and hold +/− for fast counting
+          </span>
+        </div>
       </div>
 
       <!-- Reason -->
@@ -1607,37 +1671,22 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
           <option value="expired">Expired</option>
           <option value="contaminated">Contaminated</option>
           <option value="damaged_packaging">Damaged Packaging</option>
-          <!--- <option value="temperature_damage">Temperature Damage</option> -->
           <option value="other">Other</option>
         </select>
       </div>
 
-      <!-- Notes -->
-      <div style="margin-bottom: 24px; width: 95%">
-        <label style="display: block; margin-bottom: 8px; font-size: 1.5rem; font-weight: 600;">
-          Notes (Optional)
-        </label>
-        <textarea id="damageNotes" rows="3"
-                  style="width: 100%; padding: 12px; font-size: 1.4rem; border-radius: 8px;
-                         border: 2px solid #d0d7de; resize: vertical; outline: none;
-                         transition: border-color 0.2s ease;"
-                  onfocus="this.style.borderColor='#006495'"
-                  onblur="this.style.borderColor='#d0d7de'"
-                  placeholder="Additional details..."></textarea>
-      </div>
-
       <div style="display: flex; justify-content: flex-start; gap: 16px;">
 
-        <button onclick="submitDamage('${prepackId}', '${drugName}')"
-                style="padding: 12px 22px; border: none; border-radius: 8px;
-                      background: #d9534f; color: #fff; font-size: 1.25rem; font-weight: 600;
-                      cursor: pointer; transition: all 0.2s ease;
-                      display: flex; align-items: center; justify-content: center;
-                      line-height: 1.2; text-align: center;"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
-          Log Damage
-        </button>
+      <button onclick="submitDamageWithValidation('${prepackId}', '${drugName}', ${maxQuantity}, ${packSize})"
+              style="padding: 12px 22px; border: none; border-radius: 8px;
+                    background: #d9534f; color: #fff; font-size: 1.25rem; font-weight: 600;
+                    cursor: pointer; transition: all 0.2s ease;
+                    display: flex; align-items: center; justify-content: center;
+                    line-height: 1.2; text-align: center;"
+              onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
+              onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
+        Log Damage
+      </button>
 
         <button onclick="closeDamageModal()"
                 style="padding: 12px 22px; border: none; border-radius: 8px;
@@ -1654,11 +1703,9 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
 
       </div>
 
-    </div>
   </div>
   `;
 
-  
   // Remove any existing modal
   const existingModal = document.getElementById('damageModalOverlay');
   if (existingModal) existingModal.remove();
@@ -1672,97 +1719,241 @@ function showDamageModal(prepackId, drugName, maxQuantity) {
     const modal = document.getElementById('damageModal');
     overlay.style.opacity = '1';
     modal.style.transform = 'scale(1)';
+    
+    // Now set up all the functionality AFTER the modal is in the DOM
+    setupQuantityControls(maxQuantity);
   }, 10);
   
   // Focus on quantity input
   setTimeout(() => {
-    document.getElementById('damageQuantity').focus();
-    document.getElementById('damageQuantity').select();
+    const input = document.getElementById('damageQuantity');
+    if (input) {
+      input.focus();
+      input.select();
+    }
   }, 100);
 }
 
+function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize) {
+  console.log("submitDamageWithValidation called with:", prepackId, drugName);
+  
+  // Get elements safely
+  const quantityInput = document.getElementById('damageQuantity');
+  const reasonSelect = document.getElementById('damageReason');
+  
+  const quantity = quantityInput.value;
+  const reason = reasonSelect.value;
+  
+  if (!quantity || quantity <= 0) {
+    alert('Please enter a valid quantity greater than 0');
+    return;
+  }
+  
+  // Get damage type
+  const damageTypeRadios = document.getElementsByName('damageType');
+  let damageType = 'pack';
+  for (let radio of damageTypeRadios) {
+    if (radio.checked) {
+      damageType = radio.value;
+      break;
+    }
+  }
+  
+  // If bottle mode, adjust quantity
+  let finalQuantity = parseInt(quantity);
+  if (damageType === 'bottle') {
+    finalQuantity = Math.ceil(finalQuantity / packSize); // Convert drugs back to packs
+  }
+  
+  console.log("Submitting damage:", {
+    prepackId,
+    drugName,
+    quantity: finalQuantity,
+    reason,
+    damageType
+  });
+  
+  submitDamage(prepackId, drugName, finalQuantity, reason);
+}
+
+// Accept damageType so we know if it's "bottle" or "pack"
+function submitDamage(prepackId, drugName, quantity, reason, damageType) {
+  console.log("submitDamage called with:", prepackId, drugName, quantity, reason, damageType);
+
+  const url = `/general_inventory/${prepackId}/damage_item`;
+
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+    },
+    body: JSON.stringify({
+      quantity: quantity,
+      reason: reason,
+      damage_type: damageType
+    })
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return res.json();
+  })
+  .then(data => {
+    if (data.success) {
+      alert("Damage logged successfully");
+      closeDamageModal();
+      location.reload();
+    } else {
+      alert(data.message || "An error occurred");
+    }
+  })
+  .catch(err => {
+    console.error("Error submitting damage:", err);
+    alert("An error occurred while submitting the damage.");
+  });
+}
+
+// Helper function to update quantity label and max
+function updateDamageQuantityLabel(type, maxQuantity, packSize) {
+  const label = document.getElementById('damageQuantityLabel');
+  const input = document.getElementById('damageQuantity');
+  if (type === 'pack') {
+    label.textContent = 'Number of Packs Damaged';
+    input.max = maxQuantity;
+  } else {
+    label.textContent = 'Number of Drugs Damaged';
+    input.max = maxQuantity * packSize;
+  }
+}
+
+function setupQuantityControls(maxQuantity) {
+  const input = document.getElementById('damageQuantity');
+  const increaseBtn = document.getElementById('increaseBtn');
+  const decreaseBtn = document.getElementById('decreaseBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  if (!input || !increaseBtn || !decreaseBtn || !clearBtn) return;
+
+  let holdTimeout = null;
+  let repeatTimeout = null;
+  let isHolding = false;
+  let holdDirection = 0;
+
+  // Adjust quantity
+  function adjustQuantity(delta) {
+    const current = parseInt(input.value) || 1;
+    const max = parseInt(input.max) || maxQuantity || 999;
+    const min = parseInt(input.min) || 1;
+    input.value = Math.max(min, Math.min(current + delta, max));
+  }
+
+  // ---------- HOLD ENGINE (bulletproof) ----------
+  function startPress(direction) {
+    holdDirection = direction;
+
+    // After 180ms
+    holdTimeout = setTimeout(() => {
+      isHolding = true;
+      repeatHold();
+    }, 180);
+  }
+
+  function repeatHold() {
+    if (!isHolding) return;
+    adjustQuantity(holdDirection);
+    repeatTimeout = setTimeout(repeatHold, 80);
+  }
+
+  function endPress() {
+    clearTimeout(holdTimeout);
+    clearTimeout(repeatTimeout);
+
+    const wasHold = isHolding;
+    isHolding = false;
+    return wasHold;
+  }
+
+  // ---------- BUTTON BINDINGS ----------
+  function bindButton(btn, delta) {
+    btn.addEventListener('mousedown', () => startPress(delta));
+    btn.addEventListener('mouseup', () => {
+      const held = endPress();
+      if (!held) adjustQuantity(delta);  // normal click → only once
+    });
+    btn.addEventListener('mouseleave', endPress);
+    btn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      startPress(delta);
+    });
+    btn.addEventListener('touchend', () => {
+      const held = endPress();
+      if (!held) adjustQuantity(delta);
+    });
+  }
+
+  bindButton(increaseBtn, +1);
+  bindButton(decreaseBtn, -1);
+
+  clearBtn.addEventListener('click', () => {
+    input.value = 1;
+  });
+
+  // Expose helpers
+  window.adjustDamageQuantity = adjustQuantity;
+  window.clearDamageQuantity = () => input.value = 1;
+}
+
+// Helper function must be global
+function updateDamageQuantityLabel(type, maxQuantity, packSize) {
+  const label = document.getElementById('damageQuantityLabel');
+  const input = document.getElementById('damageQuantity');
+  if (type === 'pack') {
+    label.textContent = 'Number of Packs Damaged';
+    input.max = maxQuantity;
+  } else {
+    label.textContent = 'Number of Drugs Damaged';
+    input.max = maxQuantity * packSize;
+  }
+}
+
 function closeDamageModal() {
-
-  // Reset modal state and reinitialize scanner
-  isModalOpen = false;
-  initializeBarcodeListener();
-
   const overlay = document.getElementById('damageModalOverlay');
   const modal = document.getElementById('damageModal');
   
   if (overlay) {
     // Animate out
     overlay.style.opacity = '0';
-    modal.style.transform = 'scale(0.9)';
+    if (modal) modal.style.transform = 'scale(0.9)';
     
     // Remove after animation
     setTimeout(() => {
-      overlay.remove();
+      if (overlay && overlay.parentNode) {
+        overlay.remove();
+      }
+      
+      // IMPORTANT: Re-enable scanner when modal closes
+      isModalOpen = false;
+      const barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.disabled = false;
+        // Don't auto-focus immediately to avoid the warning
+        setTimeout(() => {
+          barcodeInput.focus();
+          barcodeInput.select();
+        }, 100);
+      }
     }, 300);
   }
 }
-
-function submitDamage(prepackId, drugName) {
-  const quantity = document.getElementById('damageQuantity').value;
-  const reason = document.getElementById('damageReason').value;
-  const notes = document.getElementById('damageNotes').value;
-  
-  if (!quantity || quantity <= 0) {
-    alert('Please enter a valid quantity');
-    return;
-  }
-  
-  // Show loading state
-  const submitBtn = document.querySelector('#damageModal button[onclick^="submitDamage"]');
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = 'Processing...';
-  submitBtn.disabled = true;
-  
-  // AJAX call
-  fetch(`/prepack_labels/${prepackId}/log_damages`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-    },
-    body: JSON.stringify({
-      quantity: quantity,
-      reason: reason,
-      notes: notes
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      // Success animation
-      submitBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #218838 100%)';
-      submitBtn.textContent = '✓ Success';
-      
-      setTimeout(() => {
-        closeDamageModal();
-        // Reload after a brief delay to show success
-        setTimeout(() => location.reload(), 300);
-      }, 800);
-    } else {
-      alert('Error: ' + data.message);
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('An error occurred. Please try again.');
-    submitBtn.textContent = originalText;
-    submitBtn.disabled = false;
-  });
-}
-
 // Close modal on escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeDamageModal();
   }
 });
+
 </script>
 </body>
 </html>

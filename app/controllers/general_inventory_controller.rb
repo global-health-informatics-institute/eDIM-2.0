@@ -288,7 +288,7 @@ class GeneralInventoryController < ApplicationController
     # Handle Prepack labels
     if scanned.start_with?("PK-")
       # Fetch undispensed label only
-      label = PrepackLabel.find_by(label_identifier: scanned, dispensed: 0)
+      label = PrepackLabel.find_by(label_identifier: scanned, dispensed: 0, voided: 0, deleted: 0)
 
       if label.nil?
         return render json: { error: "This prepack has already been dispensed or is invalid" }
@@ -506,23 +506,52 @@ class GeneralInventoryController < ApplicationController
   end
 
   def damage_item
-    item = GeneralInventory.find_by(gn_inventory_id: params[:id])
+    # Find prepack
+    prepack = Prepack.find_by(id: params[:id], location_id: session[:location] || User.current.location_id, voided: 0)
+    unless prepack
+      render json: { success: false, message: "Prepack not found" }, status: 404 and return
+    end
+
+    # Find general inventory record
+    item = GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)
     unless item
-      render json: { success: false, message: "Item not found" }, status: 404 and return
+      render json: { success: false, message: "Inventory item not found" }, status: 404 and return
     end
 
     qty = params[:quantity].to_i
-    reason = params[:reason]
+    reason = params[:reason].to_s.strip
+    damage_type = params[:damage_type].to_s.downcase
 
     if qty <= 0
       render json: { success: false, message: "Quantity must be greater than zero" } and return
     end
 
-    if qty > item.current_quantity
-      render json: { success: false, message: "Quantity exceeds available stock" } and return
-    end
-
     ActiveRecord::Base.transaction do
+      if damage_type == "bottle"
+        if qty > item.current_quantity
+          render json: { success: false, message: "Quantity exceeds available stock" } and return
+        end
+
+        item.update!(current_quantity: item.current_quantity - qty)
+
+      else
+
+        labels = PrepackLabel.where(
+          prepack_id: prepack.id,
+          voided: 0,
+          deleted: 0,
+          dispensed: 0
+        ).order(:id).limit(qty)
+
+        if labels.count < qty
+          render json: { success: false, message: "Not enough unvoided packs available" } and return
+        end
+
+        # Void labels properly
+        labels.update_all(voided: 1, updated_at: Time.current)
+      end
+
+      # Log the damage
       Damage.create!(
         general_inventory_id: item.gn_inventory_id,
         gn_identifier: item.gn_identifier,
@@ -532,8 +561,6 @@ class GeneralInventoryController < ApplicationController
         location_id: session[:location] || User.current.location_id,
         damage_date: Time.current
       )
-
-      item.update!(current_quantity: item.current_quantity - qty)
     end
 
     render json: { success: true }
