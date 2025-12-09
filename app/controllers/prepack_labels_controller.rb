@@ -170,7 +170,7 @@ class PrepackLabelsController < ApplicationController
     # Try to get filters from session, use default if not found
     filters = session[:prepack_report_filter] || {}
 
-    # Parse dates from session
+    # Parse dates from session 
     begin
       start_date_raw = filters["start_date"] || filters[:start_date]
       end_date_raw   = filters["end_date"]   || filters[:end_date]
@@ -178,93 +178,101 @@ class PrepackLabelsController < ApplicationController
       if start_date_raw && end_date_raw
         start_date = Time.iso8601(start_date_raw)
         end_date   = Time.iso8601(end_date_raw)
-        Rails.logger.info ">>> Successfully parsed dates from session"
       else
-        Rails.logger.info ">>> Using default dates"
         start_date = Date.today.beginning_of_day.utc
         end_date   = Date.today.end_of_day.utc
       end
-      
     rescue => e
-      Rails.logger.error "Error parsing dates: #{e.message}"
-      # Use default dates on error
       start_date = Date.today.beginning_of_day.utc
-      end_date = Date.today.end_of_day.utc
+      end_date   = Date.today.end_of_day.utc
     end
-    
+
     locations = filters[:locations] || ['All Locations']
     duration = filters["report_duration"] || filters[:report_duration] || 'Daily'
-    
-    # Set report title - use local time for display
+
+    # Set report title
     @report_type = case duration
                   when 'Daily'
                     "Prepack Report for #{l(start_date.to_date, format:'%d %B, %Y')}"
-                  when 'Weekly'
-                    "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
-                  when 'Monthly'
-                    "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
-                  when 'Range'
+                  when 'Weekly', 'Monthly', 'Range'
                     "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
                   else
                     "Prepack Report for #{l(Date.today, format:'%d %B, %Y')}"
                   end
 
-    # Fetch prepack records within date range
+    # Base query and records
     base_query = Prepack.joins(:drug)
                         .where(created_at: start_date..end_date)
                         .order("prepacks.created_at DESC")
 
-    # Get count first
     record_count = base_query.count
-    Rails.logger.info ">>> Found #{record_count} prepack records in UTC date range"
 
-    @records = base_query.select("prepacks.*, drugs.name as drug_name")
+    @records = base_query.select("prepacks.*, drugs.name as drug_name") || Prepack.none
 
-    unless locations.include?('All Locations')
+    # Location filter
+    if locations.present? && !locations.include?('All Locations')
       location_ids = Location.where(name: locations).pluck(:location_id)
-      
-      bottle_ids = GeneralInventory.where(location_id: location_ids)
-                                  .pluck(:gn_identifier)
-                                  .uniq
-      
-      @records = @records.where(gn_identifier: bottle_ids)
-      Rails.logger.info ">>> After location filter: #{@records.count} records"
+      bottle_ids = GeneralInventory.where(location_id: location_ids).pluck(:gn_identifier).uniq
+      if bottle_ids.present?
+        @records = @records.where(gn_identifier: bottle_ids)
+      else
+        @records = Prepack.none
+      end
     end
 
-    # Get all prepack bottle IDs for damages query
-    prepack_bottle_ids = @records.pluck(:bottle_id).uniq
-    
-    # Get damages for all bottles in one query
-    damages_by_bottle = Damage.where(general_inventory_id: prepack_bottle_ids)
-                            .where(damage_date: start_date..end_date)
-                            .group(:general_inventory_id)
-                            .sum(:quantity)
+    @records ||= Prepack.none
 
-    # Calculate totals for the report
+    # Collect ids
+    prepack_ids = @records.pluck(:id)
+
+    # Get damages
+    damage_records =
+      if prepack_ids.present?
+        Damage.where(prepack_id: prepack_ids)
+              .where(damage_date: start_date..end_date)
+              .group(:prepack_id)
+              .sum(:quantity)
+      else
+        {}
+      end
+
+    # Totals initialization
     @total_packs = 0
     @total_dispensed = 0
     @total_damaged = 0
     @total_quantity = 0
-    
-    # Load records as array for iteration
-    @prepacks = @records.to_a
-    
+    @total_original_packs = 0
+
+    # Ensure array
+    @prepacks = @records.to_a || []
+
+    Rails.logger.info ">>> Iterating over #{@prepacks.length} prepacks"
+
     @prepacks.each do |prepack|
-      dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
-      damages_count = damages_by_bottle[prepack.bottle_id] || 0
-      
-      # Store damages_count on the prepack object for use in view
+      dispensed_count = prepack.prepack_labels.where(
+        dispensed: true,
+        deleted: false,
+        voided: false
+      ).count rescue 0
+
+      damages_count = damage_records[prepack.id].to_i
       prepack.instance_variable_set(:@damages_count, damages_count)
-      
-      @total_packs += prepack.num_packs
-      @total_dispensed += dispensed_count
-      @total_damaged += damages_count
-      @total_quantity += prepack.quantity_per_pack * prepack.num_packs
+
+      original_packs_for_this_prepack = prepack.num_packs + damages_count
+
+      @total_packs += prepack.num_packs.to_i
+      @total_dispensed += dispensed_count.to_i
+      @total_damaged += damages_count.to_i
+      @total_quantity += (prepack.quantity_per_pack.to_i * prepack.num_packs.to_i)
+      @total_original_packs += original_packs_for_this_prepack.to_i
     end
-    
-    @total_remaining = @total_packs - @total_dispensed - @total_damaged
+
+    @total_remaining = @total_original_packs - @total_dispensed - @total_damaged - @total_damaged
 
     render 'list', layout: 'application'
+  rescue => e
+
+    raise
   end
 
   private
@@ -282,7 +290,7 @@ class PrepackLabelsController < ApplicationController
         bottle_id: prepack.bottle_id,
         gn_identifier: prepack.gn_identifier,
         drug_name: prepack.drug.name,
-        total_packs_created: prepack.num_packs,
+        total_packs_created: prepack.current_num_packs,
         quantity_per_pack: prepack.quantity_per_pack,
         packs_remaining: labels.where(dispensed: false).count,
         packs_dispensed: labels.where(dispensed: true).count,

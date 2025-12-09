@@ -61,7 +61,7 @@ class DispensationController < ApplicationController
               quantity: prepack.quantity_per_pack,
               dispensation_date: Time.current,
               dispensed_by: User.current.id,
-              location_id: item.location_id  # Use item's location, not session
+              location_id: item.location_id
             )
 
             flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
@@ -78,7 +78,6 @@ class DispensationController < ApplicationController
     end
 
     # Continue with normal bottle dispensing flow
-    # FIXED: Check if session[:location] exists first
     if session[:location].blank?
       flash[:errors] = "Location is not set. Please select a location first."
       redirect_to return_path and return
@@ -139,7 +138,8 @@ class DispensationController < ApplicationController
             directions:       directions,
             prepacked_by_id:  User.current.id,
             pack_identifier:  SecureRandom.uuid,
-            location_id:      session[:location]
+            location_id:      session[:location],
+            current_num_packs: num_packs
           )
 
           last_label = PrepackLabel

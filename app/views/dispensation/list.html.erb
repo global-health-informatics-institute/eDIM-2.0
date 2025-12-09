@@ -1,119 +1,397 @@
 <%= javascript_include_tag 'jquery.dataTables.min.js' %>
 
-<style type="text/css">
-  .even {
-    background-color: #CCCCCC !important;
-  }
-  th, td {
-    font-size: 1.7em;
-    text-align: center;
-    vertical-align: middle;
-  }
-  .footer {
-    margin-top: 20px;
-    text-align: right;
-    padding: 12px;
-  }
-  .nav-bttn.green {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.1em;
-  }
-  .nav-bttn.green:hover {
-    background: #218838;
-  }
-  .nav-bttn.red {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.1em;
-  }
-  .nav-bttn.red:hover {
-    background: #c82333;
-  }
-</style>
-
 <script type="text/javascript">
+  function debounce(fn, wait) {
+    let t;
+    return function(...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
   $(document).ready(function() {
-    setTimeout(function() {
-      $('#dispensationTable').DataTable({
-        "bLengthChange": false,
-        "bDestroy": true,
-        "pageLength": 10,
-        "scrollX": true,
-        "autoWidth": false,
-        "language": {
-          "search": "Search",
-          "zeroRecords": "Nothing found",
-          "info": "Page _PAGE_ of _PAGES_",
-          "infoEmpty": "No records available",
-          "infoFiltered": "(filtered from _MAX_ total records)",
-          "oPaginate": { "sNext": "Next", "sPrevious": "Previous" }
-        },
-        "columnDefs": [
-          { "width": "5%", "targets": 0 },
-          { "width": "25%", "targets": 1 },
-          { "width": "15%", "targets": 2 },
-          { "width": "20%", "targets": 3 },
-          { "width": "20%", "targets": 4 },
-          { "width": "15%", "targets": 5 }
-        ]
+    const table = $('#dispensationTable').DataTable({
+      "bLengthChange": false,
+      "bDestroy": true,
+      "pageLength": 10,
+      "responsive": true,
+      "paging": true,
+      "pagingType": "full_numbers",
+      "autoWidth": false,
+      "language": {
+        "search": "Search:",
+        "zeroRecords": "No matching records found",
+        "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+        "infoEmpty": "No records available",
+        "infoFiltered": "(filtered from _MAX_ total entries)",
+        "oPaginate": {
+          "sNext": "Next",
+          "sPrevious": "Previous"
+        }
+      },
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "25%", "targets": 1 },
+        { "width": "15%", "targets": 2 },
+        { "width": "20%", "targets": 3 },
+        { "width": "20%", "targets": 4 },
+        { "width": "15%", "targets": 5 }
+      ],
+      "order": [[5, 'desc']], // Sort by date descending
+      "initComplete": function() {
+        // Remove any DataTables default styling conflicts
+        $('.dataTables_wrapper').css('background', 'transparent');
+        
+        // Style search box with larger font
+        $('.dataTables_wrapper .dataTables_filter label').css({
+          'font-size': '1.4rem',
+          'font-weight': '600',
+          'color': '#06425C',
+          'margin-bottom': '10px'
+        });
+        
+        const searchInput = $('.dataTables_wrapper .dataTables_filter input');
+        searchInput.css({
+          'border': '2px solid #d1d5db',
+          'border-radius': '8px',
+          'padding': '12px 15px',
+          'background': 'white',
+          'font-size': '1.3rem',
+          'width': '300px',
+          'margin-left': '10px'
+        });
+        
+        // Set focus to search input immediately
+        searchInput.focus();
+        
+        // Style pagination buttons
+        $('.dataTables_paginate .paginate_button').css({
+          'font-size': '1.3rem',
+          'padding': '10px 18px',
+          'margin': '0 5px',
+          'padding-top': '16px',
+        });
+        
+        // Style info text
+        $('.dataTables_info').css({
+          'font-size': '1.3rem',
+          'color': '#06425C',
+          'font-weight': '500',
+          'padding-left': '4px',
+        });
+        
+        // Search-as-you-type
+        searchInput.off('keyup').on('keyup', function() {
+          table.search(this.value).draw();
+        });
+      }
+    });
+
+    const adjustTable = debounce(() => {
+      table.columns.adjust().responsive.recalc();
+    }, 150);
+
+    window.addEventListener('resize', adjustTable);
+    window.addEventListener('orientationchange', adjustTable);
+    
+    const container = document.querySelector('#dispensationTable').parentElement;
+    const resizeObserver = new ResizeObserver(adjustTable);
+    resizeObserver.observe(container);
+
+    setTimeout(() => table.columns.adjust().responsive.recalc(), 50);
+    
+    // CONSTANT FOCUS MANAGEMENT
+    // Set focus to search input on page load
+    setTimeout(() => {
+      $('.dataTables_filter input').focus();
+    }, 100);
+    
+    // Re-focus on search input whenever user clicks anywhere else
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('.dataTables_filter input').length) {
+        setTimeout(() => {
+          $('.dataTables_filter input').focus();
+        }, 50);
+      }
+    });
+    
+    // Keep focus on search input even after DataTable redraws
+    table.on('draw', function() {
+      setTimeout(() => {
+        $('.dataTables_filter input').focus();
+      }, 50);
+    });
+    
+    // Visual indicator when search input has focus
+    $('.dataTables_filter input')
+      .focus(function() {
+        $(this).css({
+          'border-color': '#006495',
+          'box-shadow': '0 0 0 3px rgba(0, 100, 149, 0.2)',
+          'outline': 'none'
+        });
+      })
+      .blur(function() {
+        $(this).css({
+          'border-color': '#d1d5db',
+          'box-shadow': 'none'
+        });
       });
-    }, 50);
   });
 </script>
 
-<!-- Page header -->
-<div style="height: 6vh; border: 1px inset black; border-width: 0px 0px 3px 0px;">
-  <h1 style="margin-left: 0.5vw;">
-    <%= @report_type.titleize %>
-  </h1>
-</div>
+<!-- MAIN CONTAINER -->
+<div style="background: white; border-radius: 12px; padding: 20px; margin: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
 
-<!-- Table container -->
-<div style="height: 78vh; overflow: auto; width: 99vw; margin-left: auto; margin-right: auto;">
-  <table id="dispensationTable" class="table table-striped table-bordered" style="width: 98.5vw;" cellspacing="0">
-    <thead>
-      <tr style="height: 60px;">
-        <th>#</th>
-        <th>Drug</th>
-        <th>Quantity</th>
-        <th>Patient</th>
-        <th>Dispensed By</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% (@records || []).each_with_index do |d, index| %>
-        <tr style="height: 70px;">
-          <td><%= index + 1 %></td>
-          <td><%= d.drug_name %></td>
-          <td style="text-align:right;"><%= number_with_delimiter(d.quantity) %></td>
-          <td><%= d.patient&.full_name || 'Unknown' %></td>
-          <td><%= d.dispensed_by_name %></td>
-          <td><%= l(d.dispensation_date, format: '%d %B %Y') %></td>
-        </tr>
+  <div style="height: auto; border-bottom: 3px solid #06425C; padding-bottom: 15px; margin-bottom: 20px;">
+    <h1 style="color: #06425C; margin: 0 0 15px 0; font-size: 1.8rem;">
+      <%= @report_type.titleize %>
+    </h1>
+    
+    <!-- Summary Statistics -->
+    <% if defined?(@summary_stats) && @summary_stats %>
+    <div style="display: flex; justify-content: space-around; margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 1px solid #dee2e6;">
+      <% @summary_stats.each do |stat| %>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;"><%= stat[:label] %></div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: <%= stat[:color] || '#006495' %>;"><%= stat[:value] %></div>
+      </div>
       <% end %>
-    </tbody>
-  </table>
+    </div>
+    <% end %>
+  </div>
+
+  <!-- Table Container -->
+<div class="table-container" 
+     style="background: white; border: 1px solid #dee2e6;
+            border-radius: 8px; overflow: auto; height: 100vh;">
+    <table id="dispensationTable" class="display" style="width: 100%; background: white; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">#</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Drug</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Quantity</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Patient</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed By</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Date</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @records&.any? %>
+          <% @records.each_with_index do |d, index| %>
+            <% 
+              # Alternate row colors
+              row_class = cycle('even', 'odd')
+            %>
+            <tr style="background: <%= row_class == 'even' ? '#ffffff' : '#f8fafc' %>;">
+              <!-- # Column -->
+              <td style="padding: 12px 10px; font-size:1.4rem; border-bottom: 1px solid #e5e7eb; background-color: #f8fafc; border-right: 1px solid #e5e7eb; text-align: center;">
+                <%= index + 1 %>
+              </td>
+              
+              <!-- Drug Column -->
+              <td style="padding: 12px 10px; font-size:1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
+                <%= d.drug_name %>
+              </td>
+              
+              <!-- Quantity Column -->
+              <td style="padding: 12px 10px; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size:1.4rem; background-color: #f0fff4; border-right: 1px solid #e5e7eb;">
+                <%= number_with_delimiter(d.quantity) %>
+              </td>
+              
+              <!-- Patient Column -->
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f8fafc; border-right: 1px solid #e5e7eb;">
+                <%= d.patient&.full_name || 'Unknown' %>
+              </td>
+              
+              <!-- Dispensed By Column -->
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
+                <%= d.dispensed_by_name %>
+              </td>
+              
+              <!-- Date Column -->
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f8fafc; text-align: center;">
+                <%= l(d.dispensation_date, format: '%d %B %Y') %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 50px; background: #f8fafc;">
+              <div style="color: #6b7280; font-size: 1.5rem; margin-bottom: 10px;">
+                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
+                No dispensation records found.
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
-<!-- Footer buttons -->
-<div class="footer">
-  <!-- Cancel button far left -->
-  <button onmousedown="window.location='/'" class="nav-bttn red" style="margin-left: 1vw; float: left;">
-    Cancel
+<!-- FOOTER -->
+<div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
+  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
+    Back
   </button>
-
-  <!-- Finish button far right -->
-  <button onmousedown="window.location='/'" class="nav-bttn green" style="margin-right: 1vw; float: right;">
-    <%= t('forms.buttons.finish') %>
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 2vw; float: right; font-size: 2rem;">
+    Home
   </button>
 </div>
+
+<style>
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+}
+/* Override DataTables default styling */
+.dataTables_wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  border: 2px solid #d1d5db !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  background: white !important;
+  margin-bottom: 15px !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  border: 1px solid #d1d5db !important;
+  background: white !important;
+  color: #374151 !important;
+  border-radius: 4px !important;
+  margin: 0 2px !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #006495 !important;
+  color: white !important;
+  border-color: #006495 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #f3f4f6 !important;
+  border-color: #9ca3af !important;
+}
+
+/* Table row hover effect */
+#dispensationTable tbody tr:hover {
+  background-color: #e8f4fe !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 100, 149, 0.1);
+}
+
+/* Column-specific hover effects */
+#dispensationTable tbody tr:hover td:nth-child(1) {
+  background-color: #e8e8e8 !important;
+}
+
+#dispensationTable tbody tr:hover td:nth-child(2) {
+  background-color: #d8ecff !important;
+}
+
+#dispensationTable tbody tr:hover td:nth-child(3) {
+  background-color: #d8f5e3 !important;
+}
+
+#dispensationTable tbody tr:hover td:nth-child(4) {
+  background-color: #e8e8e8 !important;
+}
+
+#dispensationTable tbody tr:hover td:nth-child(5) {
+  background-color: #d8ecff !important;
+}
+
+#dispensationTable tbody tr:hover td:nth-child(6) {
+  background-color: #e8e8e8 !important;
+}
+
+/* Print styles */
+@media print {
+  .footer, .nav-bttn, .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_paginate, .dataTables_wrapper .dataTables_info {
+    display: none !important;
+  }
+  
+  .table-container {
+    overflow: visible !important;
+    max-height: none !important;
+    border: none !important;
+  }
+  
+  #dispensationTable {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  #dispensationTable th {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  #dispensationTable td {
+    border: 1px solid #dee2e6 !important;
+    background-color: white !important; 
+  }
+}
+
+/* Ensure table is responsive */
+.table-container {
+  overflow-x: auto;
+  max-height: 64vh;
+}
+
+/* Button styles */
+.nav-bttn {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-bttn.red {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.nav-bttn.blue {
+  background: linear-gradient(135deg, #006495 0%, #004d73 100%);
+  color: white;
+}
+
+.nav-bttn.green {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: white;
+}
+
+.nav-bttn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-bttn:active {
+  transform: translateY(0);
+}
+</style>
+
+<%# Helper for alternating row colors %>
+<% def cycle(*values)
+  @cycle ||= -1
+  @cycle = (@cycle + 1) % values.size
+  values[@cycle]
+end %>

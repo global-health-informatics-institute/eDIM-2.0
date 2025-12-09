@@ -1,51 +1,40 @@
 <script>
-  var tt_cancel_destination = "/";
+    var tt_cancel_destination = "/";
 </script>
 
 <%= form_for :index, url: dispensation_list_path, method: :post do |f| %>
-  <div style="margin-bottom: 15px;">
-    <label for="reportDuration"><%= t('forms.labels.report_duration') %></label><br/>
-    <select id="reportDuration" name="report_duration">
-      <option></option>
-      <% report_options.each do |name, value| %>
-        <option value="<%= value %>" <%= 'selected' if params[:report_duration] == value %>><%= value %></option>
-      <% end %>
-    </select>
-  </div>
 
-  <div style="margin-bottom: 15px;">
-    <%= label_tag 'start_date', t('forms.labels.start_date') %><br/>
-    <%= text_field_tag 'start_date',
-          params[:start_date] || Date.today.strftime("%Y-%m-%d"),
-          id: 'startDate',
-          field_type: 'date',
-          maxDate: Date.today.to_date,
-          minDate: (Date.today - 20.years).to_date,
-          tt_pageStyleClass: "Date DatesOnly" %>
-  </div>
+  <select id="reportDuration" name="report_duration" helpText="<%= t('forms.labels.report_duration') %>">
+    <option></option>
+    <% report_options.each do |w| %>
+        <option value="<%= w[1] %>"><%= w[1] %></option>
+    <% end %>
+  </select>
 
-  <div style="margin-bottom: 15px;">
-    <%= label_tag 'end_date', t('forms.labels.end_date') %><br/>
-    <%= text_field_tag 'end_date',
-          params[:end_date] || Date.today.strftime("%Y-%m-%d"),
-          id: 'endDate',
-          field_type: 'date',
-          maxDate: Date.today.to_date,
-          minDate: (Date.today - 20.years).to_date,
-          condition: "$('reportDuration').value == '#{t('forms.options.range')}'",
-          tt_pageStyleClass: "Date DatesOnly" %>
-  </div>
+  <%= text_field_tag 'start_date', l(Date.today, format: "%Y-%m-%d"),
+                     id: 'startDate',
+                     field_type: 'date',
+                     helpText: t('forms.labels.start_date'),
+                     maxDate: Date.today.to_date,
+                     minDate: (Date.today - 20.year).to_date,
+                     tt_pageStyleClass: "Date DatesOnly" %>
 
-  <div style="margin-bottom: 15px;">
-    <%= label_tag 'locations', t('forms.labels.issue_locations') %><br/>
+  <%= text_field_tag 'end_date', Date.today.strftime("%Y-%m-%d"),
+                     id: 'endDate',
+                     field_type: 'date',
+                     helpText: t('forms.labels.end_date'),
+                     maxDate: Date.today.to_date,
+                     minDate: (Date.today - 20.year).to_date,
+                     condition: "$('reportDuration').value == '#{t('forms.options.range')}'",
+                     tt_pageStyleClass: "Date DatesOnly" %>
+
+  <% unless Location.find(session[:location]).name.downcase != 'backstore' %>
     <%= select_tag 'locations[]',
-          options_for_select(@locations || [], params[:locations]),
-          id: "locations",
-          multiple: true %>
-  </div>
+                   options_for_select(@locations, nil),
+                   id: "locations",
+                   helpText: t('forms.labels.issue_locations'),
+                   multiple: true %>
+  <% end %>
 
-  <div style="margin-top: 20px;">
-    <%= f.submit t('forms.buttons.generate_report'), class: 'btn btn-primary' %>
-    <%= button_tag t('forms.buttons.cancel'), type: 'button', onclick: "window.location='/'", class: 'btn btn-secondary' %>
-  </div>
+  <%= submit_tag t('forms.buttons.generate_report'), class: "nav-bttn green" %>
 <% end %>

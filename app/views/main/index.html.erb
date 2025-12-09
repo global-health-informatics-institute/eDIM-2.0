@@ -88,7 +88,7 @@ function focusBarcodeInputImmediate() {
   }
 }
 
-// --- Initialize the scanner (event-based instead of timer polling) ---
+// initialization of the scanner
 function initializeBarcodeListener() {
   barcodeInput = document.getElementById("barcode");
   if (!barcodeInput) return;
@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
 
 /* Info Section */
 .info-section-modern {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .info-table {

@@ -1,4 +1,3 @@
-
 <%= javascript_include_tag 'jquery.dataTables.min.js' %>
 <style type="text/css">
   .even{
@@ -80,7 +79,7 @@
           <td style="text-align: center;">
             <div style="display: table-cell;min-width: 8vw; vertical-align: middle;">
               <img  style="width: 48px; height: 48px; padding-top: 1px;" src="/assets/damage.png" title="Record Damage"
-                  onmousedown="openDamageModal(<%= item.id %>)">
+                  onmousedown="openStyledDamageModal(<%= item.id %>, '<%= @drug.name.titleize %>', '<%= Misc.dash_formatter(item.gn_identifier) %>', <%= item.current_quantity %>)">
             </div>
 
             <div style="display: table-cell;min-width: 8vw;">
@@ -106,23 +105,144 @@
     </tbody>
   </table>
 
+  <!-- DAMAGE MODAL -->
+  <div id="styledDamageModal" 
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+              z-index:9999; align-items:center; justify-content:center;
+              opacity:0; transition:opacity 0.25s ease;">
+    
+    <div id="styledDamageModalContent"
+        style="width:550px; background:#fff; padding:28px; border-radius:14px;
+                box-shadow:0 12px 40px rgba(0,0,0,0.25); transform:scale(0.92);
+                transition:transform 0.25s ease;">
+      
+      <!-- Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <h2 style="margin:0; font-size:1.6rem; color:#d9534f; font-weight:700;">
+          Record Damage
+        </h2>
+        <img src="/assets/damage.png" 
+            style="width:56px; height:56px; object-fit:contain;">
+      </div>
+
+      <!-- Drug info -->
+      <div style="background:#f1f3f5; border:1px solid #d7dde3; padding:14px; 
+                  border-radius:10px; margin-bottom:24px;">
+        <p style="margin:0; font-size:1.3rem; font-weight:600;">
+          Drug: <span id="styledDamageDrugName" style="color:#006495;"></span>
+        </p>
+        <p style="margin:4px 0 0 0; font-size:1.1rem; color:#666;">
+          Inventory #: <span id="styledDamageInventoryNumber" style="font-weight:600;"></span>
+        </p>
+        <p style="margin:4px 0 0 0; font-size:1.1rem; color:#666;">
+          Max Available: <span id="styledDamageMaxQuantity" style="font-weight:600;"></span>
+        </p>
+      </div>
+
+      <!-- Quantity -->
+      <div style="margin-bottom:18px; width:100%;">
+        <label style="display:block; margin-bottom:8px; font-size:1.5rem; font-weight:600;">
+          Quantity Damaged
+        </label>
+        
+        <div style="display:flex; align-items:center; gap:8px; width:100%;">
+          <input type="number" 
+                id="styled_damage_qty" 
+                min="1" 
+                value="1"
+                style="flex:1; min-width:60px; max-width:120px; padding:12px; font-size:1.5rem;
+                        border-radius:8px; border:2px solid #d0d7de; outline:none; 
+                        text-align:center; box-sizing:border-box;
+                        -moz-appearance:textfield; appearance:textfield;"
+                onfocus="this.style.borderColor='#006495'"
+                onblur="this.style.borderColor='#d0d7de'">
+
+          <button type="button" id="styledDamageDecreaseBtn"
+                  style="width:50px; height:55px; border:none; border-radius:10px;
+                        background:#f8f9fa; color:#dc3545; font-size:2rem; font-weight:bold;
+                        cursor:pointer; display:flex; align-items:center; justify-content:center;
+                        box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:0 0 auto;">−</button>
+
+          <button type="button" id="styledDamageIncreaseBtn"
+                  style="width:50px; height:55px; border:none; border-radius:10px;
+                        background:#f8f9fa; color:#28a745; font-size:2rem; font-weight:bold;
+                        cursor:pointer; display:flex; align-items:center; justify-content:center;
+                        box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:0 0 auto;">+</button>
+
+          <button type="button" id="styledDamageClearBtn"
+                  style="width:65px; height:55px; border:none; border-radius:10px;
+                        background:#f8f9fa; color:#6c757d; font-size:1.3rem; font-weight:600;
+                        cursor:pointer; display:flex; align-items:center; justify-content:center;
+                        box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:0 0 auto;">Clear</button>
+        </div>
+
+        <div style="text-align:center; margin-top:8px;">
+          <span style="font-size:1.1rem; color:#6c757d; font-style:italic;">
+            Tap and hold +/− for fast counting
+          </span>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div style="margin-bottom:24px; width:100%;">
+        <label style="display:block; margin-bottom:8px; font-size:1.2rem; font-weight:600;">
+          Reason
+        </label>
+        <select id="styled_damage_reason"
+                style="width:100%; padding:12px; font-size:1.5rem; border-radius:8px;
+                      border:2px solid #d0d7de; outline:none;
+                      transition:border-color 0.2s ease;"
+                onfocus="this.style.borderColor='#006495'"
+                onblur="this.style.borderColor='#d0d7de'">
+          <option value="broken">Broken / Dropped</option>
+          <option value="expired">Expired</option>
+          <option value="contaminated">Contaminated</option>
+          <option value="damaged_packaging">Damaged Packaging</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display:flex; justify-content:flex-start; gap:16px;">
+        <button onclick="submitStyledDamage()"
+                style="padding:12px 22px; border:none; border-radius:8px;
+                      background:#d9534f; color:#fff; font-size:1.25rem; font-weight:600;
+                      cursor:pointer; transition:all 0.2s ease;
+                      display:flex; align-items:center; justify-content:center;
+                      line-height:1.2; text-align:center;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
+          Log Damage
+        </button>
+
+        <button onclick="closeStyledDamageModal()"
+                style="padding:12px 22px; border:none; border-radius:8px;
+                      background:#6c757d; color:#fff; font-size:1.15rem; font-weight:600;
+                      cursor:pointer; transition:all 0.2s ease;
+                      display:flex; align-items:center; justify-content:center;
+                      line-height:1.2; text-align:center;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL  -->
   <div id="damageModal" 
-     style="display:none; position:fixed; top:20vh; left:25vw; width:50vw; 
-            background:white; border:3px solid #000; padding:2vw; z-index:9999;">
-
-  <h2>Record Damage</h2>
-
-  <label>Quantity:</label><br>
-  <input type="number" id="damage_qty" min="1" style="width: 15vw;"><br><br>
-
-  <label>Reason:</label><br>
-  <input type="text" id="damage_reason" style="width: 30vw;"><br><br>
-
-  <button class="nav-bttn green" onmousedown="submitDamage()">Save</button>
-  <button class="nav-bttn red" onmousedown="closeDamageModal()">Cancel</button>
-
-  <input type="hidden" id="damage_item_id">
-</div>
+       style="display:none; position:fixed; top:20vh; left:25vw; width:50vw; 
+              background:white; border:3px solid #000; padding:2vw; z-index:9999;">
+    <h2>Record Damage</h2>
+    <label>Quantity:</label><br>
+    <input type="number" id="damage_qty" min="1" style="width: 15vw;"><br><br>
+    <label>Reason:</label><br>
+    <input type="text" id="damage_reason" style="width: 30vw;"><br><br>
+    <button class="nav-bttn green" onmousedown="submitDamage()">Save</button>
+    <button class="nav-bttn red" onmousedown="closeDamageModal()">Cancel</button>
+    <input type="hidden" id="damage_item_id">
+  </div>
 
 </div>
 
@@ -140,16 +260,14 @@
 </div>
 
 <div id="keypad">
-          <span class="keypad">
-          </span>
-
+  <span class="keypad"></span>
 </div>
+
 <%= form_for :general_inventory, :url => "/general_inventory/merge"  do |f| %>
     <input type="hidden" name="bottle_ids" id="bottle_ids" value=""/>
 <% end %>
 
 <script type="text/javascript">
-
   function merge()
   {
     var choices = [];
@@ -173,32 +291,542 @@
   {
     document.forms[0].submit();
   }
+
+  // DAMAGE MODAL FUNCTIONS
+  function openStyledDamageModal(itemId, drugName, inventoryNumber, maxQuantity) {
+    // Set modal data
+    document.getElementById("styledDamageDrugName").textContent = drugName || '';
+    document.getElementById("styledDamageInventoryNumber").textContent = inventoryNumber || '';
+    document.getElementById("styledDamageMaxQuantity").textContent = maxQuantity || 'N/A';
+    
+    // Set max quantity if provided
+    const qtyInput = document.getElementById('styled_damage_qty');
+    if (maxQuantity) {
+      qtyInput.max = maxQuantity;
+      qtyInput.setAttribute('max', maxQuantity);
+    }
+    
+    // Store item ID in a data attribute
+    qtyInput.setAttribute('data-item-id', itemId);
+    
+    // Show modal with animation
+    const modal = document.getElementById('styledDamageModal');
+    const content = document.getElementById('styledDamageModalContent');
+    
+    modal.style.display = 'flex';
+    setTimeout(() => {
+      modal.style.opacity = '1';
+      content.style.transform = 'scale(1)';
+    }, 10);
+    
+    // Setup quantity controls
+    setupStyledDamageModalQuantityControls();
+    
+    // Focus on quantity input
+    setTimeout(() => {
+      qtyInput.focus();
+      qtyInput.select();
+    }, 100);
+  }
+
+function submitStyledDamage() {
+  const qtyInput = document.getElementById('styled_damage_qty');
+  const itemId = qtyInput.getAttribute('data-item-id');
+  const qty = qtyInput.value;
+  const reason = document.getElementById('styled_damage_reason').value;
+  const drugName = document.getElementById('styledDamageDrugName').textContent;
+
+  if (!itemId) {
+    alert("Error: Item ID not found");
+    return;
+  }
+
+  if (!qty || qty <= 0) {
+    alert("Please enter a valid quantity greater than 0");
+    return;
+  }
+
+  if (!reason) {
+    alert("Please select a reason for the damage");
+    return;
+  }
+
+  // Check if quantity exceeds max
+  const maxQty = parseInt(qtyInput.max, 10);
+  if (!isNaN(maxQty) && parseInt(qty, 10) > maxQty) {
+    alert(`Quantity cannot exceed maximum available: ${maxQty}`);
+    return;
+  }
+
+  // Close the damage modal first, then show confirmation
+  closeStyledDamageModal();
   
-// Damage Modal Functions
-function openDamageModal(id) {
-  document.getElementById("damage_item_id").value = id;
-  document.getElementById("damageModal").style.display = 'block';
+  // Small delay to ensure modal is closed, then show confirmation
+  setTimeout(() => {
+    showConfirmationModal(qty, drugName, reason, itemId);
+  }, 300);
 }
 
-function closeDamageModal() {
-  document.getElementById("damageModal").style.display = 'none';
+// Show confirmation modal before submitting
+function showConfirmationModal(quantity, drugName, reason, itemId) {
+  // Create confirmation modal
+  const confirmationModal = document.createElement('div');
+  confirmationModal.id = 'confirmationModal';
+  confirmationModal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  `;
+
+  confirmationModal.innerHTML = `
+    <div id="confirmationModalContent"
+         style="
+      width: 500px;
+      background: #fff;
+      padding: 28px;
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      transform: scale(0.92);
+      transition: transform 0.25s ease;
+    ">
+      <!-- Header -->
+      <div style="display:flex; justify-content:center; align-items:center; margin-bottom:20px;">
+        <h2 style="margin:0; font-size:1.8rem; color:#d9534f; font-weight:700; text-align:center;">
+          Confirm Damage Report
+        </h2>
+      </div>
+
+      <!-- Message -->
+      <div style="
+        background: #f1f3f5;
+        border: 1px solid #d7dde3;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 28px;
+        text-align: center;
+        font-size: 1.4rem;
+        line-height: 1.5;
+      ">
+        <p style="margin:0; font-weight:600;">
+          Report <span style="color:#d9534f; font-size:1.6rem;">${quantity}</span> units of
+        </p>
+        <p style="margin:10px 0 0 0; color:#006495; font-size:1.5rem; font-weight:600;">
+          ${drugName}
+        </p>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display:flex; justify-content:center; gap:16px;">
+        <button onclick="processDamageSubmission(${itemId}, ${quantity}, '${reason}')"
+                style="
+                  padding: 14px 28px;
+                  border: none;
+                  border-radius: 8px;
+                  background: #28a745;
+                  color: #fff;
+                  font-size: 1.3rem;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                  min-width: 140px;
+                  height: 55px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  line-height: 1;
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#218838'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.background='#28a745'">
+          OKAY
+        </button>
+        
+        <button onclick="closeConfirmationModalAndReopenDamageModal()"
+                style="
+                  padding: 14px 28px;
+                  border: none;
+                  border-radius: 8px;
+                  background: #6c757d;
+                  color: #fff;
+                  font-size: 1.3rem;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                  min-width: 140px;
+                  height: 55px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  line-height: 1;
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
+          CANCEL
+        </button>
+      </div>
+      </div>
+    </div>
+  `;
+
+  // Add to page
+  document.body.appendChild(confirmationModal);
+  
+  // Animate in
+  setTimeout(() => {
+    confirmationModal.style.opacity = '1';
+    const modalContent = document.getElementById('confirmationModalContent');
+    modalContent.style.transform = 'scale(1)';
+  }, 10);
 }
 
-function submitDamage() {
-  var id = document.getElementById("damage_item_id").value;
-  var qty = document.getElementById("damage_qty").value;
-  var reason = document.getElementById("damage_reason").value;
+// Close confirmation modal and reopen damage modal
+function closeConfirmationModalAndReopenDamageModal() {
+  const confirmationModal = document.getElementById('confirmationModal');
+  if (confirmationModal) {
+    confirmationModal.style.opacity = '0';
+    const modalContent = document.getElementById('confirmationModalContent');
+    modalContent.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+      if (confirmationModal.parentNode) {
+        confirmationModal.parentNode.removeChild(confirmationModal);
+      }
+      // Reopen the damage modal with preserved values
+      reopenStyledDamageModal();
+    }, 300);
+  }
+}
 
-  $.post(`/general_inventory/${id}/damage_item`, 
-    { quantity: qty, reason: reason }, 
+// Reopen the damage modal with preserved values
+function reopenStyledDamageModal() {
+  // We need to preserve the original values
+  const qtyInput = document.getElementById('styled_damage_qty');
+  const reasonSelect = document.getElementById('styled_damage_reason');
+  
+  // Store current values before reopening
+  const currentQty = qtyInput.value;
+  const currentReason = reasonSelect.value;
+  const itemId = qtyInput.getAttribute('data-item-id');
+  const drugName = document.getElementById('styledDamageDrugName').textContent;
+  const inventoryNumber = document.getElementById('styledDamageInventoryNumber').textContent;
+  const maxQuantity = document.getElementById('styledDamageMaxQuantity').textContent;
+  
+  // Reopen modal with preserved values
+  const modal = document.getElementById('styledDamageModal');
+  const content = document.getElementById('styledDamageModalContent');
+  
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.style.opacity = '1';
+    content.style.transform = 'scale(1)';
+  }, 10);
+  
+  // Restore values
+  qtyInput.value = currentQty;
+  reasonSelect.value = currentReason;
+  
+  // Setup quantity controls
+  setupStyledDamageModalQuantityControls();
+  
+  // Focus on quantity input
+  setTimeout(() => {
+    qtyInput.focus();
+    qtyInput.select();
+  }, 100);
+}
+
+// Close confirmation modal (without reopening damage modal)
+function closeConfirmationModal() {
+  const confirmationModal = document.getElementById('confirmationModal');
+  if (confirmationModal) {
+    confirmationModal.style.opacity = '0';
+    const modalContent = document.getElementById('confirmationModalContent');
+    if (modalContent) {
+      modalContent.style.transform = 'scale(0.9)';
+    }
+    
+    setTimeout(() => {
+      if (confirmationModal.parentNode) {
+        confirmationModal.parentNode.removeChild(confirmationModal);
+      }
+    }, 300);
+  }
+}
+
+// Process the actual damage submission after confirmation
+function processDamageSubmission(itemId, quantity, reason) {
+  // Close confirmation modal
+  closeConfirmationModal();
+  
+  // Prepare data
+  var postData = { 
+    quantity: quantity, 
+    reason: reason,
+    damage_type: 'bottle' 
+  };
+
+  // Show "processing" notification
+  showProcessingNotification();
+
+  $.post(`/general_inventory/${itemId}/damage_item`, 
+    postData, 
     function(resp) {
+      // Remove processing notification
+      removeProcessingNotification();
+      
       if (resp.success) {
-        alert("Damage recorded successfully");
-        location.reload();
+        // Show success message
+        showSuccessNotification("Damage Recorded Successfully!");
+        
+        // Reload after delay
+        setTimeout(() => {
+          location.reload();
+        }, 2500);
       } else {
-        alert(resp.message);
+        alert(resp.message || "An error occurred");
       }
     }
-  );
+  ).fail(function(xhr, status, error) {
+    // Remove processing notification
+    removeProcessingNotification();
+    
+    alert("An error occurred while submitting the damage.");
+    console.error("Damage submission error:", error);
+  });
 }
+
+// Show processing notification
+function showProcessingNotification() {
+  const processingNotification = document.createElement('div');
+  processingNotification.id = 'processing-notification';
+  processingNotification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    z-index: 10002;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+  `;
+  processingNotification.innerHTML = `
+    <div style="margin-bottom: 10px; font-size: 2.5rem;">⏳</div>
+    Processing...
+  `;
+  
+  document.body.appendChild(processingNotification);
+}
+
+// Remove processing notification
+function removeProcessingNotification() {
+  const processingNotification = document.getElementById('processing-notification');
+  if (processingNotification && processingNotification.parentNode) {
+    processingNotification.parentNode.removeChild(processingNotification);
+  }
+}
+
+// Helper function to show success notification without blocking
+function showSuccessNotification(message) {
+  // Remove any existing notification
+  const existingNotification = document.getElementById('success-notification');
+  if (existingNotification) {
+    existingNotification.parentNode.removeChild(existingNotification);
+  }
+
+  // Create a notification div
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #28a745;
+    color: white;
+    padding: 30px 50px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    z-index: 10003;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    min-width: 400px;
+    max-width: 600px;
+    border: 4px solid rgba(255,255,255,0.3);
+    animation: fadeIn 0.3s ease-out;
+  `;
+  notification.textContent = message;
+  notification.id = 'success-notification';
+  
+  // Add checkmark
+  const checkmark = document.createElement('div');
+  checkmark.style.cssText = `
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+  `;
+  checkmark.textContent = '✓';
+  notification.insertBefore(checkmark, notification.firstChild);
+  
+  // Add to page
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 2.3 seconds (just before page reloads)
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+      notification.style.transition = 'all 0.3s ease-out';
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
+  }, 2300);
+}
+
+  function closeStyledDamageModal() {
+    const modal = document.getElementById('styledDamageModal');
+    const content = document.getElementById('styledDamageModalContent');
+    
+    // Animate out
+    modal.style.opacity = '0';
+    content.style.transform = 'scale(0.9)';
+    
+    // Remove after animation
+    setTimeout(() => {
+      modal.style.display = 'none';
+      // Reset form
+      document.getElementById('styled_damage_qty').value = '1';
+      document.getElementById('styled_damage_reason').value = 'broken';
+    }, 300);
+  }
+
+  // Quantity controls for the modal
+  function setupStyledDamageModalQuantityControls() {
+    const input = document.getElementById('styled_damage_qty');
+    const increaseBtn = document.getElementById('styledDamageIncreaseBtn');
+    const decreaseBtn = document.getElementById('styledDamageDecreaseBtn');
+    const clearBtn = document.getElementById('styledDamageClearBtn');
+
+    if (!input || !increaseBtn || !decreaseBtn || !clearBtn) return;
+
+    let holdTimeout = null;
+    let repeatTimeout = null;
+    let isHolding = false;
+    let holdDirection = 0;
+
+    // Adjust quantity
+    function adjustStyledDamageQuantity(amount) {
+      if (!input) return;
+
+      let current = parseInt(input.value, 10);
+      if (isNaN(current)) current = 0;
+
+      let max = parseInt(input.max, 10);
+      if (isNaN(max)) max = Infinity;
+
+      let min = parseInt(input.min, 10);
+      if (isNaN(min)) min = 1;
+
+      let newValue = current + amount;
+
+      if (newValue < min) newValue = min;
+      if (newValue > max) newValue = max;
+
+      input.value = newValue;
+    }
+
+    // HOLD ENGINE
+    function startPress(direction) {
+      holdDirection = direction;
+      holdTimeout = setTimeout(() => {
+        isHolding = true;
+        repeatHold();
+      }, 180);
+    }
+
+    function repeatHold() {
+      if (!isHolding) return;
+      adjustStyledDamageQuantity(holdDirection);
+      repeatTimeout = setTimeout(repeatHold, 80);
+    }
+
+    function endPress() {
+      clearTimeout(holdTimeout);
+      clearTimeout(repeatTimeout);
+      const wasHold = isHolding;
+      isHolding = false;
+      return wasHold;
+    }
+
+    function bindButton(btn, delta) {
+      btn.addEventListener('mousedown', () => startPress(delta));
+      btn.addEventListener('mouseup', () => {
+        const held = endPress();
+        if (!held) adjustStyledDamageQuantity(delta);
+      });
+      btn.addEventListener('mouseleave', endPress);
+      btn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        startPress(delta);
+      });
+      btn.addEventListener('touchend', () => {
+        const held = endPress();
+        if (!held) adjustStyledDamageQuantity(delta);
+      });
+    }
+
+    bindButton(increaseBtn, +1);
+    bindButton(decreaseBtn, -1);
+
+    clearBtn.addEventListener('click', () => {
+      input.value = 1;
+    });
+  }
+
+  // Close modal on escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeStyledDamageModal();
+    }
+  });
+
+  // DAMAGE MODAL FUNCTIONS
+  function openDamageModal(id) {
+    document.getElementById("damage_item_id").value = id;
+    document.getElementById("damageModal").style.display = 'block';
+  }
+
+  function closeDamageModal() {
+    document.getElementById("damageModal").style.display = 'none';
+  }
+
+  function submitDamage() {
+    var id = document.getElementById("damage_item_id").value;
+    var qty = document.getElementById("damage_qty").value;
+    var reason = document.getElementById("damage_reason").value;
+
+    $.post(`/general_inventory/${id}/damage_item`, 
+      { quantity: qty, reason: reason }, 
+      function(resp) {
+        if (resp.success) {
+          alert("Damage recorded successfully");
+          location.reload();
+        } else {
+          alert(resp.message);
+        }
+      }
+    );
+  }
 </script>

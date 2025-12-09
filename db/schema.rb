@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_12_05_082801) do
+ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -375,9 +375,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_05_082801) do
     t.datetime "damage_date"
     t.string "gn_identifier"
     t.string "damage_type", default: "pack", null: false
+    t.bigint "prepack_id"
     t.index ["damage_type"], name: "index_damages_on_damage_type"
     t.index ["general_inventory_id"], name: "index_damages_on_general_inventory_id"
     t.index ["gn_identifier"], name: "index_damages_on_gn_identifier"
+    t.index ["prepack_id"], name: "index_damages_on_prepack_id"
   end
 
   create_table "deposits", primary_key: "deposit_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
@@ -1575,6 +1577,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_05_082801) do
     t.boolean "deleted", default: false
     t.boolean "voided", default: false
     t.integer "location_id"
+    t.integer "current_num_packs", default: 0, null: false
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
     t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
@@ -2252,6 +2255,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_05_082801) do
   add_foreign_key "concept_synonym", "users", column: "creator", primary_key: "user_id", name: "synonym_creator"
   add_foreign_key "concept_word", "concept", primary_key: "concept_id", name: "word_for"
   add_foreign_key "concept_word", "concept_name", primary_key: "concept_name_id", name: "word_for_name"
+  add_foreign_key "damages", "prepacks"
   add_foreign_key "district", "region", primary_key: "region_id", name: "region_for_district"
   add_foreign_key "district", "users", column: "creator", primary_key: "user_id", name: "user_who_created_district"
   add_foreign_key "district", "users", column: "retired_by", primary_key: "user_id", name: "user_who_retired_district"

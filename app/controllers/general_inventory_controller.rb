@@ -533,7 +533,6 @@ class GeneralInventoryController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
-
       if damage_type == "bottle"
         # Bottle damage
         if qty > item.current_quantity
@@ -543,7 +542,7 @@ class GeneralInventoryController < ApplicationController
         item.update!(current_quantity: item.current_quantity - qty)
 
       else
-        # Pack dammage
+        # Pack damage
         labels = PrepackLabel.where(
           prepack_id: prepack.id,
           voided: 0,
@@ -558,13 +557,20 @@ class GeneralInventoryController < ApplicationController
         # Void labels
         labels.update_all(voided: 1, updated_at: Time.current)
 
-        prepack.num_packs -= qty
-
-        # Reduce the total quantity based on pack size
+        # Calculate total units lost
         total_units_lost = prepack.quantity_per_pack * qty
-        prepack.total_quantity -= total_units_lost
-
-        prepack.save!
+        
+        current_num_packs_value = prepack.current_num_packs
+        
+        if current_num_packs_value == 0
+          current_num_packs_value = prepack.num_packs
+        end
+        
+        # Update all fields
+        prepack.update!(
+          current_num_packs: current_num_packs_value - qty,
+          total_quantity: prepack.total_quantity - total_units_lost
+        )
       end
 
       # Log the damage
@@ -576,7 +582,8 @@ class GeneralInventoryController < ApplicationController
         reported_by: User.current.id,
         location_id: session[:location] || User.current.location_id,
         damage_date: Time.current,
-        damage_type: damage_type
+        damage_type: damage_type,
+        prepack_id: prepack.id
       )
     end
 
