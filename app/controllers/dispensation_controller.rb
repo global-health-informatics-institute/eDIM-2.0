@@ -1,10 +1,5 @@
 class DispensationController < ApplicationController
   def create
-    # Debug logging
-    Rails.logger.info "=== DISPENSATION CREATE DEBUG ==="
-    Rails.logger.info "Session location: #{session[:location].inspect}"
-    Rails.logger.info "Params: #{params.inspect}"
-    
     @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
     session[:patient_id] = @patient.id if @patient.present?
 
@@ -22,7 +17,7 @@ class DispensationController < ApplicationController
     if prepack_label.present?
       prepack = prepack_label.prepack
       if prepack.present?
-        # FIXED: Use item.location_id directly, not session[:location]
+        # Use item.location_id directlY
         item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id)
         if item.blank?
           flash[:errors] = "Parent bottle for #{params[:bottle_id]} not found in inventory"
@@ -68,8 +63,6 @@ class DispensationController < ApplicationController
             print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
           end
         rescue => e
-          Rails.logger.error "Prepack dispensation failed: #{e.message}"
-          Rails.logger.error e.backtrace.join("\n")
           flash[:errors] = "Could not complete prepack dispensation"
           redirect_to return_path
         end

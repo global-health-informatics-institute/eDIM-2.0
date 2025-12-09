@@ -279,7 +279,7 @@ class PrepackLabelsController < ApplicationController
 
   def load_prepack_inventory
     prepacks = Prepack.includes(:drug, :prepack_labels)
-                      .where(prepacked_by_id: User.current.id, deleted: false, voided: false)
+                      .where(deleted: false, voided: false)
                       .order(created_at: :desc)
 
     inventory = prepacks.map do |prepack|

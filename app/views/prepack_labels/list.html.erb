@@ -29,14 +29,14 @@
         }
       },
       "columnDefs": [
-        { "width": "25%", "targets": 0 },  // Drug
-        { "width": "11%", "targets": 1 },  // Total Packs (adjusted)
-        { "width": "11%", "targets": 2 },  // Qty per Pack (adjusted)
-        { "width": "14%", "targets": 3 },  // Date Created (adjusted)
-        { "width": "11%", "targets": 4 },  // Packs Dispensed (adjusted)
-        { "width": "11%", "targets": 5 },  // Packs Remaining (NEW)
+        { "width": "21%", "targets": 0 },  // Drug
+        { "width": "11%", "targets": 1 },  // Total Packs 
+        { "width": "11%", "targets": 2 },  // Qty per Pack)
+        { "width": "14%", "targets": 3 },  // Date Created
+        { "width": "11%", "targets": 4 },  // Packs Dispensed
+        { "width": "11%", "targets": 5 },  // Packs Remaining
         { "width": "11%", "targets": 6 },  // Damages/Expired
-        { "width": "12%", "targets": 7 }   // Dispensed By (adjusted)
+        { "width": "15%", "targets": 7 }   // Dispensed By
       ],
       "order": [[3, 'desc']], // Sort by creation date descending
       "initComplete": function() {
@@ -192,7 +192,6 @@
   });
 </script>
 
-
 <!-- MAIN CONTAINER -->
 <div style="background: white; border-radius: 12px; padding: 20px; margin: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
 
@@ -232,56 +231,57 @@
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Qty per Pack</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Date Created</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed</th>
-        <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Remaining</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Damages</th>
+        <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Remaining</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Dispensed By</th>
       </tr>
     </thead>
-
+                                  
     <tbody>
       <% if @prepacks&.any? %>
-        <% # Group prepacks by drug_name %>
         <% @prepacks.group_by(&:drug_name).each do |drug_name, prepacks_for_drug| %>
-
-          <% # Sort batches by created_at so 1st batch = oldest, 2nd batch = next, etc. %>
           <% sorted_prepacks = prepacks_for_drug.sort_by(&:created_at) %>
-
           <% sorted_prepacks.each_with_index do |prepack, index| %>
             <%
-              dispensed_label = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).order(updated_at: :desc).first
-              dispensed_by_user = dispensed_label ? User.find_by(user_id: dispensed_label.dispensed_by) : nil
-
+              dispensed_labels = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).order(updated_at: :desc)
+              
+              # Get unique users by their actual user ID to prevent duplicates
+              dispensed_users = dispensed_labels.map do |dl| 
+                user = User.find_by(user_id: dl.dispensed_by)
+                user ? { id: user.user_id, name: user.display_name } : nil
+              end.compact.uniq { |u| u[:id] }
+              
+              # Group labels by user to show count of dispenses per user
+              user_dispense_counts = dispensed_labels.each_with_object(Hash.new(0)) do |label, hash|
+                if label.dispensed_by.present?
+                  hash[label.dispensed_by] += 1
+                end
+              end
+              
+              # Get unique user objects with their dispense counts
+              unique_users_with_counts = dispensed_users.map do |user|
+                user_obj = User.find_by(user_id: user[:id])
+                if user_obj
+                  count = user_dispense_counts[user[:id]] || 0
+                  { user: user_obj, dispense_count: count }
+                end
+              end.compact
+              
               damages_count = prepack.instance_variable_get(:@damages_count) || 0
-              dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
-
+              dispensed_count = dispensed_labels.count
+              
               original_packs = prepack.num_packs + damages_count
               remaining_count = prepack.num_packs - dispensed_count - damages_count
-
+              
               row_class = cycle('even', 'odd')
-
               batch_text = "#{(index + 1).ordinalize} Batch"
-
-              @total_remaining = @prepacks.sum do |prepack|
-                dispensed_count = prepack.prepack_labels.where(dispensed: true, deleted: false, voided: false).count
-                damaged_count   = prepack.instance_variable_get(:@damages_count) || 0
-
-                prepack.num_packs - dispensed_count - damaged_count
-              end
-
             %>
 
             <tr style="background: <%= row_class == 'even' ? '#ffffff' : '#f8fafc' %>;">
               <td style="padding: 12px 10px; font-size:1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <!-- Drug name on the right -->
-                  <span style="text-align: right;">
-                    <%= prepack.drug_name %>
-                  </span>
-
-                  <!-- Batch number on the left -->
-                  <span style="text-align: left; font-weight: 600; color: #006495;">
-                    <%= batch_text %>
-                  </span>
+                  <span style="text-align: right;"><%= prepack.drug_name %></span>
+                  <span style="text-align: left; font-weight: 600; color: #006495;"><%= batch_text %></span>
                 </div>
               </td>
 
@@ -301,25 +301,68 @@
                 <%= dispensed_count %>
               </td>
 
-              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= remaining_count > 0 ? '#006495' : '#dc3545' %>; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
-                <%= remaining_count %>
-              </td>
-
               <td style="padding: 12px 10px; text-align: center;font-size:1.4rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>; background-color: <%= damages_count > 0 ? '#fff5f5' : '#f8fafc' %>; border-right: 1px solid #e5e7eb;">
                 <%= damages_count > 0 ? damages_count : '0' %>
               </td>
 
-              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; text-align: center; background-color: #f0f9ff;">
-                <% if dispensed_by_user %>
-                  <%= dispensed_by_user.display_name %>
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= remaining_count > 0 ? '#006495' : '#dc3545' %>; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
+                <%= remaining_count %>
+              </td>
+
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f0f9ff;">
+                <% if unique_users_with_counts.any? %>
+                  <% if unique_users_with_counts.size == 1 %>
+                    <!-- unique user name -->
+                    <div style="text-align: center;">
+                      <span class="user-badge" style="display: inline-block; background: #e8f4fc; color: #006495; padding: 4px 12px; border-radius: 20px; font-weight: 500; border: 1px solid #b6e0fe;">
+                        <%= unique_users_with_counts.first[:user].display_name %>
+                        <% if unique_users_with_counts.first[:dispense_count] > 1 %>
+                          <span style="background: #006495; color: white; border-radius: 50%; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-left: 5px; padding: 0 4px;">
+                            <%= unique_users_with_counts.first[:dispense_count] %>
+                          </span>
+                        <% end %>
+                      </span>
+                    </div>
+                  <% else %>
+                    <!-- show expandable list if multiple users -->
+                    <div style="text-align: center;">
+                      <div class="user-badge-main" style="display: inline-block; background: linear-gradient(135deg, #e8f4fc, #d4edff); color: #006495; padding: 4px 12px; border-radius: 20px; font-weight: 500; border: 1px solid #b6e0fe; cursor: pointer; transition: all 0.3s ease; margin-bottom: 5px;"
+                           onclick="toggleUserList(this)">
+                        <%= unique_users_with_counts.first[:user].display_name %>
+                        <span style="background: #006495; color: white; border-radius: 50%; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-left: 5px; padding: 0 4px;">
+                          +<%= unique_users_with_counts.size - 1 %>
+                        </span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 1.1rem; transition: transform 0.3s ease;"></i>
+                      </div>
+                      
+                      <div class="user-list-expanded" style="display: none; animation: fadeIn 0.3s ease;">
+                        <div style="background: white; border-radius: 8px; padding: 10px; margin-top: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+                          <div style="color: #006495; font-weight: 600; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; font-size: 1.3rem;">
+                            All
+                          </div>
+                          <% unique_users_with_counts.each_with_index do |user_data, idx| %>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; <%= idx < unique_users_with_counts.size - 1 ? 'border-bottom: 1px solid #f1f5f9;' : '' %>">
+                              <span style="color: #374151;">
+                                <%= user_data[:user].display_name %>
+                              </span>
+                              <span style="background: #e8f4fc; color: #006495; border-radius: 12px; padding: 2px 8px; font-size: 1.2rem; font-weight: 600;">
+                                <%= user_data[:dispense_count] %> time<%= user_data[:dispense_count] > 1 ? 's' : '' %>
+                              </span>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
                 <% else %>
-                  <span style="color: #9ca3af;">-</span>
+                  <div style="text-align: center;">
+                    <span style="color: #9ca3af; font-style: italic;">-</span>
+                  </div>
                 <% end %>
               </td>
             </tr>
-
-          <% end %> <!-- sorted_prepacks.each_with_index -->
-        <% end %>   <!-- group_by.each -->
+          <% end %>
+        <% end %>
       <% else %>
         <tr>
           <td colspan="8" style="text-align: center; padding: 50px; background: #f8fafc;">
@@ -337,11 +380,36 @@
   </table>
 </div>
 
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .user-badge-main:hover {
+    background: linear-gradient(135deg, #d4edff, #b6e0fe) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,100,149,0.1);
+  }
+</style>
 
-</div>
+<script>
+  function toggleUserList(element) {
+    const userList = element.parentElement.querySelector('.user-list-expanded');
+    const chevron = element.querySelector('.fa-chevron-down');
+    
+    if (userList.style.display === 'none' || userList.style.display === '') {
+      userList.style.display = 'block';
+      chevron.style.transform = 'rotate(180deg)';
+    } else {
+      userList.style.display = 'none';
+      chevron.style.transform = 'rotate(0deg)';
+    }
+  }
+</script>
 
 <!-- FOOTER -->
-<div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
+<div class="footer" style="background: #262626; padding: 10px 20px; margin-left: -40px; font-size: 1.2rem;">
   <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
     Back
   </button>
