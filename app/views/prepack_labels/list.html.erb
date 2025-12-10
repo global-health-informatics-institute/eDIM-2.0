@@ -12,7 +12,7 @@
     const table = $('#prepackReport').DataTable({
       "bLengthChange": false,
       "bDestroy": true,
-      "pageLength": 10,
+      "pageLength": 7,
       "responsive": true,
       "paging": true,
       "pagingType": "full_numbers",
@@ -102,7 +102,6 @@
     setTimeout(() => table.columns.adjust().responsive.recalc(), 50);
     
     // CONSTANT FOCUS MANAGEMENT
-    // Set focus to search input on page load
     setTimeout(() => {
       $('.dataTables_filter input').focus();
     }, 100);
@@ -221,9 +220,8 @@
     </div>
   </div>
 
-<!-- Table Container -->
-<div class="table-container" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; height: 99vh;">
-  <table id="prepackReport" class="display" style="width: 100%; background: white; border-collapse: collapse;">
+  <!-- Table Container -->
+  <div class="table-container" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; height: 100vh;">  <table id="prepackReport" class="display" style="width: 100%; background: white; border-collapse: collapse;">
     <thead>
       <tr>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Drug</th>
@@ -231,9 +229,9 @@
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Qty per Pack</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Date Created</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed</th>
+        <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Dispensed By</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Damages</th>
         <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Remaining</th>
-        <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Dispensed By</th>
       </tr>
     </thead>
                                   
@@ -300,33 +298,19 @@
               <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= dispensed_count > 0 ? '#28a745' : '#6c757d' %>; background-color: <%= dispensed_count > 0 ? '#f0fff4' : '#fffaf0' %>; border-right: 1px solid #e5e7eb;">
                 <%= dispensed_count %>
               </td>
-
-              <td style="padding: 12px 10px; text-align: center;font-size:1.4rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>; background-color: <%= damages_count > 0 ? '#fff5f5' : '#f8fafc' %>; border-right: 1px solid #e5e7eb;">
-                <%= damages_count > 0 ? damages_count : '0' %>
-              </td>
-
-              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= remaining_count > 0 ? '#006495' : '#dc3545' %>; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
-                <%= remaining_count %>
-              </td>
-
               <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f0f9ff;">
                 <% if unique_users_with_counts.any? %>
                   <% if unique_users_with_counts.size == 1 %>
                     <!-- unique user name -->
                     <div style="text-align: center;">
-                      <span class="user-badge" style="display: inline-block; background: #e8f4fc; color: #006495; padding: 4px 12px; border-radius: 20px; font-weight: 500; border: 1px solid #b6e0fe;">
+                      <span class="user-badge" style="display: inline-block; background: #e8f4fc; color: #006495; padding: 4px 12px; border-radius: 12px; font-weight: 500; border: 1px solid #b6e0fe;">
                         <%= unique_users_with_counts.first[:user].display_name %>
-                        <% if unique_users_with_counts.first[:dispense_count] > 1 %>
-                          <span style="background: #006495; color: white; border-radius: 50%; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-left: 5px; padding: 0 4px;">
-                            <%= unique_users_with_counts.first[:dispense_count] %>
-                          </span>
-                        <% end %>
                       </span>
                     </div>
                   <% else %>
                     <!-- show expandable list if multiple users -->
                     <div style="text-align: center;">
-                      <div class="user-badge-main" style="display: inline-block; background: linear-gradient(135deg, #e8f4fc, #d4edff); color: #006495; padding: 4px 12px; border-radius: 20px; font-weight: 500; border: 1px solid #b6e0fe; cursor: pointer; transition: all 0.3s ease; margin-bottom: 5px;"
+                      <div class="user-badge-main" style="display: inline-block; color: #006495; padding: 4px 12px; border-radius: 20px; font-weight: 500; border: 1px solid #b6e0fe; cursor: pointer; transition: all 0.3s ease; margin-bottom: 5px;"
                            onclick="toggleUserList(this)">
                         <%= unique_users_with_counts.first[:user].display_name %>
                         <span style="background: #006495; color: white; border-radius: 50%; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-left: 5px; padding: 0 4px;">
@@ -335,8 +319,8 @@
                         <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 1.1rem; transition: transform 0.3s ease;"></i>
                       </div>
                       
-                      <div class="user-list-expanded" style="display: none; animation: fadeIn 0.3s ease;">
-                        <div style="background: white; border-radius: 8px; padding: 10px; margin-top: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+                      <div class="user-list-expanded" style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 8px; display: none;">
+                        <div style="background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; min-width: 200px; max-width: 300px;">
                           <div style="color: #006495; font-weight: 600; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; font-size: 1.3rem;">
                             All
                           </div>
@@ -359,6 +343,14 @@
                     <span style="color: #9ca3af; font-style: italic;">-</span>
                   </div>
                 <% end %>
+              </td>
+
+              <td style="padding: 12px 10px; text-align: center;font-size:1.4rem; border-bottom: 1px solid #e5e7eb; color: <%= damages_count > 0 ? '#dc3545' : '#6c757d' %>; background-color: <%= damages_count > 0 ? '#fff5f5' : '#f8fafc' %>; border-right: 1px solid #e5e7eb;">
+                <%= damages_count > 0 ? damages_count : '0' %>
+              </td>
+
+              <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= remaining_count > 0 ? '#006495' : '#dc3545' %>; background-color: #f0f9ff; border-right: 1px solid #e5e7eb;">
+                <%= remaining_count %>
               </td>
             </tr>
           <% end %>
@@ -392,20 +384,77 @@
     box-shadow: 0 4px 8px rgba(0,100,149,0.1);
   }
 </style>
-
 <script>
-  function toggleUserList(element) {
-    const userList = element.parentElement.querySelector('.user-list-expanded');
-    const chevron = element.querySelector('.fa-chevron-down');
-    
-    if (userList.style.display === 'none' || userList.style.display === '') {
-      userList.style.display = 'block';
-      chevron.style.transform = 'rotate(180deg)';
-    } else {
-      userList.style.display = 'none';
-      chevron.style.transform = 'rotate(0deg)';
+function toggleUserList(element) {
+  const userList = element.parentElement.querySelector('.user-list-expanded');
+  const chevron = element.querySelector('.fa-chevron-down');
+  
+  // Close all other open dropdowns first
+  document.querySelectorAll('.user-list-expanded').forEach(dropdown => {
+    if (dropdown !== userList && dropdown.style.display === 'block') {
+      dropdown.style.display = 'none';
+      const otherChevron = dropdown.parentElement.querySelector('.fa-chevron-down');
+      if (otherChevron) {
+        otherChevron.style.transform = 'rotate(0deg)';
+      }
     }
+  });
+  
+  if (userList.style.display === 'none' || userList.style.display === '') {
+    userList.style.display = 'block';
+    chevron.style.transform = 'rotate(180deg)';
+    
+    // Position the dropdown correctly
+    positionDropdown(element, userList);
+  } else {
+    userList.style.display = 'none';
+    chevron.style.transform = 'rotate(0deg)';
   }
+}
+
+function positionDropdown(button, dropdown) {
+  // Get positions
+  const buttonRect = button.getBoundingClientRect();
+  const dropdownRect = dropdown.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  
+  // Reset styles
+  dropdown.style.position = 'fixed';
+  dropdown.style.zIndex = '9999';
+  
+  // Calculate space
+  const spaceBelow = viewportHeight - buttonRect.bottom;
+  const spaceAbove = buttonRect.top;
+  const dropdownHeight = dropdownRect.height || 200; // Estimate if not rendered yet
+  
+  // Check if we should open upwards or downwards
+  if (spaceBelow < dropdownHeight + 20 && spaceAbove >= dropdownHeight + 20) {
+    // Open upwards
+    dropdown.style.top = (buttonRect.top - dropdownHeight - 8) + 'px';
+    dropdown.style.bottom = 'auto';
+  } else {
+    // Open downwards (default)
+    dropdown.style.top = (buttonRect.bottom + 8) + 'px';
+    dropdown.style.bottom = 'auto';
+  }
+  
+  // Center horizontally
+  dropdown.style.left = (buttonRect.left + (buttonRect.width / 2) - (dropdownRect.width / 2)) + 'px';
+  dropdown.style.right = 'auto';
+  dropdown.style.transform = 'translateX(0)';
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.user-badge-main')) {
+    document.querySelectorAll('.user-list-expanded').forEach(dropdown => {
+      dropdown.style.display = 'none';
+    });
+    document.querySelectorAll('.fa-chevron-down').forEach(chevron => {
+      chevron.style.transform = 'rotate(0deg)';
+    });
+  }
+});
 </script>
 
 <!-- FOOTER -->
@@ -419,6 +468,35 @@
 </div>
 
 <style>
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateX(-50%) translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(-50%) translateY(0); 
+  }
+}
+/* Adjust DataTables filter and pagination spacing */
+.dataTables_wrapper .dataTables_filter {
+  padding-bottom: 30px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Override  any existing styeles */
+.user-list-expanded[style] {
+  position: absolute !important;
+  bottom: 100% !important;
+  top: auto !important;
+}
+
+/* Ensure DataTable doesn't push content */
+.dataTables_wrapper {
+  position: relative !important;
+  height: 100% !important;
+}
+
 /* Override DataTables default styling */
 .dataTables_wrapper {
   background: transparent !important;
@@ -532,7 +610,7 @@
 /* Ensure table is responsive */
 .table-container {
   overflow-x: auto;
-  max-height: 64vh;
+  max-height: 65vh;
 }
 
 /* Button styles */

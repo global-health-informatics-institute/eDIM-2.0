@@ -277,6 +277,7 @@ class PrepackLabelsController < ApplicationController
 
   private
 
+  # Load prepack inventory for new prepack view
   def load_prepack_inventory
     prepacks = Prepack.includes(:drug, :prepack_labels)
                       .where(deleted: false, voided: false)
