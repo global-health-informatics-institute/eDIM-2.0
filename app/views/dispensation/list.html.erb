@@ -1,3 +1,5 @@
+<!-- LOAD JQUERY FROM CDN - This will work without asset pipeline issues -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <%= javascript_include_tag 'jquery.dataTables.min.js' %>
 
 <script type="text/javascript">
@@ -9,130 +11,166 @@
     };
   }
 
+  // Wait for both jQuery and DataTables to be loaded
   $(document).ready(function() {
-    const table = $('#dispensationTable').DataTable({
-      "bLengthChange": false,
-      "bDestroy": true,
-      "pageLength": 10,
-      "responsive": true,
-      "paging": true,
-      "pagingType": "full_numbers",
-      "autoWidth": false,
-      "language": {
-        "search": "Search:",
-        "zeroRecords": "No matching records found",
-        "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-        "infoEmpty": "No records available",
-        "infoFiltered": "(filtered from _MAX_ total entries)",
-        "oPaginate": {
-          "sNext": "Next",
-          "sPrevious": "Previous"
+    console.log('jQuery version:', $.fn.jquery);
+    console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
+    
+    // Check if table exists and has data
+    const $table = $('#dispensationTable');
+    if ($table.length === 0) {
+      console.error('Table #dispensationTable not found');
+      return;
+    }
+    
+    const rowCount = $table.find('tbody tr').length;
+    console.log('Table found with', rowCount, 'rows');
+    
+    // Only initialize DataTables if we have data
+    if (rowCount > 0) {
+      const table = $table.DataTable({
+        "bLengthChange": false,
+        "bDestroy": true,
+        "pageLength": 10,
+        "responsive": true,
+        "paging": true,
+        "pagingType": "full_numbers",
+        "autoWidth": false,
+        "language": {
+          "search": "Search:",
+          "zeroRecords": "No matching records found",
+          "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+          "infoEmpty": "No records available",
+          "infoFiltered": "(filtered from _MAX_ total entries)",
+          "paginate": {
+            "first": "First",
+            "previous": "Previous",
+            "next": "Next",
+            "last": "Last"
+          }
+        },
+        "columnDefs": [
+          { "width": "5%", "targets": 0 },
+          { "width": "25%", "targets": 1 },
+          { "width": "15%", "targets": 2 },
+          { "width": "20%", "targets": 3 },
+          { "width": "20%", "targets": 4 },
+          { "width": "15%", "targets": 5 }
+        ],
+        "order": [[5, 'desc']],
+        "initComplete": function() {
+          console.log('DataTable initialized successfully');
+          
+          $('.dataTables_wrapper').css('background', 'transparent');
+          
+          $('.dataTables_wrapper .dataTables_filter label').css({
+            'font-size': '1.4rem',
+            'font-weight': '600',
+            'color': '#06425C',
+            'margin-bottom': '10px'
+          });
+          
+          const searchInput = $('.dataTables_wrapper .dataTables_filter input');
+          searchInput.css({
+            'border': '2px solid #d1d5db',
+            'border-radius': '8px',
+            'padding': '12px 15px',
+            'background': 'white',
+            'font-size': '1.3rem',
+            'width': '400px',
+            'margin-left': '10px'
+          });
+          
+          searchInput.focus();
+          
+          // Style pagination buttons
+          $('.dataTables_paginate .paginate_button').css({
+            'font-size': '1.3rem',
+            'padding': '10px 18px',
+            'margin': '0 5px',
+            'padding-top': '16px',
+          });
+          
+          // Style info text
+          $('.dataTables_info').css({
+            'font-size': '1.3rem',
+            'color': '#06425C',
+            'font-weight': '500',
+            'padding-left': '4px',
+          });
+          
+          // Remove any horizontal scrollbar by adjusting container width
+          $('.table-container').css({
+            'overflow': 'visible',
+            'width': '100%'
+          });
+          
+          // Search-as-you-type
+          searchInput.off('keyup').on('keyup', function() {
+            table.search(this.value).draw();
+          });
         }
-      },
-      "columnDefs": [
-        { "width": "5%", "targets": 0 },
-        { "width": "25%", "targets": 1 },
-        { "width": "15%", "targets": 2 },
-        { "width": "20%", "targets": 3 },
-        { "width": "20%", "targets": 4 },
-        { "width": "15%", "targets": 5 }
-      ],
-      "order": [[5, 'desc']],
-      "initComplete": function() {
-        $('.dataTables_wrapper').css('background', 'transparent');
-        
-        $('.dataTables_wrapper .dataTables_filter label').css({
-          'font-size': '1.4rem',
-          'font-weight': '600',
-          'color': '#06425C',
-          'margin-bottom': '10px'
-        });
-        
-        const searchInput = $('.dataTables_wrapper .dataTables_filter input');
-        searchInput.css({
-          'border': '2px solid #d1d5db',
-          'border-radius': '8px',
-          'padding': '12px 15px',
-          'background': 'white',
-          'font-size': '1.3rem',
-          'width': '300px',
-          'margin-left': '10px'
-        });
-        
-        searchInput.focus();
-        
-        // Style pagination buttons
-        $('.dataTables_paginate .paginate_button').css({
-          'font-size': '1.3rem',
-          'padding': '10px 18px',
-          'margin': '0 5px',
-          'padding-top': '16px',
-        });
-        
-        // Style info text
-        $('.dataTables_info').css({
-          'font-size': '1.3rem',
-          'color': '#06425C',
-          'font-weight': '500',
-          'padding-left': '4px',
-        });
-        
-        // Search-as-you-type
-        searchInput.off('keyup').on('keyup', function() {
-          table.search(this.value).draw();
-        });
-      }
-    });
+      });
 
-    const adjustTable = debounce(() => {
-      table.columns.adjust().responsive.recalc();
-    }, 150);
+      const adjustTable = debounce(() => {
+        table.columns.adjust().responsive.recalc();
+        
+        // Ensure no scrollbar after resize
+        $('.table-container').css('overflow', 'visible');
+      }, 150);
 
-    window.addEventListener('resize', adjustTable);
-    window.addEventListener('orientationchange', adjustTable);
-    
-    const container = document.querySelector('#dispensationTable').parentElement;
-    const resizeObserver = new ResizeObserver(adjustTable);
-    resizeObserver.observe(container);
+      window.addEventListener('resize', adjustTable);
+      window.addEventListener('orientationchange', adjustTable);
+      
+      const container = document.querySelector('#dispensationTable').parentElement;
+      const resizeObserver = new ResizeObserver(adjustTable);
+      resizeObserver.observe(container);
 
-    setTimeout(() => table.columns.adjust().responsive.recalc(), 50);
-    
-    // CONSTANT FOCUS MANAGEMENT
-    setTimeout(() => {
-      $('.dataTables_filter input').focus();
-    }, 100);
-    
-    // Re-focus on search input whenever user clicks anywhere else
-    $(document).on('click', function(e) {
-      if (!$(e.target).closest('.dataTables_filter input').length) {
-        setTimeout(() => {
-          $('.dataTables_filter input').focus();
-        }, 50);
-      }
-    });
-    
-    // Keep focus on search input even after DataTable redraws
-    table.on('draw', function() {
+      setTimeout(() => {
+        table.columns.adjust().responsive.recalc();
+        $('.table-container').css('overflow', 'visible');
+      }, 50);
+      
+      // CONSTANT FOCUS MANAGEMENT
       setTimeout(() => {
         $('.dataTables_filter input').focus();
-      }, 50);
-    });
-    
-    // Visual indicator when search input has focus
-    $('.dataTables_filter input')
-      .focus(function() {
-        $(this).css({
-          'border-color': '#006495',
-          'box-shadow': '0 0 0 3px rgba(0, 100, 149, 0.2)',
-          'outline': 'none'
-        });
-      })
-      .blur(function() {
-        $(this).css({
-          'border-color': '#d1d5db',
-          'box-shadow': 'none'
-        });
+      }, 100);
+      
+      // Re-focus on search input whenever user clicks anywhere else
+      $(document).on('click', function(e) {
+        if (!$(e.target).closest('.dataTables_filter input').length) {
+          setTimeout(() => {
+            $('.dataTables_filter input').focus();
+          }, 50);
+        }
       });
+      
+      // Keep focus on search input even after DataTable redraws
+      table.on('draw', function() {
+        setTimeout(() => {
+          $('.dataTables_filter input').focus();
+          $('.table-container').css('overflow', 'visible');
+        }, 50);
+      });
+      
+      // Visual indicator when search input has focus
+      $('.dataTables_filter input')
+        .focus(function() {
+          $(this).css({
+            'border-color': '#006495',
+            'box-shadow': '0 0 0 3px rgba(0, 100, 149, 0.2)',
+            'outline': 'none'
+          });
+        })
+        .blur(function() {
+          $(this).css({
+            'border-color': '#d1d5db',
+            'box-shadow': 'none'
+          });
+        });
+    } else {
+      console.log('No data rows found, skipping DataTable initialization');
+    }
   });
 </script>
 
@@ -157,10 +195,10 @@
     <% end %>
   </div>
 
-  <!-- Table Container -->
-<div class="table-container" 
+  <!-- Table Container - FIXED: Changed overflow from auto to visible -->
+  <div class="table-container" 
      style="background: white; border: 1px solid #dee2e6;
-            border-radius: 8px; overflow: auto; height: 100vh;">
+            border-radius: 8px; overflow: visible; width: 100%;">
     <table id="dispensationTable" class="display" style="width: 100%; background: white; border-collapse: collapse;">
       <thead>
         <tr>
@@ -230,7 +268,7 @@
 
 <!-- FOOTER -->
 <div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
-  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
+  <button onmousedown="window.location = '/dispensation/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
     Back
   </button>
   <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 2vw; float: right; font-size: 2rem;">
@@ -239,13 +277,19 @@
 </div>
 
 <style>
-
 .footer {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   z-index: 999;
+}
+/* Table Responsiveness - NO SCROLLBAR */
+.table-container {
+  width: 100%;
+  overflow: visible !important;
+  min-height: 400px; 
+  height: 75vh;    
 }
 /* Override DataTables default styling */
 .dataTables_wrapper {
@@ -261,12 +305,17 @@
   margin-bottom: 15px !important;
 }
 
+/* PAGINATION STYLING - Matching prepack report */
 .dataTables_wrapper .dataTables_paginate .paginate_button {
   border: 1px solid #d1d5db !important;
   background: white !important;
   color: #374151 !important;
   border-radius: 4px !important;
   margin: 0 2px !important;
+  font-size: 1.3rem !important;
+  padding: 10px 18px !important;
+  margin: 0 5px !important;
+  padding-top: 16px !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current {
@@ -275,9 +324,38 @@
   border-color: #006495 !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
   background: #f3f4f6 !important;
   border-color: #9ca3af !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Infor text styling */
+.dataTables_info {
+  font-size: 1.3rem !important;
+  color: #06425C !important;
+  font-weight: 500 !important;
+  padding-left: 4px !important;
+  float: left !important;
+  margin-top: 20px !important;
+}
+
+/* PAGINATION CONTAINER */
+.dataTables_paginate {
+  float: right !important;
+  margin-top: 20px !important;
+}
+
+/* Clear floats */
+.dataTables_wrapper .bottom {
+  clear: both;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 15px;
 }
 
 /* Table row hover effect */
@@ -343,10 +421,20 @@
   }
 }
 
-/* Table Responsiveness */
+/* Table Responsiveness - NO SCROLLBAR */
 .table-container {
-  overflow-x: auto;
-  max-height: 64vh;
+  width: 100%;
+  overflow: visible !important; /* Changed from auto to visible */
+}
+
+/* For very small screens, we still need horizontal scrolling */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto !important; /* Only enable scroll on very small screens */
+  }
+  .dataTables_wrapper {
+    min-width: 600px; /* Ensure table doesn't get too narrow */
+  }
 }
 
 /* Button styles */

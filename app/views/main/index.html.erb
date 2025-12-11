@@ -106,7 +106,7 @@ function initializeBarcodeListener() {
   barcodeInput.addEventListener('blur', handleBarcodeBlur);
 }
 
-// --- Input handler with debounce (lets scanner finish typing) ---
+// --- Input handler with debounce ---
 function handleBarcodeInput(event) {
   if (barcodeTimer) clearTimeout(barcodeTimer);
 
@@ -123,7 +123,7 @@ function handleBarcodeBlur() {
   setTimeout(() => focusBarcodeInputImmediate(), 100);
 }
 
-// --- Main processing: redirect to patient or inventory ---
+// --- Main processing ---
 function processBarcode(code) {
   // Show scanned code briefly
   if (barcodeInput) barcodeInput.value = code;
@@ -158,10 +158,11 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
 /* Header Row */
 .header-row {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch; 
   gap: 12px;
 }
 
+/* Main Content Cell */
 .main-content-cell {
   flex: 1;
   padding: 15px;
@@ -169,7 +170,9 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   border: 1px solid #e5e7eb;
-  min-height: 140px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Compact Scanner Section */
@@ -228,6 +231,7 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
 /* Info Section */
 .info-section-modern {
   margin-top: 8px;
+  flex: 1; 
 }
 
 .info-table {
@@ -274,8 +278,7 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
 
 /* Compact Brand Section */
 .brand-section-compact {
-  height: 17vh;
-  width: 15vw;
+  width: 280px;
   background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -288,6 +291,7 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
   justify-content: center;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
 }
 
 .brand-logo-image {
@@ -362,6 +366,7 @@ document.addEventListener("DOMContentLoaded", initializeBarcodeListener);
     justify-content: space-between;
     align-items: center;
     padding: 20px 20px;
+    height: auto; 
   }
   
   .brand-logo-compact {

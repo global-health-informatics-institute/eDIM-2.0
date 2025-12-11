@@ -453,12 +453,17 @@ class DispensationController < ApplicationController
     when t('forms.options.weekly')
       start_date = params[:start_date].to_date.beginning_of_day
       end_date   = (start_date + 6.days).end_of_day
+      end_date   = [end_date, Time.zone.now.end_of_day].min
+
       @report_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
 
     when t('forms.options.monthly')
       start_date = params[:start_date].to_date.beginning_of_month.beginning_of_day
       end_date   = params[:start_date].to_date.end_of_month.end_of_day
+      end_date   = [end_date, Time.zone.now.end_of_day].min
+
       @report_type = "Dispensation Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
+      port_type = "Dispensation Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
 
     when t('forms.options.range')
       start_date = params[:start_date].to_date.beginning_of_day
@@ -466,7 +471,7 @@ class DispensationController < ApplicationController
       @report_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
       
     else
-      # default: today
+      # default to today
       start_date = Date.today.beginning_of_day
       end_date   = Date.today.end_of_day
       @report_type = "Dispensation Report for #{l(Date.today, format: '%d %B, %Y')}"
@@ -483,7 +488,7 @@ class DispensationController < ApplicationController
   end
 
   def select
-    # In dispensary, select report type
+    # Select report type
     @locations = [Location.find(session[:location])&.name].compact
     render layout: 'touch'
   end
