@@ -260,6 +260,63 @@ img[src*="/assets/"] {
 .option-item:hover {
   border-radius: 8px;
 }
+
+/* Prepack styles */
+/* Compact Brand Section */
+.brand-section-compact {
+  width: 280px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #d1d5db;
+  min-width: 160px; 
+  min-height: 160px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding-top: 18px;
+}
+.brand-logo-image {
+  width: 250px; 
+  height: 250px; 
+  object-fit: contain;
+  filter: brightness(0) invert(0);
+  max-width: 100%;
+  max-height: 80px; 
+}
+.current-date-compact {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #4b5563;
+  display: block;
+  line-height: 1.2;
+  margin-top: 5px;
+}
+.header-cell{
+  flex: 1;
+  padding: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e5e7eb;
+  min-height: 146px;
+  display: flex;
+  flex-direction: column;
+}
+.main-content-cell {
+  width: 100%;
+  min-height: auto;
+  padding: 12px;
+}
+.brand-logo-compact {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
 </style>
 
 </head>
@@ -267,7 +324,7 @@ img[src*="/assets/"] {
   <div style="width: 99vw; margin: auto; flex: 0 0 auto;">
     <!-- HEADER -->
     <div style="display: table-row;">
-      <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:10vh;" class="header-cell">
+      <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:10vh; border: 1px solid #d1d5db; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);" class="header-cell">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
           <strong style="font-size:1.5rem;">Scan Barcode</strong>
           <img src="/assets/barcode.jpg" style="height:32px; vertical-align:middle;">
@@ -285,9 +342,9 @@ img[src*="/assets/"] {
           </tr>
         </table>
       </div>
-      <div class="header-cell" style="float:right; width:12vw; text-align:center; margin-top:1vh; margin-left:1vw; padding:10px; font-size:1.1em;">
-        <h1 style="font-size:2.2rem;">eDIM</h1>
-        <span style="font-size:1.5rem;"><%= l(Date.today, format: '%d %b %Y') %></span>
+      <div class="brand-section-compact">
+        <img src="/assets/edim-logo.png" class="brand-logo-image" alt="eDIM Logo">
+        <span class="current-date-compact"><%= l(Date.today, format: '%d %b %Y') %></span>
       </div>
     </div>
   
@@ -321,6 +378,13 @@ img[src*="/assets/"] {
                                   color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
                               <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
                           </div>
+                          <!-- Quantity per pack -->
+                          <div style="margin-bottom: 4px; right: 8px">
+                              <div style="font-size: 1.5rem;">
+                                  <span style="color: #666; font-weight: bold;">Qty per pack: </span>
+                                  <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
+                              </div>
+                          </div>
 
                           <div style="font-size: 1.5rem; font-weight: bold; margin-right: 315px; margin-top:-2px;">
                               <span style="font-weight: bold; right:8px;">
@@ -334,6 +398,7 @@ img[src*="/assets/"] {
                           
                       <!-- Action Buttons -->
                       <div style="position: absolute; top: 43%; right: 16px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
+                      
                         <!-- View Item Button -->
                         <div class="view-options-container" style="position: relative; right: 32px;">
                           <!-- Main View Icon -->
@@ -411,7 +476,8 @@ img[src*="/assets/"] {
                               </div>
                             </div>
                           </div>
-                        </div>
+
+                        </div>                        
                         
                         <!-- Print Button -->
                         <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
@@ -430,7 +496,9 @@ img[src*="/assets/"] {
                               onmouseover="this.style.transform='scale(1.1)'"
                               onmouseout="this.style.transform='scale(1)'">
                         <% end %>
+                        
                       </div>
+                    
                       </div>
 
                       <!-- Drug Name -->
@@ -446,18 +514,6 @@ img[src*="/assets/"] {
                                   <%= prepack[:gn_identifier] %>
                               <% end %>
                           </span>
-                      </div>
-
-                      <!-- Stats Row -->
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                          <div style="font-size: 1.5rem;">
-                              <span style="color: #666; font-weight: bold;">Qty per pack: </span>
-                              <span style="font-weight: bold; color: #2E8B57;"><%= prepack[:quantity_per_pack] %></span>
-                          </div>
-                          <div style="font-size: 1.5rem; text-align: center; flex: 1;">
-                              <span style="color: #666; font-weight: bold;">Total: </span>
-                              <span style="font-weight: bold; color: #006495;"><%= prepack[:total_packs_created] %></span>
-                          </div>
                       </div>
 
                       <!-- Progress Bar -->

@@ -345,7 +345,7 @@ class DispensationController < ApplicationController
         )
       end
 
-    # DIRECT DISPENSATION (OR SCANNED PK LABEL)
+    # DIRECT DISPENSATION
     elsif Dispensation.exists?(params[:id])
       @dispensation = Dispensation.find(params[:id])
       date = @dispensation.dispensation_date
