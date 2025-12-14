@@ -1,195 +1,4 @@
 <%= javascript_include_tag 'jquery.dataTables.min.js' %>
-<script type="text/javascript">
-  function debounce(fn, wait) {
-    let t;
-    return function(...args) {
-      clearTimeout(t);
-      t = setTimeout(() => fn.apply(this, args), wait);
-    };
-  }
-
-  $(document).ready(function() {
-    const table = $('#prepackReport').DataTable({
-      "bLengthChange": false,
-      "bDestroy": true,
-      "pageLength": 6,
-      "responsive": true,
-      "paging": true,
-      "pagingType": "full_numbers",
-      "autoWidth": false,
-      "language": {
-        "search": "Search:",
-        "zeroRecords": "No matching records found",
-        "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-        "infoEmpty": "No records available",
-        "infoFiltered": "(filtered from _MAX_ total entries)",
-        "oPaginate": {
-          "sNext": "Next",
-          "sPrevious": "Previous"
-        }
-      },
-      "columnDefs": [
-        { "width": "21%", "targets": 0 },  // Drug
-        { "width": "11%", "targets": 1 },  // Total Packs 
-        { "width": "11%", "targets": 2 },  // Qty per Pack)
-        { "width": "14%", "targets": 3 },  // Date Created
-        { "width": "11%", "targets": 4 },  // Packs Dispensed
-        { "width": "11%", "targets": 5 },  // Packs Remaining
-        { "width": "11%", "targets": 6 },  // Damages/Expired
-        { "width": "15%", "targets": 7 }   // Dispensed By
-      ],
-      "order": [[3, 'desc']], // Sort by creation date descending
-      "initComplete": function() {
-        // Remove any DataTables default styling conflicts
-        $('.dataTables_wrapper').css('background', 'transparent');
-        
-        // Style search box with larger font
-        $('.dataTables_wrapper .dataTables_filter label').css({
-          'font-size': '1.4rem',
-          'font-weight': '600',
-          'color': '#06425C',
-          'margin-bottom': '10px'
-        });
-        
-        const searchInput = $('.dataTables_wrapper .dataTables_filter input');
-        searchInput.css({
-          'border': '2px solid #d1d5db',
-          'border-radius': '8px',
-          'padding': '12px 15px',
-          'background': 'white',
-          'font-size': '1.3rem',
-          'width': '300px',
-          'margin-left': '10px'
-        });
-        
-        //Set focus to search input immediately
-        searchInput.focus();
-        
-        // Style pagination buttons
-        $('.dataTables_paginate .paginate_button').css({
-          'font-size': '1.3rem',
-          'padding': '10px 18px',
-          'margin': '0 5px',
-          'padding-top': '16px',
-        });
-        
-        // Style info text
-        $('.dataTables_info').css({
-          'font-size': '1.3rem',
-          'color': '#06425C',
-          'font-weight': '500',
-          'padding-left': '4px',
-        });
-        
-        // Search-as-you-type
-        searchInput.off('keyup').on('keyup', function() {
-          table.search(this.value).draw();
-        });
-      }
-    });
-
-    const adjustTable = debounce(() => {
-      table.columns.adjust().responsive.recalc();
-    }, 150);
-
-    window.addEventListener('resize', adjustTable);
-    window.addEventListener('orientationchange', adjustTable);
-    
-    const container = document.querySelector('#prepackReport').parentElement;
-    const resizeObserver = new ResizeObserver(adjustTable);
-    resizeObserver.observe(container);
-
-    setTimeout(() => table.columns.adjust().responsive.recalc(), 50);
-    
-    // CONSTANT FOCUS MANAGEMENT
-    setTimeout(() => {
-      $('.dataTables_filter input').focus();
-    }, 100);
-    
-    // Re-focus on search input whenever user clicks anywhere else
-    $(document).on('click', function(e) {
-      // Don't refocus if user is clicking on the search input itself
-      if (!$(e.target).closest('.dataTables_filter input').length) {
-        // Small delay to ensure any other click handlers have run
-        setTimeout(() => {
-          $('.dataTables_filter input').focus();
-        }, 50);
-      }
-    });
-    
-    // Re-focus when user clicks within the table area
-    $('#prepackReport').on('click', function(e) {
-      if (!$(e.target).closest('.dataTables_filter input').length) {
-        setTimeout(() => {
-          $('.dataTables_filter input').focus();
-        }, 100);
-      }
-    });
-    
-    // Refocus when user presses tab key
-    $(document).on('keydown', function(e) {
-      if (e.key === 'Tab') {
-        setTimeout(() => {
-          $('.dataTables_filter input').focus();
-        }, 10);
-      }
-    });
-    
-    // Keep focus on search input even after DataTable redraws
-    table.on('draw', function() {
-      setTimeout(() => {
-        $('.dataTables_filter input').focus();
-      }, 50);
-    });
-    
-    // Use an interval to constantly check and maintain focus
-    const maintainFocusInterval = setInterval(() => {
-      const activeElement = document.activeElement;
-      const searchInputElement = $('.dataTables_filter input')[0];
-      
-      // If search input is not focused and user isn't typing in another input
-      if (activeElement !== searchInputElement && 
-          activeElement.tagName !== 'INPUT' && 
-          activeElement.tagName !== 'TEXTAREA') {
-        searchInputElement.focus();
-        // Place cursor at the end of any existing text
-        const length = searchInputElement.value.length;
-        searchInputElement.setSelectionRange(length, length);
-      }
-    }, 500); // Check every 500ms
-    
-    // Clean up interval when page unloads
-    $(window).on('beforeunload', function() {
-      clearInterval(maintainFocusInterval);
-    });
-    
-    // Select all text when search input gets focus (for easy clearing)
-    $('.dataTables_filter input').on('focus', function() {
-      // Don't select all if there's already text user might want to edit
-      if (this.value.length > 0) {
-        // Just place cursor at the end
-        const length = this.value.length;
-        this.setSelectionRange(length, length);
-      }
-    });
-    
-    // Visual indicator when search input has focus
-    $('.dataTables_filter input')
-      .focus(function() {
-        $(this).css({
-          'border-color': '#006495',
-          'box-shadow': '0 0 0 3px rgba(0, 100, 149, 0.2)',
-          'outline': 'none'
-        });
-      })
-      .blur(function() {
-        $(this).css({
-          'border-color': '#d1d5db',
-          'box-shadow': 'none'
-        });
-      });
-  });
-</script>
 
 <!-- MAIN CONTAINER -->
 <div style="background: white; border-radius: 12px; padding: 20px; margin: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
@@ -198,8 +7,8 @@
     <h1 style="color: #06425C; margin: 0 0 15px 0; font-size: 1.8rem;">
       <%= @report_type.titleize %>
     </h1>
-    
-    <!-- Summary Statistics - UPDATED to include Damaged count -->
+
+    <!-- Summary Statistics -->
     <div style="display: flex; justify-content: space-around; margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 1px solid #dee2e6;">
       <div style="text-align: center;">
         <div style="font-size: 1.5rem; color: #6c757d; font-weight: 600;">Total Packs</div>
@@ -372,18 +181,168 @@
   </table>
 </div>
 
-<style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+<!-- FOOTER -->
+<div class="footer" style="background: #262626; padding: 10px 20px; margin-left: -40px; font-size: 1.2rem;">
+  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
+    Back
+  </button>
+  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 2vw; float: right; font-size: 2rem;">
+    Home
+  </button>
+</div>
+
+<div id="keypad" style="left:320px; top:650px; position:fixed; z-index:2000; width:67%; display: none;">
+  <span class="keypad"></span>
+</div>
+
+
+<script type="text/javascript">
+/* UTIL */
+function debounce(fn, wait) {
+  let t;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+/* Global keyboard state */
+let activeInput = null;
+let keyboardVisible = false;
+
+/* KEYBOARD */
+function showAlphaKeypad() {
+  if (keyboardVisible) return;
+
+  const keyboard = document.querySelector("#keypad .keypad");
+  if (!keyboard) return;
+
+  keyboard.innerHTML = `
+    <div class="key-row">${renderKeys("0123456789")}</div>
+    <div class="key-row">${renderKeys("QWERTYUIOP")}</div>
+    <div class="key-row">${renderKeys("ASDFGHJKL")}</div>
+    <div class="key-row">${renderKeys("ZXCVBNM")}</div>
+    <div class="key-row special-row">
+      <div class="left-keys">
+        <button class="keyboardButton" data-action="backspace">Bksp</button>
+        <button class="keyboardButton" data-action="space">Space</button>
+      </div>
+      <div class="right-keys">
+        <button class="keyboardButton" data-action="clear">Clear</button>
+        <button class="keyboardButton" data-action="cancel">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("keypad").style.display = "block";
+  keyboardVisible = true;
+}
+
+function hideAlphaKeypad() {
+  document.getElementById("keypad").style.display = "none";
+  keyboardVisible = false;
+  if (activeInput) activeInput.focus();
+}
+
+function renderKeys(chars) {
+  return chars.split("")
+    .map(c => `<button class="keyboardButton" data-key="${c}">${c}</button>`)
+    .join("");
+}
+
+/* Prevent focus loss */
+$(document).on("mousedown", "#keypad button", e => e.preventDefault());
+
+/* Keyboard click handler */
+$(document).on("click", ".keyboardButton", function () {
+  if (!activeInput) return;
+
+  const key = this.dataset.key;
+  const action = this.dataset.action;
+
+  if (key) pressKey(key);
+  else if (action === "backspace") pressBackspace();
+  else if (action === "space") pressKey(" ");
+  else if (action === "clear") { activeInput.value = ""; triggerSearch(); }
+  else if (action === "cancel") hideAlphaKeypad();
+});
+
+function pressKey(char) {
+  const pos = activeInput.selectionStart ?? activeInput.value.length;
+  activeInput.value =
+    activeInput.value.slice(0, pos) +
+    char +
+    activeInput.value.slice(pos);
+
+  activeInput.selectionStart = activeInput.selectionEnd = pos + 1;
+  triggerSearch();
+  activeInput.focus();
+}
+
+function pressBackspace() {
+  const pos = activeInput.selectionStart;
+  if (pos > 0) {
+    activeInput.value =
+      activeInput.value.slice(0, pos - 1) +
+      activeInput.value.slice(pos);
+    activeInput.selectionStart = activeInput.selectionEnd = pos - 1;
   }
-  
-  .user-badge-main:hover {
-    background: linear-gradient(135deg, #d4edff, #b6e0fe) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,100,149,0.1);
-  }
-</style>
+  triggerSearch();
+  activeInput.focus();
+}
+
+function triggerSearch() {
+  $('#prepackReport').DataTable().search(activeInput.value).draw();
+}
+
+/* DATATABLE */
+$(document).ready(function () {
+  const table = $('#prepackReport').DataTable({
+    bLengthChange: false,
+    bDestroy: true,
+    pageLength: 6,
+    responsive: true,
+    autoWidth: false,
+    order: [[3, 'desc']],
+    language: { search: "" },
+
+    initComplete: function () {
+      // IMPORTANT: get FINAL input
+      const $input = $('.dataTables_filter input');
+      activeInput = $input[0];
+
+      $input.css({
+        fontSize: '1.3rem',
+        padding: '12px 15px',
+        width: '300px'
+      });
+
+      $input.on('click', function () {
+        activeInput = this;
+        showAlphaKeypad();
+      });
+
+      $input.on('input', function () {
+        table.search(this.value).draw();
+      });
+
+      $input.focus();
+      hideAlphaKeypad();
+    }
+  });
+
+  // Hide keyboard on outside click
+  $(document).on('click', function (e) {
+    if (
+      !$(e.target).closest('#keypad').length &&
+      !$(e.target).is('.dataTables_filter input')
+    ) {
+      hideAlphaKeypad();
+    }
+  });
+});
+</script>
+
 <script>
 function toggleUserList(element) {
   const userList = element.parentElement.querySelector('.user-list-expanded');
@@ -425,7 +384,7 @@ function positionDropdown(button, dropdown) {
   // Calculate space
   const spaceBelow = viewportHeight - buttonRect.bottom;
   const spaceAbove = buttonRect.top;
-  const dropdownHeight = dropdownRect.height || 200; // Estimate if not rendered yet
+  const dropdownHeight = dropdownRect.height || 200;
   
   // Check if we should open upwards or downwards
   if (spaceBelow < dropdownHeight + 20 && spaceAbove >= dropdownHeight + 20) {
@@ -457,15 +416,79 @@ document.addEventListener('click', function(event) {
 });
 </script>
 
-<!-- FOOTER -->
-<div class="footer" style="background: #262626; padding: 10px 20px; margin-left: -40px; font-size: 1.2rem;">
-  <button onmousedown="window.location = '/prepack_labels/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
-    Back
-  </button>
-  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 2vw; float: right; font-size: 2rem;">
-    Home
-  </button>
-</div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .user-badge-main:hover {
+    background: linear-gradient(135deg, #d4edff, #b6e0fe) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,100,149,0.1);
+  }
+</style>
+
+<style>
+/* Keyboard container border */
+#keypad {
+  text-align: center;
+  border: 6px solid #7eb9d0; 
+  border-radius: 12px;         
+  padding: 10px;               
+  display: inline-block;       
+  background: #989a9c;   
+}
+
+/* Main keyboard buttons */
+#keypad .keyboardButton {
+  display: inline-block !important;
+  width: 130px;          
+  height: 60px;     
+  font-size: 32px !important;
+  line-height: 80px; 
+  padding: 0;
+  color: #ffffff !important;
+  margin: 2px;          
+  text-align: center;
+  cursor: pointer;
+  border-radius: 6px;    
+}
+
+/* Special keys */
+#keypad .keyboardButton#backspace,
+#keypad .keyboardButton#clear,
+#keypad .keyboardButton#cancel {
+  width: 120px;
+}
+
+/* Space key wider */
+#keypad .keyboardButton#Space {
+  width: 350px;
+}
+
+/* Special row layout */
+#keypad .special-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 30px;
+  margin-top: 12px;
+}
+
+/* Left group of keys */
+#keypad .left-keys {
+  display: flex;
+  gap: 12px;
+}
+
+/* Right group of keys */
+#keypad .right-keys {
+  display: flex;
+  gap: 12px;
+}
+</style>
+
 
 <style>
 @keyframes fadeInUp {
@@ -529,6 +552,13 @@ document.addEventListener('click', function(event) {
   background: #f3f4f6 !important;
   border-color: #9ca3af !important;
 }
+/* DataTables info */
+.dataTables_wrapper .dataTables_info {
+    font-size: 1.6rem;
+    font-weight: 600; 
+    color: #06425C;
+}
+
 
 /* Main container */
 .main-report-container {
