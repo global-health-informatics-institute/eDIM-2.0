@@ -544,14 +544,6 @@ img[src*="/assets/"] {
                             onmouseout="this.style.transform='scale(1)'">
                         
                         <!-- Delete/Cancel Button -->
-                        <% if prepack[:packs_remaining] == 0 %>
-                          <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
-                              src="/assets/delete.png" 
-                              title="Remove from list"
-                              onmousedown="confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')"
-                              onmouseover="this.style.transform='scale(1.1)'"
-                              onmouseout="this.style.transform='scale(1)'">
-                        <% end %>
                         
                       </div>
                     
@@ -2170,7 +2162,7 @@ function showSuccessNotification(message) {
   }, 2300);
 }
 
-// ========== UPDATED SUBMIT FUNCTIONS ==========
+// SUBMIT Functions and Validations
 
 function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, bottle_quantity) {
   const quantityInput = document.getElementById('damageQuantity');
@@ -2178,10 +2170,18 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, 
 
   // Ensure quantity is a number
   let quantity = parseInt(quantityInput.value, 10);
-
-  if (!quantity || quantity <= 0) {
-    alert('Please enter a valid quantity greater than 0');
+  
+  // Check for NaN or negative values
+  if (isNaN(quantity) || quantity < 0) {
+    alert('Please enter a valid quantity (0 or greater)');
     return;
+  }
+
+  // Check for 0 quantity
+  if (quantity === 0) {
+    if (!confirm("You're reporting 0 damages. Are you sure you want to continue?")) {
+      return;
+    }
   }
 
   // Get damage type
@@ -2262,17 +2262,24 @@ function updateQuickSelectButtons() {
     maxAllowed = parseInt(input.max, 10);
   }
 
+  const currentValue = parseInt(input.value, 10) || 0; // Changed from 1 to 0
+
   buttons.forEach(btn => {
     const value = parseInt(btn.dataset.value, 10);
 
-    // 0 is always allowed
-    if (value === 0) {
-      enableQuickButton(btn);
-      return;
-    }
-
     if (value <= maxAllowed) {
       enableQuickButton(btn);
+      
+      // Highlight if this button matches current input value
+      if (value === currentValue) {
+        btn.style.background = '#006495';
+        btn.style.color = 'white';
+        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.3)';
+      } else {
+        btn.style.background = '#e9ecef';
+        btn.style.color = '#495057';
+        btn.style.boxShadow = 'none';
+      }
     } else {
       disableQuickButton(btn);
     }
@@ -2299,11 +2306,6 @@ function setQuickSelectValue(value) {
 
   const max = parseInt(input.max, 10);
 
-  if (value === 0) {
-    input.value = 1; // reset to minimum usable value
-    return;
-  }
-
   if (value <= max) {
     input.value = value;
   }
@@ -2316,6 +2318,11 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
   const clearBtn = document.getElementById('clearBtn');
 
   if (!input || !increaseBtn || !decreaseBtn || !clearBtn) return;
+
+  // Ensure input starts at 0
+  if (parseInt(input.value) !== 0) {
+    input.value = 0;
+  }
 
   let holdTimeout = null;
   let repeatTimeout = null;
@@ -2339,8 +2346,7 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
     let max = parseInt(input.max, 10);
     if (isNaN(max)) max = Infinity;
 
-    let min = parseInt(input.min, 10);
-    if (isNaN(min)) min = 1;
+    let min = 0; // Changed from 1 to 0
 
     let newValue = current + amount;
 
@@ -2395,14 +2401,14 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
   bindButton(decreaseBtn, -1);
 
   clearBtn.addEventListener('click', () => {
-    input.value = 1;
+    input.value = 0; // Changed from 1 to 0
     updateQuickSelectButtons();
   });
 
   // Expose helpers
   window.adjustDamageQuantity = adjustQuantity;
   window.clearDamageQuantity = () => {
-    input.value = 1;
+    input.value = 0; // Changed from 1 to 0
     updateQuickSelectButtons();
   };
 }
