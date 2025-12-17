@@ -65,7 +65,6 @@ input.radio:checked label {
 }
 
 /* Wrapper for Route or Dose sections */
-/* Adjust gap between label and input */
 .section-wrapper {
   display: flex;
   flex-direction: column;
@@ -246,7 +245,7 @@ input.radio:checked label {
   font-weight: 600 !important;
 }
 
-/* Add a subtle glow to the entire tray when open */
+/* Subtle glow to the entire tray when open */
 .view-options-menu.show {
   box-shadow: 0 10px 30px rgba(0, 100, 149, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08) !important;
 }
@@ -255,22 +254,21 @@ input.radio:checked label {
 img[src*="/assets/"] {
   transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
 }
-
-/* Optional: Add a subtle background to option items on hover */
 .option-item:hover {
   border-radius: 8px;
 }
 
 /* Prepack styles */
-/* Compact Brand Section */
+/* Compact Brand Section - DARKER VERSION */
 .brand-section-compact {
   width: 280px;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border: 1px solid #d1d5db;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); /* DARKER: Changed from #ffffff to #f1f5f9 */
+  border-radius: 16px; 
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
+  border: 1px solid #cbd5e1; /* DARKER: Changed from #e5e7eb to #cbd5e1 */
   min-width: 160px; 
   min-height: 160px;
+  margin-top: 1vh;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -279,7 +277,16 @@ img[src*="/assets/"] {
   gap: 12px;
   flex: 0 0 auto;
   padding-top: 18px;
+  transition: all 0.3s ease; 
+  margin-left: 10px; 
 }
+
+.brand-section-compact:hover {
+  transform: translateY(-2px); 
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25); 
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); 
+}
+
 .brand-logo-image {
   width: 250px; 
   height: 250px; 
@@ -287,31 +294,70 @@ img[src*="/assets/"] {
   filter: brightness(0) invert(0);
   max-width: 100%;
   max-height: 80px; 
+  transition: transform 0.3s ease;
 }
+
+.brand-logo-image:hover {
+  transform: scale(1.02);
+}
+
 .current-date-compact {
   font-size: 1.6rem;
   font-weight: 600;
-  color: #4b5563;
+  color: #475569; 
   display: block;
   line-height: 1.2;
   margin-top: 5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
+/* Header Cell - WHITER VERSION */
 .header-cell{
   flex: 1;
   padding: 15px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  border: 1px solid #e5e7eb;
-  min-height: 146px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafcff 100%); 
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); 
+  border: 1px solid #e2e8f0; 
+  min-height: 155px;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+  margin-right: 10px;
 }
+
+.header-cell:hover {
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%); 
+}
+
+/* scanner input */
+.scanner {
+  flex: 1;
+  max-width: 300px;
+  height: 28px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 1.3rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: #ffffff; 
+}
+
+.scanner:focus {
+  outline: none;
+  border-color: #006495;
+  box-shadow: 0 0 0 3px rgba(0, 100, 149, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff; 
+}
+
 .main-content-cell {
   width: 100%;
   min-height: auto;
   padding: 12px;
 }
+
 .brand-logo-compact {
   margin: 0;
   font-size: 1.5rem;
@@ -349,16 +395,21 @@ img[src*="/assets/"] {
     </div>
   
   <!-- MAIN CONTENT -->
-  <div style="border:3px solid #06425C; margin-top:3vh; height:70vh; padding: 0; display: flex; flex-direction: column;">
+  <div style="border:3px solid #06425C; border-radius: 12px 12px 0 0; margin-top:3vh; height:65vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
 
   <!-- PREPACK LISTING SECTION -->
-  <div style="width: 100%; background-color: #006495; height: 4vh; text-align: center; color: white; padding-top: 1vh; flex-shrink: 0;">
-    <span style="font-size: 1.5rem; font-family: 'Arial Black', Gadget, sans-serif;">Prepack Inventory</span>
+  <div style="width: 100%; background: linear-gradient(135deg, #006495 0%, #004d73 100%); height: 4vh; text-align: center; color: white; padding-top: 1vh; flex-shrink: 0; /* NO border-radius here */ box-shadow: 0 4px 12px rgba(0, 100, 149, 0.3);">
+    <span style="font-size: 1.5rem; font-family: 'Arial Black', Gadget, sans-serif; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);">Prepack Inventory</span>
   </div>
 
   <div style="flex: 1; overflow: auto; padding: 0 5px;">
     <div style="display: table; width: 100%;">  
       <% if @prepack_inventory.present? %>
+      <% first_prepack = @prepack_inventory.first %>
+      <% puts "DEBUG: First prepack keys: #{first_prepack.keys}" %>
+      <% puts "DEBUG: Has bottle_quantity? #{first_prepack.key?(:bottle_quantity)}" %>
+      <% puts "DEBUG: bottle_quantity value: #{first_prepack[:bottle_quantity]}" %>
+      <% puts "DEBUG: Full hash: #{first_prepack.inspect}" %>
         <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
           <div style="display: table-row; width: 100%;">  <!-- Full width row -->
             <% prepack_pair.each do |prepack, global_index| %>
@@ -442,7 +493,7 @@ img[src*="/assets/"] {
                                   Edit
                                 </div>
                               </div>
-                              
+
                               <!-- Log Damages Button -->
                               <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.2s;">
                                 <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
@@ -450,7 +501,12 @@ img[src*="/assets/"] {
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/damage.png" 
                                     title="Log Damages"
-                                    onmousedown="logDamages('<%= prepack[:id] %>', '<%= prepack[:drug_name] %>', <%= prepack[:packs_remaining] %>)"
+                                    onmousedown="logDamages(
+                                      '<%= prepack[:id] %>', 
+                                      '<%= prepack[:drug_name] %>', 
+                                      <%= prepack[:packs_remaining] %>, 
+                                      <%= prepack[:bottle_quantity] || 0 %>
+                                    )"
                                     onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
                                 <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
@@ -824,8 +880,8 @@ img[src*="/assets/"] {
   </div>
 
   <!-- FOOTER -->
-  <div class="footer" style="margin-left: -0.5vw; width: 100vw; font-size: 1.2rem">
-    <button class="nav-bttn red" style="float:left; margin-left: 1vw;" onmousedown="window.location='/'">Cancel</button>
+  <div class="footer" style="margin-left: -0.5vw; width: 100vw; font-size: 1.4rem">
+    <button class="nav-bttn red" style="float:left; margin-left: 1vw; font-size: 1.4rem" onmousedown="window.location='/'">Back</button>
     <button class="nav-bttn blue" style="float:right; margin-right: 1vw;" onclick="window.location='/general_inventory'">View Inventory</button>
   </div>
 </body>
@@ -1454,6 +1510,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Track which view options are open
 let openViewOptionsId = null;
+// Store damage modal parameters for reopening
+let storedDamageModalParams = null;
 
 function toggleViewOptions(prepackId) {
   const viewIcon = document.getElementById('view_icon_' + prepackId);
@@ -1562,44 +1620,37 @@ function closeViewOptions(prepackId) {
   }, 200);
 }
 
-function closeViewOptions(prepackId) {
-  const viewIcon = document.getElementById('view_icon_' + prepackId);
-  const optionsDiv = document.getElementById('view_options_' + prepackId);
-  const container = viewIcon.closest('.view-options-container');
-  
-  // Remove active classes
-  viewIcon.classList.remove('active');
-  container.classList.remove('active');
-  
-  // Animate out option icons first
-  const optionItems = optionsDiv.querySelectorAll('.option-item img');
-  optionItems.forEach((item, index) => {
-    setTimeout(() => {
-      item.style.opacity = '0';
-      item.style.transform = 'scale(0.8) translateX(-10px)';
-    }, index * 30); // Stagger delay out
-  });
-  
-  // Hide options after icons have animated out
-  setTimeout(() => {
-    optionsDiv.classList.remove('show');
-    openViewOptionsId = null;
-  }, 150);
-}
-
 // logDamages function with modal
-function logDamages(prepackId, drugName, maxQuantity) {
+function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSize) {
+  console.log("logDamages called with:", prepackId, drugName, availablePacks, bottle_quantity);
+  
   // Close any open options
   if (openViewOptionsId) {
     closeViewOptions(openViewOptionsId);
   }
   
+  // Store parameters for possible reopening
+  storedDamageModalParams = {
+    prepackId,
+    drugName,
+    availablePacks,
+    bottle_quantity,
+    packSize
+  };
+  
   // Create and show modal
-  showDamageModal(prepackId, drugName, maxQuantity);
+  showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_quantity);
 }
 
 function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_quantity) {
   isModalOpen = true;
+
+  console.log('showDamageModal called with:', {
+    prepackId,
+    drugName,
+    availablePacks,
+    bottle_quantity
+  });
 
   const modalHTML = `
   <div id="damageModalOverlay"
@@ -1691,6 +1742,38 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
                       box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">Clear</button>
       </div>
 
+        <!-- QUICK SELECT BUTTONS -->
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+          <button type="button" class="quick-select-btn" data-value="0" 
+                  onclick="setQuickSelectValue(0)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            0
+          </button>
+          <button type="button" class="quick-select-btn" data-value="10" 
+                  onclick="setQuickSelectValue(10)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            10
+          </button>
+          <button type="button" class="quick-select-btn" data-value="100" 
+                  onclick="setQuickSelectValue(100)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            100
+          </button>
+          <button type="button" class="quick-select-btn" data-value="1000" 
+                  onclick="setQuickSelectValue(1000)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            1000
+          </button>
+        </div>
+
         <div style="text-align: center; margin-top: 8px;">
           <span style="font-size: 1.1rem; color: #6c757d; font-style: italic;">
             Tap and hold +/− for fast counting
@@ -1757,6 +1840,8 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
     modal.style.transform = 'scale(1)';
     
     setupQuantityControls(availablePacks, bottle_quantity);
+    updateQuickSelectButtons();
+
   }, 10);
   
   setTimeout(() => {
@@ -1768,8 +1853,326 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
   }, 100);
 }
 
+// ========== NEW FUNCTIONS ADDED FOR CONFIRMATION AND SUCCESS ==========
 
-function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize) {
+// Show confirmation modal before submitting damage
+function showDamageConfirmationModal(quantity, drugName, reason, prepackId, damageType) {
+  // Close the damage modal first
+  closeDamageModal();
+  
+  // Small delay to ensure modal is closed
+  setTimeout(() => {
+    // Create confirmation modal
+    const confirmationModal = document.createElement('div');
+    confirmationModal.id = 'damageConfirmationModal';
+    confirmationModal.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    `;
+
+    confirmationModal.innerHTML = `
+      <div id="damageConfirmationModalContent"
+           style="
+        width: 500px;
+        background: #fff;
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        transform: scale(0.92);
+        transition: transform 0.25s ease;
+      ">
+        <!-- Header -->
+        <div style="display:flex; justify-content:center; align-items:center; margin-bottom:20px;">
+          <h2 style="margin:0; font-size:1.8rem; color:#d9534f; font-weight:700; text-align:center;">
+            Confirm Damage Report
+          </h2>
+        </div>
+
+        <!-- Message -->
+        <div style="
+          background: #f1f3f5;
+          border: 1px solid #d7dde3;
+          padding: 20px;
+          border-radius: 10px;
+          margin-bottom: 28px;
+          text-align: center;
+          font-size: 1.4rem;
+          line-height: 1.5;
+        ">
+          <p style="margin:0; font-weight:600;">
+            Report damaged <span style="color:#d9534f; font-size:1.6rem;">${quantity}</span> ${damageType === 'pack' ? 'pack(s)' : 'unit(s)'} of
+          </p>
+          <p style="margin:10px 0 0 0; color:#006495; font-size:1.5rem; font-weight:600;">
+            ${drugName}
+          </p>
+          <p style="margin:10px 0 0 0; font-size:1.2rem; color:#6c757d;">
+            Reason: ${reason.replace(/_/g, ' ')}
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex; justify-content:center; gap:16px;">
+          <button onclick="processDamageSubmission(${prepackId}, ${quantity}, '${reason}', '${damageType}')"
+                  style="
+                    padding: 14px 28px;
+                    border: none;
+                    border-radius: 8px;
+                    background: #28a745;
+                    color: #fff;
+                    font-size: 1.3rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    min-width: 140px;
+                    height: 55px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#218838'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.background='#28a745'">
+            OKAY
+          </button>
+          
+          <button onclick="closeConfirmationModalAndReopenDamageModal()"
+                  style="
+                    padding: 14px 28px;
+                    border: none;
+                    border-radius: 8px;
+                    background: #6c757d;
+                    color: #fff;
+                    font-size: 1.3rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    min-width: 140px;
+                    height: 55px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
+            CANCEL
+          </button>
+        </div>
+        </div>
+      </div>
+    `;
+
+    // Add to page
+    document.body.appendChild(confirmationModal);
+    
+    // Animate in
+    setTimeout(() => {
+      confirmationModal.style.opacity = '1';
+      const modalContent = document.getElementById('damageConfirmationModalContent');
+      modalContent.style.transform = 'scale(1)';
+    }, 10);
+  }, 300);
+}
+
+// Close confirmation modal and reopen damage modal with preserved values
+function closeConfirmationModalAndReopenDamageModal() {
+  closeDamageConfirmationModal();
+  
+  // Reopen damage modal with stored parameters
+  setTimeout(() => {
+    if (storedDamageModalParams) {
+      const {
+        prepackId,
+        drugName,
+        availablePacks,
+        bottle_quantity,
+        packSize
+      } = storedDamageModalParams;
+      
+      // Reopen with the stored parameters
+      showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_quantity);
+    }
+  }, 300);
+}
+
+// Close confirmation modal
+function closeDamageConfirmationModal() {
+  const confirmationModal = document.getElementById('damageConfirmationModal');
+  if (confirmationModal) {
+    confirmationModal.style.opacity = '0';
+    const modalContent = document.getElementById('damageConfirmationModalContent');
+    if (modalContent) {
+      modalContent.style.transform = 'scale(0.9)';
+    }
+    
+    setTimeout(() => {
+      if (confirmationModal.parentNode) {
+        confirmationModal.parentNode.removeChild(confirmationModal);
+      }
+    }, 300);
+  }
+}
+
+// Process the actual damage submission after confirmation
+function processDamageSubmission(prepackId, quantity, reason, damageType) {
+  console.log("Processing damage submission:", prepackId, quantity, reason, damageType);
+  
+  // Close confirmation modal
+  closeDamageConfirmationModal();
+  
+  // Show "processing" notification
+  showProcessingNotification();
+
+  const url = `/general_inventory/${prepackId}/damage_item`;
+  
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+    },
+    body: JSON.stringify({
+      quantity: quantity,
+      reason: reason,
+      damage_type: damageType
+    })
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return res.json();
+  })
+  .then(data => {
+    // Remove processing notification
+    removeProcessingNotification();
+    
+    if (data.success) {
+      // Show success message
+      showSuccessNotification("Damage Recorded Successfully!");
+      
+      // Reload after delay
+      setTimeout(() => {
+        location.reload();
+      }, 2500);
+    } else {
+      alert(data.message || "An error occurred");
+    }
+  })
+  .catch(err => {
+    // Remove processing notification
+    removeProcessingNotification();
+    
+    console.error("Error submitting damage:", err);
+    alert("An error occurred while submitting the damage.");
+  });
+}
+
+// Show processing notification
+function showProcessingNotification() {
+  const processingNotification = document.createElement('div');
+  processingNotification.id = 'processing-notification';
+  processingNotification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    z-index: 10002;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+  `;
+  processingNotification.innerHTML = `
+    <div style="margin-bottom: 10px; font-size: 2.5rem;">⏳</div>
+    Processing...
+  `;
+  
+  document.body.appendChild(processingNotification);
+}
+
+// Remove processing notification
+function removeProcessingNotification() {
+  const processingNotification = document.getElementById('processing-notification');
+  if (processingNotification && processingNotification.parentNode) {
+    processingNotification.parentNode.removeChild(processingNotification);
+  }
+}
+
+// Helper function to show success notification without blocking
+function showSuccessNotification(message) {
+  // Remove any existing notification
+  const existingNotification = document.getElementById('success-notification');
+  if (existingNotification) {
+    existingNotification.parentNode.removeChild(existingNotification);
+  }
+
+  // Create a notification div
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #28a745;
+    color: white;
+    padding: 30px 50px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    z-index: 10003;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    min-width: 400px;
+    max-width: 600px;
+    border: 4px solid rgba(255,255,255,0.3);
+    animation: fadeIn 0.3s ease-out;
+  `;
+  notification.textContent = message;
+  notification.id = 'success-notification';
+  
+  // Add checkmark
+  const checkmark = document.createElement('div');
+  checkmark.style.cssText = `
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+  `;
+  checkmark.textContent = '✓';
+  notification.insertBefore(checkmark, notification.firstChild);
+  
+  // Add to page
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 2.3 seconds (just before page reloads)
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+      notification.style.transition = 'all 0.3s ease-out';
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
+  }, 2300);
+}
+
+// ========== UPDATED SUBMIT FUNCTIONS ==========
+
+function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, bottle_quantity) {
   const quantityInput = document.getElementById('damageQuantity');
   const reasonSelect = document.getElementById('damageReason');
 
@@ -1791,17 +2194,20 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize) 
     }
   }
 
-  // Convert ONLY when pack-type damage
-  let finalQuantity = quantity;
-  if (damageType === 'pack') {
-    if (packSize && packSize > 0) {
-      finalQuantity = Math.ceil(quantity * packSize); // multiply by packSize
-    } else {
-      console.warn('packSize is invalid, using quantity as-is');
-    }
+  // Check if quantity exceeds max
+  const maxQty = damageType === 'pack' ? maxQuantity : bottle_quantity;
+  if (quantity > maxQty) {
+    alert(`Quantity cannot exceed maximum available: ${maxQty}`);
+    return;
   }
 
-  console.log("Submitting damage:", {
+  // Convert quantity if needed
+  let finalQuantity = quantity;
+  if (damageType === 'pack' && packSize && packSize > 0) {
+    finalQuantity = Math.ceil(quantity * packSize);
+  }
+
+  console.log("Preparing to show confirmation:", {
     prepackId,
     drugName,
     quantity: finalQuantity,
@@ -1809,47 +2215,14 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize) 
     damageType
   });
 
-  submitDamage(prepackId, drugName, finalQuantity, reasonSelect.value, damageType);
-}
-
-
-// Accept damageType so we know if it's "bottle" or "pack"
-function submitDamage(prepackId, drugName, quantity, reason, damageType) {
-  console.log("submitDamage called with:", prepackId, drugName, quantity, reason, damageType);
-
-  const url = `/general_inventory/${prepackId}/damage_item`;
-
-  fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
-    },
-    body: JSON.stringify({
-      quantity: quantity,
-      reason: reason,
-      damage_type: damageType
-    })
-  })
-  .then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      alert("Damage logged successfully");
-      closeDamageModal();
-      location.reload();
-    } else {
-      alert(data.message || "An error occurred");
-    }
-  })
-  .catch(err => {
-    console.error("Error submitting damage:", err);
-    alert("An error occurred while submitting the damage.");
-  });
+  // Show confirmation modal instead of directly submitting
+  showDamageConfirmationModal(
+    finalQuantity, 
+    drugName, 
+    reasonSelect.value, 
+    prepackId, 
+    damageType
+  );
 }
 
 // Helper function to update quantity label and max
@@ -1870,6 +2243,69 @@ function updateDamageQuantityLabel(type, maxPacks, packSize, bottle_quantity) {
   // Ensure current value does not exceed new max
   if (parseInt(input.value, 10) > input.max) {
     input.value = input.max;
+  }
+  updateQuickSelectButtons();
+}
+
+// Quick select buttons
+function updateQuickSelectButtons() {
+  const buttons = document.querySelectorAll('.quick-select-btn');
+  const input = document.getElementById('damageQuantity');
+  if (!buttons.length || !input) return;
+
+  const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+
+  let maxAllowed = 0;
+  if (selectedType === 'pack') {
+    maxAllowed = parseInt(input.max, 10);
+  } else {
+    maxAllowed = parseInt(input.max, 10);
+  }
+
+  buttons.forEach(btn => {
+    const value = parseInt(btn.dataset.value, 10);
+
+    // 0 is always allowed
+    if (value === 0) {
+      enableQuickButton(btn);
+      return;
+    }
+
+    if (value <= maxAllowed) {
+      enableQuickButton(btn);
+    } else {
+      disableQuickButton(btn);
+    }
+  });
+}
+
+function disableQuickButton(btn) {
+  btn.disabled = true;
+  btn.style.opacity = '0.4';
+  btn.style.cursor = 'not-allowed';
+  btn.style.pointerEvents = 'none';
+}
+
+function enableQuickButton(btn) {
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+  btn.style.pointerEvents = 'auto';
+}
+
+function setQuickSelectValue(value) {
+  const input = document.getElementById('damageQuantity');
+  if (!input) return;
+
+  const max = parseInt(input.max, 10);
+
+  if (value === 0) {
+    input.value = 1; // reset to minimum usable value
+    return;
+  }
+
+  if (value <= max) {
+    input.value = value;
   }
 }
 
@@ -1912,6 +2348,7 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
     if (newValue > max) newValue = max;
 
     input.value = newValue;
+    updateQuickSelectButtons();
   }
 
   // HOLD ENGINE
@@ -1959,11 +2396,15 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
 
   clearBtn.addEventListener('click', () => {
     input.value = 1;
+    updateQuickSelectButtons();
   });
 
   // Expose helpers
   window.adjustDamageQuantity = adjustQuantity;
-  window.clearDamageQuantity = () => input.value = 1;
+  window.clearDamageQuantity = () => {
+    input.value = 1;
+    updateQuickSelectButtons();
+  };
 }
 
 function closeDamageModal() {
@@ -1981,7 +2422,7 @@ function closeDamageModal() {
         overlay.remove();
       }
       
-      // IMPORTANT: Re-enable scanner when modal closes
+      // Re-enable scanner when modal closes
       isModalOpen = false;
       const barcodeInput = document.getElementById('barcode');
       if (barcodeInput) {
@@ -1995,6 +2436,7 @@ function closeDamageModal() {
     }, 300);
   }
 }
+
 // Close modal on escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {

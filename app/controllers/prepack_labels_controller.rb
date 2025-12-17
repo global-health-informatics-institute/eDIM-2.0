@@ -35,6 +35,142 @@ class PrepackLabelsController < ApplicationController
   def new
     @prepack = Prepack.new
     @prepack_inventory = load_prepack_inventory
+    
+    # Check if @prepacks was set by load_prepack_inventory
+    if @prepacks.nil?
+      @prepacks = Prepack.where(deleted: false, voided: false).order(created_at: :desc)
+    end
+    
+    # Load current quantities from general inventory
+    gn_identifiers = @prepacks.map(&:gn_identifier).compact
+    inventories = GeneralInventory.where(gn_identifier: gn_identifiers)
+                                  .pluck(:gn_identifier, :current_quantity)
+                                  .to_h
+    
+    @prepacks.each do |prepack|
+      # Get current bottle quantity from inventory
+      bottle_quantity = inventories[prepack.gn_identifier] || 0
+      prepack.instance_variable_set(:@bottle_quantity, bottle_quantity)
+    end
+  end
+
+  def list
+    # Try to get filters from session, use default if not found
+    filters = session[:prepack_report_filter] || {}
+
+    # Parse dates from session 
+    begin
+      start_date_raw = filters["start_date"] || filters[:start_date]
+      end_date_raw   = filters["end_date"]   || filters[:end_date]
+
+      if start_date_raw && end_date_raw
+        start_date = Time.iso8601(start_date_raw)
+        end_date   = Time.iso8601(end_date_raw)
+      else
+        start_date = Date.today.beginning_of_day.utc
+        end_date   = Date.today.end_of_day.utc
+      end
+    rescue => e
+      start_date = Date.today.beginning_of_day.utc
+      end_date   = Date.today.end_of_day.utc
+    end
+
+    locations = filters[:locations] || ['All Locations']
+    duration = filters["report_duration"] || filters[:report_duration] || 'Daily'
+
+    # Set report title
+    @report_type = case duration
+                  when 'Daily'
+                    "Prepack Report for #{l(start_date.to_date, format:'%d %B, %Y')}"
+                  when 'Weekly', 'Monthly', 'Range'
+                    "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
+                  else
+                    "Prepack Report for #{l(Date.today, format:'%d %B, %Y')}"
+                  end
+
+    # Base query and records
+    base_query = Prepack.joins(:drug)
+                        .where(created_at: start_date..end_date)
+                        .order("prepacks.created_at DESC")
+
+    record_count = base_query.count
+
+    @records = base_query.select("prepacks.*, drugs.name as drug_name") || Prepack.none
+
+    # Location filter
+    if locations.present? && !locations.include?('All Locations')
+      location_ids = Location.where(name: locations).pluck(:location_id)
+      bottle_ids = GeneralInventory.where(location_id: location_ids).pluck(:gn_identifier).uniq
+      if bottle_ids.present?
+        @records = @records.where(gn_identifier: bottle_ids)
+      else
+        @records = Prepack.none
+      end
+    end
+
+    @records ||= Prepack.none
+
+    # Collect ids
+    prepack_ids = @records.pluck(:id)
+
+    # Get damages
+    damage_records =
+      if prepack_ids.present?
+        Damage.where(prepack_id: prepack_ids)
+              .where(damage_date: start_date..end_date)
+              .group(:prepack_id)
+              .sum(:quantity)
+      else
+        {}
+      end
+
+    # Totals initialization
+    @total_packs = 0
+    @total_dispensed = 0
+    @total_damaged = 0
+    @total_quantity = 0
+    @total_original_packs = 0
+
+    # Ensure array
+    @prepacks = @records.to_a || []
+
+    # preload general inventory quantities
+    gn_identifiers = @prepacks.map(&:gn_identifier).compact
+    inventories = GeneralInventory.where(gn_identifier: gn_identifiers)
+                                  .pluck(:gn_identifier, :current_quantity)
+                                  .to_h
+
+    @prepacks.each do |prepack|
+      dispensed_count = prepack.prepack_labels.where(
+        dispensed: true,
+        deleted: false,
+        voided: false
+      ).count rescue 0
+
+      damages_count = damage_records[prepack.id].to_i
+      prepack.instance_variable_set(:@damages_count, damages_count)
+
+      original_packs_for_this_prepack = prepack.num_packs + damages_count
+
+      # Get the current bottle quantity from inventory
+      bottle_quantity = inventories[prepack.gn_identifier] || 0
+      
+      # Set it on the prepack object for use in the view
+      prepack.instance_variable_set(:@bottle_quantity, bottle_quantity)
+
+      @total_packs += prepack.num_packs.to_i
+      @total_dispensed += dispensed_count.to_i
+      @total_damaged += damages_count.to_i
+      @total_quantity += (prepack.quantity_per_pack.to_i * prepack.num_packs.to_i)
+      @total_original_packs += original_packs_for_this_prepack.to_i
+    end
+
+    @total_remaining = @total_original_packs - @total_dispensed - @total_damaged - @total_damaged
+
+    render 'list', layout: 'application'
+  rescue => e
+
+    raise
   end
 
   def delete
@@ -164,115 +300,6 @@ class PrepackLabelsController < ApplicationController
     }
 
     redirect_to '/prepack_labels/list'
-  end
-
-  def list
-    # Try to get filters from session, use default if not found
-    filters = session[:prepack_report_filter] || {}
-
-    # Parse dates from session 
-    begin
-      start_date_raw = filters["start_date"] || filters[:start_date]
-      end_date_raw   = filters["end_date"]   || filters[:end_date]
-
-      if start_date_raw && end_date_raw
-        start_date = Time.iso8601(start_date_raw)
-        end_date   = Time.iso8601(end_date_raw)
-      else
-        start_date = Date.today.beginning_of_day.utc
-        end_date   = Date.today.end_of_day.utc
-      end
-    rescue => e
-      start_date = Date.today.beginning_of_day.utc
-      end_date   = Date.today.end_of_day.utc
-    end
-
-    locations = filters[:locations] || ['All Locations']
-    duration = filters["report_duration"] || filters[:report_duration] || 'Daily'
-
-    # Set report title
-    @report_type = case duration
-                  when 'Daily'
-                    "Prepack Report for #{l(start_date.to_date, format:'%d %B, %Y')}"
-                  when 'Weekly', 'Monthly', 'Range'
-                    "Prepack Report from #{l(start_date.to_date, format:'%d %B, %Y')} to #{l(end_date.to_date, format:'%d %B, %Y')}"
-                  else
-                    "Prepack Report for #{l(Date.today, format:'%d %B, %Y')}"
-                  end
-
-    # Base query and records
-    base_query = Prepack.joins(:drug)
-                        .where(created_at: start_date..end_date)
-                        .order("prepacks.created_at DESC")
-
-    record_count = base_query.count
-
-    @records = base_query.select("prepacks.*, drugs.name as drug_name") || Prepack.none
-
-    # Location filter
-    if locations.present? && !locations.include?('All Locations')
-      location_ids = Location.where(name: locations).pluck(:location_id)
-      bottle_ids = GeneralInventory.where(location_id: location_ids).pluck(:gn_identifier).uniq
-      if bottle_ids.present?
-        @records = @records.where(gn_identifier: bottle_ids)
-      else
-        @records = Prepack.none
-      end
-    end
-
-    @records ||= Prepack.none
-
-    # Collect ids
-    prepack_ids = @records.pluck(:id)
-
-    # Get damages
-    damage_records =
-      if prepack_ids.present?
-        Damage.where(prepack_id: prepack_ids)
-              .where(damage_date: start_date..end_date)
-              .group(:prepack_id)
-              .sum(:quantity)
-      else
-        {}
-      end
-
-    # Totals initialization
-    @total_packs = 0
-    @total_dispensed = 0
-    @total_damaged = 0
-    @total_quantity = 0
-    @total_original_packs = 0
-
-    # Ensure array
-    @prepacks = @records.to_a || []
-
-    Rails.logger.info ">>> Iterating over #{@prepacks.length} prepacks"
-
-    @prepacks.each do |prepack|
-      dispensed_count = prepack.prepack_labels.where(
-        dispensed: true,
-        deleted: false,
-        voided: false
-      ).count rescue 0
-
-      damages_count = damage_records[prepack.id].to_i
-      prepack.instance_variable_set(:@damages_count, damages_count)
-
-      original_packs_for_this_prepack = prepack.num_packs + damages_count
-
-      @total_packs += prepack.num_packs.to_i
-      @total_dispensed += dispensed_count.to_i
-      @total_damaged += damages_count.to_i
-      @total_quantity += (prepack.quantity_per_pack.to_i * prepack.num_packs.to_i)
-      @total_original_packs += original_packs_for_this_prepack.to_i
-    end
-
-    @total_remaining = @total_original_packs - @total_dispensed - @total_damaged - @total_damaged
-
-    render 'list', layout: 'application'
-  rescue => e
-
-    raise
   end
 
   private

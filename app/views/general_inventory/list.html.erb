@@ -116,8 +116,10 @@
           </td>
           <td style="text-align: center;">
             <div style="display: table-cell;min-width: 8vw; vertical-align: middle;">
-              <img style="width: 56px; height: 56px; padding-top: 1px;" src="/assets/damage.png" title="Record Damage"
-                  onmousedown="openStyledDamageModal(<%= item.id %>, '<%= @drug.name.titleize %>', '<%= Misc.dash_formatter(item.gn_identifier) %>', <%= item.current_quantity %>)">
+              <img style="width: 56px; height: 56px; padding-top: 1px; cursor: pointer;" 
+                src="/assets/damage.png" 
+                title="Record Damage"
+                onmousedown="openStyledDamageModal(<%= item.id %>, '<%= @drug.name.titleize %>', '<%= Misc.dash_formatter(item.gn_identifier) %>', <%= item.current_quantity %>)">
             </div>
 
             <div style="display: table-cell; min-width: 8vw;">
@@ -199,35 +201,23 @@
           Quantity Damaged
         </label>
         
-        <div style="display:flex; align-items:center; gap:8px; width:100%;">
+        <div style="display:flex; align-items:center; gap:6px; width:100%;">
           <input type="number" 
                 id="styled_damage_qty" 
-                min="1" 
-                value="1"
-                style="flex:1; min-width:60px; max-width:120px; padding:12px; font-size:1.5rem;
+                min="0" 
+                value="0"
+                style="flex:1; min-width:100px; max-width:130px; padding:12px; font-size:1.5rem;
                         border-radius:8px; border:2px solid #d0d7de; outline:none; 
                         text-align:center; box-sizing:border-box;
                         -moz-appearance:textfield; appearance:textfield;"
                 onfocus="this.style.borderColor='#006495'"
                 onblur="this.style.borderColor='#d0d7de'">
 
-          <button type="button" id="styledDamageDecreaseBtn"
-                  style="width:50px; height:55px; border:none; border-radius:10px;
-                        background:#f8f9fa; color:#dc3545; font-size:2rem; font-weight:bold;
-                        cursor:pointer; display:flex; align-items:center; justify-content:center;
-                        box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:0 0 auto;">−</button>
+          <button type="button" id="styledDamageDecreaseBtn">−</button>
 
-          <button type="button" id="styledDamageIncreaseBtn"
-                  style="width:50px; height:55px; border:none; border-radius:10px;
-                        background:#f8f9fa; color:#28a745; font-size:2rem; font-weight:bold;
-                        cursor:pointer; display:flex; align-items:center; justify-content:center;
-                        box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:0 0 auto;">+</button>
+          <button type="button" id="styledDamageIncreaseBtn">+</button>
 
-          <button type="button" id="styledDamageClearBtn"
-                  style="width:65px; height:55px; border:none; border-radius:10px;
-                        background:#f8f9fa; color:#6c757d; font-size:1.3rem; font-weight:600;
-                        cursor:pointer; display:flex; align-items:center; justify-content:center;
-                        box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:0 0 auto;">Clear</button>
+          <button type="button" id="styledDamageClearBtn">Clear</button>
         </div>
 
         <div style="text-align:center; margin-top:8px;">
@@ -236,6 +226,38 @@
           </span>
         </div>
       </div>
+
+        <!-- QUICK SELECT BUTTONS -->
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+          <button type="button" class="styled-quick-select-btn" data-value="0" 
+                  onclick="setStyledQuickSelectValue(0)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            0
+          </button>
+          <button type="button" class="styled-quick-select-btn" data-value="10" 
+                  onclick="setStyledQuickSelectValue(10)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            10
+          </button>
+          <button type="button" class="styled-quick-select-btn" data-value="100" 
+                  onclick="setStyledQuickSelectValue(100)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            100
+          </button>
+          <button type="button" class="styled-quick-select-btn" data-value="1000" 
+                  onclick="setStyledQuickSelectValue(1000)"
+                  style="padding: 10px 16px; border: none; border-radius: 8px;
+                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
+                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+            1000
+          </button>
+        </div>
 
       <!-- Reason -->
       <div style="margin-bottom:24px; width:100%;">
@@ -251,7 +273,6 @@
           <option value="broken">Broken / Dropped</option>
           <option value="expired">Expired</option>
           <option value="contaminated">Contaminated</option>
-          <option value="damaged_packaging">Damaged Packaging</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -359,12 +380,15 @@
     // Setup quantity controls
     setupStyledDamageModalQuantityControls();
     
+    // Initialize quick select buttons
+    updateStyledQuickSelectButtons();
+    
     // Focus on quantity input
     setTimeout(() => {
       qtyInput.focus();
       qtyInput.select();
     }, 100);
-  }
+}
 
 function submitStyledDamage() {
   const qtyInput = document.getElementById('styled_damage_qty');
@@ -378,9 +402,15 @@ function submitStyledDamage() {
     return;
   }
 
-  if (!qty || qty <= 0) {
-    alert("Please enter a valid quantity greater than 0");
+  if (qty === "" || qty < 0) { // Changed from qty <= 0
+    alert("Please enter a valid quantity (0 or greater)");
     return;
+  }
+
+  if (parseInt(qty) === 0) { // Added check for 0
+    if (!confirm("You're reporting 0 damages. Are you sure you want to continue?")) {
+      return;
+    }
   }
 
   if (!reason) {
@@ -402,6 +432,99 @@ function submitStyledDamage() {
   setTimeout(() => {
     showConfirmationModal(qty, drugName, reason, itemId);
   }, 300);
+}
+
+// Quick select buttons for damage modal
+function updateStyledQuickSelectButtons() {
+  const buttons = document.querySelectorAll('.styled-quick-select-btn');
+  const input = document.getElementById('styled_damage_qty');
+  if (!buttons.length || !input) return;
+
+  const maxAllowed = parseInt(input.max, 10) || Infinity;
+  const currentValue = parseInt(input.value, 10) || 0;
+
+  console.log("updateStyledQuickSelectButtons:", {
+    currentValue,
+    maxAllowed,
+    buttonsCount: buttons.length
+  });
+
+  buttons.forEach(btn => {
+    const value = parseInt(btn.dataset.value, 10);
+
+    // Check if button value exceeds current max
+    if (value > maxAllowed) {
+      disableStyledQuickButton(btn);
+    } else {
+      enableStyledQuickButton(btn);
+      
+      // Highlight if this button matches current input value
+      if (value === currentValue) {
+        btn.style.background = '#006495';
+        btn.style.color = 'white';
+        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.3)';
+      } else {
+        btn.style.background = '#e9ecef';
+        btn.style.color = '#495057';
+        btn.style.boxShadow = 'none';
+      }
+    }
+  });
+}
+
+function setStyledQuickSelectValue(value) {
+  const input = document.getElementById('styled_damage_qty');
+  if (!input) return;
+
+  const max = parseInt(input.max, 10) || Infinity;
+  
+  if (value <= max) {
+    input.value = value;
+  }
+  
+  // Update button highlights
+  updateStyledQuickSelectButtons();
+}
+
+function disableStyledQuickButton(btn) {
+  btn.disabled = true;
+  btn.style.opacity = '0.4';
+  btn.style.cursor = 'not-allowed';
+  btn.style.pointerEvents = 'none';
+}
+
+function enableStyledQuickButton(btn) {
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+  btn.style.pointerEvents = 'auto';
+}
+
+// Function to update button highlights based on current value
+function updateStyledQuickSelectButtonHighlight(selectedValue) {
+  const buttons = document.querySelectorAll('.styled-quick-select-btn');
+  const input = document.getElementById('styled_damage_qty');
+  if (!buttons.length || !input) return;
+  
+  const currentValue = parseInt(input.value, 10) || 0;
+  
+  buttons.forEach(btn => {
+    const buttonValue = parseInt(btn.dataset.value, 10);
+    
+    // Skip if button is disabled
+    if (btn.disabled) return;
+    
+    // Highlight if this button matches the current input value
+    if (buttonValue === currentValue) {
+      btn.style.background = '#006495';
+      btn.style.color = 'white';
+      btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.3)';
+    } else {
+      btn.style.background = '#e9ecef';
+      btn.style.color = '#495057';
+      btn.style.boxShadow = 'none';
+    }
+  });
 }
 
 // Show confirmation modal before submitting
@@ -521,22 +644,44 @@ function showConfirmationModal(quantity, drugName, reason, itemId) {
   }, 10);
 }
 
-// Close confirmation modal and reopen damage modal
-function closeConfirmationModalAndReopenDamageModal() {
-  const confirmationModal = document.getElementById('confirmationModal');
-  if (confirmationModal) {
-    confirmationModal.style.opacity = '0';
-    const modalContent = document.getElementById('confirmationModalContent');
-    modalContent.style.transform = 'scale(0.9)';
-    
-    setTimeout(() => {
-      if (confirmationModal.parentNode) {
-        confirmationModal.parentNode.removeChild(confirmationModal);
-      }
-      // Reopen the damage modal with preserved values
-      reopenStyledDamageModal();
-    }, 300);
-  }
+function reopenStyledDamageModal() {
+  // We need to preserve the original values
+  const qtyInput = document.getElementById('styled_damage_qty');
+  const reasonSelect = document.getElementById('styled_damage_reason');
+  
+  // Store current values before reopening
+  const currentQty = qtyInput.value;
+  const currentReason = reasonSelect.value;
+  const itemId = qtyInput.getAttribute('data-item-id');
+  const drugName = document.getElementById('styledDamageDrugName').textContent;
+  const inventoryNumber = document.getElementById('styledDamageInventoryNumber').textContent;
+  const maxQuantity = document.getElementById('styledDamageMaxQuantity').textContent;
+  
+  // Reopen modal with preserved values
+  const modal = document.getElementById('styledDamageModal');
+  const content = document.getElementById('styledDamageModalContent');
+  
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.style.opacity = '1';
+    content.style.transform = 'scale(1)';
+  }, 10);
+  
+  // Restore values
+  qtyInput.value = currentQty;
+  reasonSelect.value = currentReason;
+  
+  // Setup quantity controls
+  setupStyledDamageModalQuantityControls();
+  
+  // Initialize quick select buttons
+  updateStyledQuickSelectButtons();
+  
+  // Focus on quantity input
+  setTimeout(() => {
+    qtyInput.focus();
+    qtyInput.select();
+  }, 100);
 }
 
 // Reopen the damage modal with preserved values
@@ -577,7 +722,7 @@ function reopenStyledDamageModal() {
   }, 100);
 }
 
-// Close confirmation modal (without reopening damage modal)
+// Close confirmation modal
 function closeConfirmationModal() {
   const confirmationModal = document.getElementById('confirmationModal');
   if (confirmationModal) {
@@ -704,7 +849,7 @@ function showSuccessNotification(message) {
   notification.textContent = message;
   notification.id = 'success-notification';
   
-  // Add checkmark
+  // Checkmark
   const checkmark = document.createElement('div');
   checkmark.style.cssText = `
     font-size: 3.5rem;
@@ -716,7 +861,7 @@ function showSuccessNotification(message) {
   // Add to page
   document.body.appendChild(notification);
   
-  // Auto-remove after 2.3 seconds (just before page reloads)
+  // Auto-remove
   setTimeout(() => {
     if (notification.parentNode) {
       notification.style.opacity = '0';
@@ -744,7 +889,7 @@ function showSuccessNotification(message) {
     setTimeout(() => {
       modal.style.display = 'none';
       // Reset form
-      document.getElementById('styled_damage_qty').value = '1';
+      document.getElementById('styled_damage_qty').value = '0';
       document.getElementById('styled_damage_reason').value = 'broken';
     }, 300);
   }
@@ -763,7 +908,7 @@ function showSuccessNotification(message) {
     let isHolding = false;
     let holdDirection = 0;
 
-    // Adjust quantity
+    // Function to adjust quantity with bounds checking
     function adjustStyledDamageQuantity(amount) {
       if (!input) return;
 
@@ -773,8 +918,7 @@ function showSuccessNotification(message) {
       let max = parseInt(input.max, 10);
       if (isNaN(max)) max = Infinity;
 
-      let min = parseInt(input.min, 10);
-      if (isNaN(min)) min = 1;
+      let min = 0; // Changed from 1 to 0
 
       let newValue = current + amount;
 
@@ -782,9 +926,12 @@ function showSuccessNotification(message) {
       if (newValue > max) newValue = max;
 
       input.value = newValue;
+      
+      // Update button highlights
+      updateStyledQuickSelectButtonHighlight(newValue);
     }
 
-    // HOLD ENGINE
+    // Hold functionality
     function startPress(direction) {
       holdDirection = direction;
       holdTimeout = setTimeout(() => {
@@ -828,8 +975,20 @@ function showSuccessNotification(message) {
     bindButton(decreaseBtn, -1);
 
     clearBtn.addEventListener('click', () => {
-      input.value = 1;
+      input.value = 0;
+      updateStyledQuickSelectButtonHighlight(0);
     });
+
+    // Add event listener to input field to update highlights when typing
+    input.addEventListener('input', function() {
+      const value = parseInt(this.value, 10);
+      if (!isNaN(value)) {
+        updateStyledQuickSelectButtonHighlight(value);
+      }
+    });
+    
+    // Initialize quick select buttons
+    updateStyledQuickSelectButtons();
   }
 
   // Close modal on escape key
@@ -839,7 +998,7 @@ function showSuccessNotification(message) {
     }
   });
 
-  // DAMAGE MODAL FUNCTIONS
+  // Damage modal functions
   function openDamageModal(id) {
     document.getElementById("damage_item_id").value = id;
     document.getElementById("damageModal").style.display = 'block';
@@ -1238,4 +1397,39 @@ function showSuccessNotification(message) {
       margin: 0 3px;
     }
   }
+
+/* Damage modal button overrides */
+#styledDamageDecreaseBtn,
+#styledDamageIncreaseBtn,
+#styledDamageClearBtn {
+  width: 110px !important;
+  height: 50px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
+  font-size: 1.6rem !important;
+  border-radius: 6px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+#styledDamageDecreaseBtn {
+  background: #f8f9fa !important;
+  color: #dc3545 !important;
+}
+
+#styledDamageIncreaseBtn {
+  background: #f8f9fa !important;
+  color: #28a745 !important;
+}
+
+#styledDamageClearBtn {
+  width: 120px !important;
+  height: 50px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
+  font-size: 1rem !important;
+  background: #f8f9fa !important;
+  color: #6c757d !important;
+}
 </style>

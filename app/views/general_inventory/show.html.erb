@@ -1,22 +1,976 @@
-<div style="border: 1px inset black; border-width: 0px 0px 3px 0px;padding-left: 0.5vw;height: 10vh;">
-  <h2><%= "#{@item.drug_name.titleize}" %></h2>
-  <div style="display: table-row; width: 100vw;margin-left: 0.5vw;font-size: 1.5em;">
-    <div style="display: table-cell;width: 25vw;">
-      <%= "#{t('menu.terms.bottle_id')} : #{Misc.dash_formatter(@item.bottle_id)}" %>
-    </div>
-    <div style="display: table-cell;width: 50vw;">
-      <%= "#{t('forms.labels.drug_category')} : #{@item.drug_category}" %>
-    </div>
-    <% if current_location.name.match(/store/i) %>
-        <div style="display: table-cell;font-size: 1.1em;">
-          <%= "#{t('menu.terms.current_quantity')} : "%><span style='color:red;'><%= @item.current_quantity%></span>
+<!-- DRUG -->
+<div class="drug-header-modern">
+  <div class="drug-header-content">
+    <!-- Drug Name -->
+    <div class="drug-name-section">
+      <div class="drug-name-container">
+        <h1 class="drug-name-main"><%= @item.drug_name.titleize %></h1>
+        <div class="drug-subtitle">
+          <span class="drug-id">ID: <%= Misc.dash_formatter(@item.bottle_id) %></span>
+          <span class="drug-category"><%= @item.drug_category %></span>
         </div>
-    <% end %>
+      </div>
+    </div>
+
+    <!-- Current Quantity Badge -->
+    <div class="drug-quantity-badge">
+      <div class="quantity-label">Current Quantity</div>
+      <div class="quantity-value"><%= number_with_delimiter(@item.current_quantity) %></div>
+      <div class="quantity-unit">units</div>
+    </div>
   </div>
 </div>
 
-<% if current_location.name.match(/store/i) %>
-    <%= render "/general_inventory/storeroom" %>
-<% else %>
-    <%= render "/general_inventory/dispensary" %>
-<% end %>
+<!-- SUMMARY SECTION -->
+<div class="summary-section-modern">
+  <div class="summary-header">
+    <div class="summary-title-container">
+      <h3 class="summary-title">Summary</h3>
+    </div>
+    <div class="summary-actions">
+      <span class="summary-update">Last updated: <%= Time.now.strftime("%d %b %Y, %I:%M %p") %></span>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <% 
+      # Calculate values dynamically based on your model structure
+      amount_received = @item.received_quantity.to_i
+      amount_remaining = @item.current_quantity.to_i
+      amount_used = amount_received - amount_remaining
+      received_percentage = amount_received > 0 ? 100 : 0
+      remaining_percentage = amount_received > 0 ? (amount_remaining.to_f / amount_received.to_f * 100).round(1) : 0
+      used_percentage = amount_received > 0 ? (amount_used.to_f / amount_received.to_f * 100).round(1) : 0
+      
+      # Calculate utilization rate
+      utilization_rate = amount_received > 0 ? (amount_used.to_f / amount_received.to_f * 100).round(1) : 0
+      
+      # Calculate days to expiry if expiry_date exists
+      days_to_expiry = @item.expiration_date ? (@item.expiration_date - Date.today).to_i : 0
+      expiry_progress = days_to_expiry > 0 ? [days_to_expiry.to_f / 365 / 2 * 100, 100].min : 0
+      
+      # Determine stock status
+      stock_status = if amount_remaining.to_f / amount_received.to_f > 0.7
+                      "high-stock"
+                    elsif amount_remaining.to_f / amount_received.to_f > 0.3
+                      "medium-stock"
+                    else
+                      "low-stock"
+                    end
+      
+      # Determine expiry status
+      expiry_status = if days_to_expiry > 730
+                       "safe-expiry"
+                     elsif days_to_expiry > 365
+                       "warning-expiry"
+                     elsif days_to_expiry > 0
+                       "critical-expiry"
+                     else
+                       "expired"
+                     end
+      
+      # Determine stock status text
+      stock_status_text = case stock_status
+                         when "high-stock" then "High Stock"
+                         when "medium-stock" then "Medium Stock"
+                         when "low-stock" then "Low Stock"
+                         end
+                         
+      # Determine expiry status text
+      expiry_status_text = case expiry_status
+                          when "safe-expiry" then "Safe (> 2 years)"
+                          when "warning-expiry" then "Warning (1-2 years)"
+                          when "critical-expiry" then "Critical (< 1 year)"
+                          when "expired" then "Expired"
+                          end
+      
+      # Using created_at if available, otherwise default to 30 days
+      days_since_received = @item.created_at ? (Date.today - @item.created_at.to_date).to_i : 30
+      daily_average = days_since_received > 0 ? (amount_used.to_f / days_since_received).round(2) : 0
+    %>
+
+    <!-- Amount Received -->
+    <div class="summary-card received-card">
+      <div class="summary-card-header">
+        <div class="summary-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="summary-card-label">Amount Received</div>
+      </div>
+      <div class="summary-card-value">
+        <span class="value-number"><%= number_with_delimiter(amount_received) %></span>
+        <span class="value-unit">units</span>
+      </div>
+      <div class="summary-card-progress">
+        <div class="progress-bar" style="width: <%= received_percentage %>%"></div>
+        <div class="progress-label">Initial stock</div>
+      </div>
+    </div>
+
+    <!-- Amount Remaining -->
+    <div class="summary-card remaining-card">
+      <div class="summary-card-header">
+        <div class="summary-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+          </svg>
+        </div>
+        <div class="summary-card-label">Amount Remaining</div>
+      </div>
+      <div class="summary-card-value">
+        <span class="value-number"><%= number_with_delimiter(amount_remaining) %></span>
+        <span class="value-unit">units</span>
+      </div>
+      <div class="summary-card-progress">
+        <div class="progress-bar" style="width: <%= remaining_percentage %>%"></div>
+        <div class="progress-label"><%= remaining_percentage %>% of total</div>
+      </div>
+      <div class="stock-indicator <%= stock_status %>">
+        <span class="indicator-dot"></span>
+        <span class="indicator-text"><%= stock_status_text %></span>
+      </div>
+    </div>
+
+    <!-- Amount Used -->
+    <div class="summary-card used-card">
+      <div class="summary-card-header">
+        <div class="summary-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+          </svg>
+        </div>
+        <div class="summary-card-label">Amount Used</div>
+      </div>
+      <div class="summary-card-value">
+        <span class="value-number"><%= number_with_delimiter(amount_used) %></span>
+        <span class="value-unit">units</span>
+      </div>
+      <div class="summary-card-progress">
+        <div class="progress-bar" style="width: <%= used_percentage %>%"></div>
+        <div class="progress-label"><%= used_percentage %>% of total</div>
+      </div>
+    </div>
+
+    <!-- Days to Expiry -->
+    <div class="summary-card expiry-card">
+      <div class="summary-card-header">
+        <div class="summary-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="summary-card-label">Days to Expiry</div>
+      </div>
+      <div class="summary-card-value">
+        <span class="value-number expiry-days"><%= number_with_delimiter(days_to_expiry) %></span>
+        <span class="value-unit">days</span>
+      </div>
+      <div class="expiry-info">
+        <div class="expiry-progress">
+          <div class="expiry-progress-bar" style="width: <%= expiry_progress %>%"></div>
+        </div>
+        <% if @item.expiration_date %>
+          <div class="expiry-date">
+            Expires: <%= @item.expiration_date.strftime("%d %b %Y") %>
+          </div>
+        <% end %>
+        <div class="expiry-status <%= expiry_status %>">
+          <span class="status-dot"></span>
+          <span class="status-text"><%= expiry_status_text %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="summary-stats-overview">
+      <div class="stats-card">
+        <div class="stats-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <div class="stats-content">
+          <div class="stats-label">Utilization Rate</div>
+          <div class="stats-value"><%= utilization_rate %>%</div>
+          <div class="stats-subtext">
+            <% if utilization_rate < 10 %>
+              Low usage
+            <% elsif utilization_rate < 30 %>
+              Moderate usage
+            <% else %>
+              High usage
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="stats-content">
+          <div class="stats-label">Daily Average</div>
+          <div class="stats-value"><%= daily_average %>/day</div>
+          <div class="stats-subtext">Based on usage</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Footer -->
+  <div class="summary-footer">
+    <div class="summary-notes">
+      <span class="notes-label">Notes:</span>
+      <span class="notes-text">
+        <% 
+          notes = []
+          if stock_status == "low-stock"
+            notes << "Low stock - consider reordering"
+          end
+          if expiry_status == "critical-expiry"
+            notes << "Expiring soon - prioritize usage"
+          elsif expiry_status == "expired"
+            notes << "Expired - do not use"
+          end
+          if utilization_rate < 5
+            notes << "Low utilization rate"
+          elsif utilization_rate > 50
+            notes << "High utilization rate"
+          end
+          
+          notes_text = notes.any? ? notes.join(", ") : "Stock levels healthy, no immediate action required."
+        %>
+        <%= notes_text %>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer" style="margin-left: 0vw; width: 100vw; font-size: 1.4rem">
+  <button class="nav-bttn red" style="float:left; margin-left: 2vw;" onmousedown="window.location='/'">Home</button>
+  <button class="nav-bttn blue" style="float:right; margin-right: 1vw;" onclick="window.location='/general_inventory'">View Inventory</button>
+</div>
+
+  
+<style>
+
+/* Header Section */
+.drug-header-modern {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 100, 149, 0.25);
+  padding: 30px 40px;
+  margin: 20px 0 32px 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.drug-header-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.drug-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Drug Name Section */
+.drug-name-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.drug-name-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drug-name-main {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin: 0;
+  color: black;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.drug-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  opacity: 0.9;
+  color: #334155;
+}
+
+.drug-id {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.drug-category {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .drug-header-modern {
+    padding: 30px 32px;
+  }
+  
+  .drug-name-main {
+    font-size: 2.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .drug-header-modern {
+    padding: 20px 24px;
+    margin: 16px 0 28px 0;
+    border-radius: 16px;
+  }
+  
+  .drug-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  
+  .drug-name-section {
+    width: 100%;
+  }
+  
+  .drug-name-main {
+    font-size: 2rem;
+  }
+  
+  .drug-subtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .drug-id,
+  .drug-category {
+    width: fit-content;
+  }
+}
+
+@media (max-width: 480px) {
+  .drug-header-modern {
+    padding: 18px 20px;
+  }
+  
+  .drug-name-main {
+    font-size: 1.8rem;
+  }
+  
+  .drug-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* Summary Section Container */
+.summary-section-modern {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 100, 149, 0.08);
+  border: 1px solid #e2e8f0;
+  padding: 28px 32px;
+  margin: 24px 0;
+}
+
+/* Header */
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.summary-title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.summary-update {
+  font-size: 1.4rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  font-weight: 500;
+}
+
+/* Summary Grid */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 34px;
+  margin-bottom: 32px;
+}
+
+/* Summary Cards */
+.summary-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  gap: 16px; 
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 100, 149, 0.15);
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 100%;
+}
+
+.received-card::before { background: linear-gradient(to bottom, #3b82f6, #60a5fa); }
+.remaining-card::before { background: linear-gradient(to bottom, #10b981, #34d399); }
+.used-card::before { background: linear-gradient(to bottom, #f59e0b, #fbbf24); }
+.expiry-card::before { background: linear-gradient(to bottom, #8b5cf6, #a78bfa); }
+
+.summary-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* Slightly larger gap */
+  margin-bottom: 24px; /* Increased */
+}
+
+.summary-card-icon {
+  width: 52px; /* Larger */
+  height: 52px; /* Larger */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px; /* Larger */
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #006495;
+}
+
+.summary-card-icon svg {
+  width: 26px; /* Larger */
+  height: 26px; /* Larger */
+  stroke-width: 2;
+}
+
+.summary-card-label {
+  font-size: 1.2rem; /* Increased from 1rem */
+  font-weight: 700; /* Bolder */
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Card Value */
+.summary-card-value {
+  display: flex;
+  align-items: baseline;
+  gap: 10px; /* Slightly larger */
+  margin-bottom: 20px; /* Increased */
+}
+
+.value-number {
+  font-size: 3.2rem; /* Increased from 2.8rem */
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.value-unit {
+  font-size: 1.4rem; /* Increased from 1rem */
+  color: #64748b; /* Darker for better visibility */
+  font-weight: 600; /* Bolder */
+}
+
+/* Progress Bars */
+.summary-card-progress {
+  margin-top: 20px; /* Increased */
+}
+
+.progress-bar {
+  height: 8px; /* Thicker */
+  border-radius: 4px;
+  margin-bottom: 10px; /* Increased */
+  transition: width 1s ease;
+}
+
+.received-card .progress-bar { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.remaining-card .progress-bar { background: linear-gradient(90deg, #10b981, #34d399); }
+.used-card .progress-bar { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.expiry-card .expiry-progress-bar { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.progress-label {
+  font-size: 1.1rem; /* Increased from 0.875rem */
+  color: #475569; /* Darker for better visibility */
+  text-align: right;
+  font-weight: 500;
+}
+
+/* Stock Indicator */
+.stock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Larger gap */
+  margin-top: 20px; /* Increased */
+  padding: 10px 14px; /* Larger padding */
+  border-radius: 10px; /* Larger */
+  font-size: 1.1rem; /* Increased from 0.875rem */
+  font-weight: 600;
+}
+
+.high-stock {
+  background: rgba(16, 185, 129, 0.12); /* Slightly more visible */
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.medium-stock {
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.low-stock {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.high-stock .indicator-dot,
+.medium-stock .indicator-dot,
+.low-stock .indicator-dot {
+  width: 10px; /* Larger */
+  height: 10px; /* Larger */
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.high-stock .indicator-dot { background: #10b981; }
+.medium-stock .indicator-dot { background: #f59e0b; }
+.low-stock .indicator-dot { background: #ef4444; }
+
+/* Expiry Card Specific */
+.expiry-days {
+  color: #8b5cf6;
+}
+
+.expiry-info {
+  margin-top: 24px; /* Increased */
+}
+
+.expiry-progress {
+  height: 8px; /* Thicker */
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 14px; /* Increased */
+  overflow: hidden;
+}
+
+.expiry-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.expiry-date {
+  font-size: 1.2rem; /* Increased from 0.9rem */
+  color: #475569; /* Darker for better visibility */
+  margin-bottom: 10px; /* Increased */
+  font-weight: 500;
+}
+
+.expiry-status {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Larger gap */
+  font-size: 1.1rem; /* Increased from 0.875rem */
+  font-weight: 600;
+  padding: 10px 12px; /* Larger padding */
+  border-radius: 8px; /* Larger */
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border */
+}
+
+.safe-expiry {
+  background: rgba(139, 92, 246, 0.12);
+  color: #5b21b6;
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.warning-expiry {
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.critical-expiry {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.expired {
+  background: rgba(156, 163, 175, 0.12);
+  color: #374151;
+  border-color: rgba(156, 163, 175, 0.2);
+}
+
+.safe-expiry .status-dot,
+.warning-expiry .status-dot,
+.critical-expiry .status-dot,
+.expired .status-dot {
+  width: 10px; /* Larger */
+  height: 10px; /* Larger */
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.safe-expiry .status-dot { background: #8b5cf6; }
+.warning-expiry .status-dot { background: #f59e0b; }
+.critical-expiry .status-dot { background: #ef4444; }
+.expired .status-dot { background: #9ca3af; }
+
+/* Quick Stats */
+.summary-stats-overview {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Wider min */
+  gap: 20px; /* Larger gap */
+  margin-top: 24px; /* Increased */
+}
+
+.stats-card {
+  background: white;
+  border-radius: 14px; /* Larger */
+  padding: 24px; /* Increased */
+  display: flex;
+  align-items: center;
+  gap: 18px; /* Larger gap */
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 100, 149, 0.1);
+}
+
+.stats-icon {
+  width: 52px; /* Larger */
+  height: 52px; /* Larger */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px; /* Larger */
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #475569;
+}
+
+.stats-icon svg {
+  width: 24px; /* Larger */
+  height: 24px; /* Larger */
+}
+
+.stats-content {
+  flex: 1;
+}
+
+.stats-label {
+  font-size: 1.1rem; /* Increased from 0.875rem */
+  color: #475569;
+  font-weight: 600; /* Bolder */
+  margin-bottom: 6px; /* Increased */
+}
+
+.stats-value {
+  font-size: 1.8rem; /* Increased from 1.5rem */
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px; /* Increased */
+}
+
+.stats-subtext {
+  font-size: 1rem; /* Increased from 0.75rem */
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Footer */
+.summary-footer {
+  padding-top: 24px;
+  border-top: 2px solid #f1f5f9; /* Thicker border */
+  margin-top: 28px; /* Increased */
+}
+
+.summary-notes {
+  display: flex;
+  align-items: flex-start; /* Align to top for multi-line */
+  gap: 12px; /* Larger gap */
+}
+
+.notes-label {
+  font-weight: 700; /* Bolder */
+  color: #475569;
+  font-size: 1.3rem; /* Increased from 0.9rem */
+  flex-shrink: 0; /* Prevent shrinking */
+  margin-top: 2px; /* Slight alignment */
+}
+
+.notes-text {
+  color: #475569; /* Darker for better readability */
+  font-size: 1.2rem; /* Increased from 0.9rem */
+  font-weight: 500;
+  line-height: 1.4; /* Better line spacing */
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .value-number {
+    font-size: 2.8rem;
+  }
+  
+  .value-unit {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .summary-section-modern {
+    padding: 24px 20px;
+    margin: 20px 12px;
+  }
+  
+  .summary-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  
+  .summary-title {
+    font-size: 1.9rem;
+  }
+  
+  .summary-update {
+    font-size: 1.1rem;
+    padding: 6px 14px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .value-number {
+    font-size: 2.6rem;
+  }
+  
+  .summary-card {
+    padding: 24px;
+  }
+  
+  .summary-card-label {
+    font-size: 1.1rem;
+  }
+  
+  .progress-label,
+  .stock-indicator,
+  .expiry-status,
+  .stats-label {
+    font-size: 1rem;
+  }
+  
+  .notes-label {
+    font-size: 1.2rem;
+  }
+  
+  .notes-text {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-section-modern {
+    padding: 20px 16px;
+  }
+  
+  .summary-title {
+    font-size: 1.7rem;
+  }
+  
+  .summary-update {
+    font-size: 1rem;
+    padding: 5px 12px;
+  }
+  
+  .summary-card {
+    padding: 20px;
+  }
+  
+  .value-number {
+    font-size: 2.2rem;
+  }
+  
+  .value-unit {
+    font-size: 1.1rem;
+  }
+  
+  .summary-card-label {
+    font-size: 1rem;
+  }
+  
+  .summary-card-icon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .summary-card-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .stats-card {
+    padding: 20px;
+  }
+  
+  .stats-icon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .stats-value {
+    font-size: 1.6rem;
+  }
+  
+  .summary-stats-overview {
+    grid-template-columns: 1fr;
+  }
+  
+  .notes-label {
+    font-size: 1.1rem;
+  }
+  
+  .notes-text {
+    font-size: 1rem;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summary-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.summary-card:nth-child(1) { animation-delay: 0.1s; }
+.summary-card:nth-child(2) { animation-delay: 0.2s; }
+.summary-card:nth-child(3) { animation-delay: 0.3s; }
+.summary-card:nth-child(4) { animation-delay: 0.4s; }
+
+.stats-card {
+  animation: fadeInUp 0.5s ease-out 0.5s;
+  animation-fill-mode: both;
+}
+</style>
+
+<script>
+// Interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+  // Animate progress bars on view
+  const observerOptions = {
+    threshold: 0.3
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const progressBars = entry.target.querySelectorAll('.progress-bar, .expiry-progress-bar');
+        progressBars.forEach(bar => {
+          bar.style.transition = 'width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.summary-card').forEach(card => {
+    observer.observe(card);
+  });
+
+  // Add hover effects to cards
+  const cards = document.querySelectorAll('.summary-card, .stats-card');
+  cards.forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      card.style.transform = 'translateY(-6px)';
+      card.style.boxShadow = '0 16px 48px rgba(0, 100, 149, 0.18)';
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+    });
+  });
+});
+</script>

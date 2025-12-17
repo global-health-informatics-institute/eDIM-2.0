@@ -35,8 +35,9 @@
       </div>
     </div>
 <div class="footer" >
-  <button onmousedown="window.location = '/general_inventory/list?drug_id=<%= @item.drug_id %>'" class="nav-bttn green" style="margin-right: 1vw;float: right;">
-    <%= t('forms.buttons.finish')%></button>
+  <button onmousedown="window.location = '/general_inventory/list?drug_id=<%= @item.drug_id %>'" class="nav-bttn blue" style="font-size: 30px !important;">
+    <%= t('menu.terms.add_item')%>
+  </button>
   <% if anonymous_dispensation %>
       <button onmousedown="showModal('dispense')" class="nav-bttn blue" style="margin-right: 1vw;float: right;">Dispense</button>
   <% end %>

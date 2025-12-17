@@ -506,7 +506,7 @@ class GeneralInventoryController < ApplicationController
   end
 
   def damage_item
-    # Find prepack
+    # Check if the ID corresponds to a prepack or general inventory
     prepack = Prepack.find_by(
       id: params[:id],
       location_id: session[:location] || User.current.location_id,
@@ -514,19 +514,33 @@ class GeneralInventoryController < ApplicationController
       deleted: 0
     )
 
-    unless prepack
-      render json: { success: false, message: "Prepack not found" }, status: 404 and return
-    end
-
-    # Find general inventory record
-    item = GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)
-    unless item
-      render json: { success: false, message: "Inventory item not found" }, status: 404 and return
+    if prepack
+      # Find general inventory record via gn_identifier
+      item = GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)
+      unless item
+        render json: { success: false, message: "Inventory item not found" }, status: 404 and return
+      end
+      
+      # For pharmacy context, damage_type can be "pack" or "bottle"
+      damage_type = params[:damage_type].to_s.downcase
+      
+    else
+      # Find general inventory directly
+      item = GeneralInventory.find_by(gn_inventory_id: params[:id])
+      
+      unless item
+        render json: { success: false, message: "Inventory item not found" }, status: 404 and return
+      end
+      
+      # Override any passed damage_type to ensure it's bottle-only
+      damage_type = "bottle"
+      
+      # For backstore damage, prepack is nil
+      prepack = nil
     end
 
     qty = params[:quantity].to_i
     reason = params[:reason].to_s.strip
-    damage_type = params[:damage_type].to_s.downcase
 
     if qty <= 0
       render json: { success: false, message: "Quantity must be greater than zero" } and return
@@ -534,7 +548,6 @@ class GeneralInventoryController < ApplicationController
 
     ActiveRecord::Base.transaction do
       if damage_type == "bottle"
-        # Bottle damage
         if qty > item.current_quantity
           render json: { success: false, message: "Quantity exceeds available stock" } and return
         end
@@ -542,7 +555,10 @@ class GeneralInventoryController < ApplicationController
         item.update!(current_quantity: item.current_quantity - qty)
 
       else
-        # Pack damage
+        unless prepack
+          render json: { success: false, message: "Pack damage requires a prepack" } and return
+        end
+        
         labels = PrepackLabel.where(
           prepack_id: prepack.id,
           voided: 0,
@@ -574,7 +590,7 @@ class GeneralInventoryController < ApplicationController
       end
 
       # Log the damage
-      Damage.create!(
+      damage_params = {
         general_inventory_id: item.gn_inventory_id,
         gn_identifier: item.gn_identifier,
         quantity: qty,
@@ -582,9 +598,13 @@ class GeneralInventoryController < ApplicationController
         reported_by: User.current.id,
         location_id: session[:location] || User.current.location_id,
         damage_date: Time.current,
-        damage_type: damage_type,
-        prepack_id: prepack.id
-      )
+        damage_type: damage_type
+      }
+      
+      # Only include prepack_id if we have one
+      damage_params[:prepack_id] = prepack.id if prepack
+      
+      Damage.create!(damage_params)
     end
 
     render json: { success: true }
@@ -594,5 +614,4 @@ class GeneralInventoryController < ApplicationController
     Rails.logger.error e.backtrace.join("\n")
     render json: { success: false, message: "Failed to record damage: #{e.message}" }, status: 500
   end
-
 end
