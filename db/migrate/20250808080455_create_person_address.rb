@@ -1,4 +1,4 @@
-class CreatePersonAddress < ActiveRecord::Migration
+class CreatePersonAddress < ActiveRecord::Migration[7.0]
   def change
     create_table :person_address, id: false do |t|
       t.primary_key :person_address_id

@@ -62,7 +62,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "user_who_retired_active_list_type"
   end
 
-  create_table "cohort", primary_key: "cohort_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "cohort", primary_key: "cohort_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "description", limit: 1000
     t.integer "creator", null: false
@@ -80,21 +80,21 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_cohort"
   end
 
-  create_table "cohort_member", primary_key: ["cohort_id", "patient_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "cohort_member", primary_key: ["cohort_id", "patient_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "cohort_id", default: 0, null: false
     t.integer "patient_id", default: 0, null: false
     t.index ["cohort_id"], name: "cohort"
     t.index ["patient_id"], name: "patient"
   end
 
-  create_table "complex_obs", primary_key: "obs_id", id: :integer, default: 0, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "complex_obs", primary_key: "obs_id", id: :integer, default: 0, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "mime_type_id", default: 0, null: false
     t.text "urn"
     t.text "complex_value", size: :long
     t.index ["mime_type_id"], name: "mime_type_of_content"
   end
 
-  create_table "concept", primary_key: "concept_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept", primary_key: "concept_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "retired", limit: 2, default: 0, null: false
     t.string "short_name"
     t.text "description"
@@ -120,7 +120,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_uuid_index", unique: true
   end
 
-  create_table "concept_answer", primary_key: "concept_answer_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_answer", primary_key: "concept_answer_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "answer_concept"
     t.integer "answer_drug"
@@ -134,7 +134,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_answer_uuid_index", unique: true
   end
 
-  create_table "concept_class", primary_key: "concept_class_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_class", primary_key: "concept_class_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "description", default: "", null: false
     t.integer "creator", default: 0, null: false
@@ -154,7 +154,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "handler"
   end
 
-  create_table "concept_datatype", primary_key: "concept_datatype_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_datatype", primary_key: "concept_datatype_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "hl7_abbreviation", limit: 3
     t.string "description", default: "", null: false
@@ -171,14 +171,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_datatype_uuid_index", unique: true
   end
 
-  create_table "concept_derived", primary_key: "concept_id", id: :integer, default: 0, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_derived", primary_key: "concept_id", id: :integer, default: 0, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.text "rule", size: :medium
     t.datetime "compile_date", precision: nil
     t.string "compile_status"
     t.string "class_name", limit: 1024
   end
 
-  create_table "concept_description", primary_key: "concept_description_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_description", primary_key: "concept_description_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.text "description", null: false
     t.string "locale", limit: 50, default: "", null: false
@@ -193,7 +193,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_description_uuid_index", unique: true
   end
 
-  create_table "concept_map", primary_key: "concept_map_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_map", primary_key: "concept_map_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "source"
     t.string "source_code"
     t.string "comment"
@@ -207,7 +207,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_map_uuid_index", unique: true
   end
 
-  create_table "concept_name", primary_key: "concept_name_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_name", primary_key: "concept_name_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id"
     t.string "name", default: "", null: false
     t.string "locale", limit: 50, default: "", null: false
@@ -228,7 +228,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_name"
   end
 
-  create_table "concept_name_tag", primary_key: "concept_name_tag_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_name_tag", primary_key: "concept_name_tag_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "tag", limit: 50, null: false
     t.text "description", null: false
     t.integer "creator", default: 0, null: false
@@ -246,14 +246,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_name_tag"
   end
 
-  create_table "concept_name_tag_map", id: false, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_name_tag_map", id: false, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_name_id", null: false
     t.integer "concept_name_tag_id", null: false
     t.index ["concept_name_id"], name: "map_name"
     t.index ["concept_name_tag_id"], name: "map_name_tag"
   end
 
-  create_table "concept_numeric", primary_key: "concept_id", id: :integer, default: 0, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_numeric", primary_key: "concept_id", id: :integer, default: 0, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.float "hi_absolute", limit: 53
     t.float "hi_critical", limit: 53
     t.float "hi_normal", limit: 53
@@ -264,7 +264,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "precise", limit: 2, default: 0, null: false
   end
 
-  create_table "concept_proposal", primary_key: "concept_proposal_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_proposal", primary_key: "concept_proposal_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id"
     t.integer "encounter_id"
     t.string "original_text", default: "", null: false
@@ -288,14 +288,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_proposal_uuid_index", unique: true
   end
 
-  create_table "concept_proposal_tag_map", id: false, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_proposal_tag_map", id: false, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_proposal_id", null: false
     t.integer "concept_name_tag_id", null: false
     t.index ["concept_name_tag_id"], name: "map_name_tag"
     t.index ["concept_proposal_id"], name: "map_proposal"
   end
 
-  create_table "concept_set", primary_key: "concept_set_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_set", primary_key: "concept_set_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "concept_set", default: 0, null: false
     t.float "sort_weight", limit: 53
@@ -308,13 +308,13 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_set_uuid_index", unique: true
   end
 
-  create_table "concept_set_derived", primary_key: ["concept_id", "concept_set"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_set_derived", primary_key: ["concept_id", "concept_set"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "concept_set", default: 0, null: false
     t.float "sort_weight", limit: 53
   end
 
-  create_table "concept_source", primary_key: "concept_source_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_source", primary_key: "concept_source_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", limit: 50, default: "", null: false
     t.text "description", null: false
     t.string "hl7_code", limit: 50
@@ -331,7 +331,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_source_uuid_index", unique: true
   end
 
-  create_table "concept_state_conversion", primary_key: "concept_state_conversion_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_state_conversion", primary_key: "concept_state_conversion_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0
     t.integer "program_workflow_id", default: 0
     t.integer "program_workflow_state_id", default: 0
@@ -343,7 +343,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "concept_state_conversion_uuid_index", unique: true
   end
 
-  create_table "concept_synonym", primary_key: ["synonym", "concept_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_synonym", primary_key: ["synonym", "concept_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.string "synonym", default: "", null: false
     t.string "locale"
@@ -353,7 +353,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["creator"], name: "synonym_creator"
   end
 
-  create_table "concept_word", primary_key: "concept_word_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "concept_word", primary_key: "concept_word_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.string "word", limit: 50, default: "", null: false
     t.string "locale", limit: 20, default: "", null: false
@@ -361,25 +361,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["concept_id"], name: "concept_word_concept_idx"
     t.index ["concept_name_id"], name: "word_for_name"
     t.index ["word"], name: "word_in_concept_name"
-  end
-
-  create_table "damages", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.integer "general_inventory_id", null: false
-    t.integer "quantity", default: 0, null: false
-    t.string "reason"
-    t.integer "user_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "reported_by"
-    t.integer "location_id"
-    t.datetime "damage_date"
-    t.string "gn_identifier"
-    t.string "damage_type", default: "pack", null: false
-    t.bigint "prepack_id"
-    t.index ["damage_type"], name: "index_damages_on_damage_type"
-    t.index ["general_inventory_id"], name: "index_damages_on_general_inventory_id"
-    t.index ["gn_identifier"], name: "index_damages_on_gn_identifier"
-    t.index ["prepack_id"], name: "index_damages_on_prepack_id"
   end
 
   create_table "deposits", primary_key: "deposit_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
@@ -395,19 +376,19 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "dispensations", primary_key: "dispensation_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "dispensations", primary_key: "dispensation_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "rx_id"
     t.string "inventory_id"
     t.integer "patient_id"
     t.integer "quantity"
-    t.datetime "dispensation_date", precision: nil
+    t.datetime "dispensation_date"
     t.integer "dispensed_by"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
-  create_table "district", primary_key: "district_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "district", primary_key: "district_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.integer "region_id", default: 0, null: false
     t.integer "creator", default: 0, null: false
@@ -422,7 +403,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "user_who_retired_district"
   end
 
-  create_table "drug", primary_key: "drug_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "drug", primary_key: "drug_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.string "name", limit: 50
     t.integer "combination", limit: 2, default: 0, null: false
@@ -447,20 +428,20 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "drug_uuid_index", unique: true
   end
 
-  create_table "drug_categories", primary_key: "drug_category_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "drug_categories", primary_key: "drug_category_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "category"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
-  create_table "drug_ingredient", primary_key: ["ingredient_id", "concept_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "drug_ingredient", primary_key: ["ingredient_id", "concept_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "ingredient_id", default: 0, null: false
     t.index ["concept_id"], name: "combination_drug"
   end
 
-  create_table "drug_order", primary_key: "order_id", id: :integer, default: 0, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "drug_order", primary_key: "order_id", id: :integer, default: 0, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "drug_inventory_id", default: 0
     t.float "dose", limit: 53
     t.float "equivalent_daily_dose", limit: 53
@@ -472,27 +453,26 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["drug_inventory_id"], name: "inventory_item"
   end
 
-  create_table "drug_thresholds", primary_key: "threshold_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "drug_thresholds", primary_key: "threshold_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "drug_id"
     t.integer "threshold"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
-  create_table "drugs", primary_key: "drug_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "drugs", primary_key: "drug_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "drug_category_id"
     t.string "name"
     t.string "dose_strength"
     t.string "dose_form", null: false
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.integer "par_level"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.string "item_code"
   end
 
-  create_table "encounter", primary_key: "encounter_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "encounter", primary_key: "encounter_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "encounter_type", null: false
     t.integer "patient_id", default: 0, null: false
     t.integer "provider_id", default: 0, null: false
@@ -520,7 +500,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_encounter"
   end
 
-  create_table "encounter_type", primary_key: "encounter_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "encounter_type", primary_key: "encounter_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", limit: 50, default: "", null: false
     t.text "description"
     t.integer "creator", default: 0, null: false
@@ -536,7 +516,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "encounter_type_uuid_index", unique: true
   end
 
-  create_table "external_source", primary_key: "external_source_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "external_source", primary_key: "external_source_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "source", default: 0, null: false
     t.string "source_code", null: false
     t.string "name"
@@ -546,7 +526,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["source"], name: "map_ext_source"
   end
 
-  create_table "field", primary_key: "field_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "field", primary_key: "field_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.text "description"
     t.integer "field_type"
@@ -573,7 +553,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "field_uuid_index", unique: true
   end
 
-  create_table "field_answer", primary_key: ["field_id", "answer_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "field_answer", primary_key: ["field_id", "answer_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "field_id", default: 0, null: false
     t.integer "answer_id", default: 0, null: false
     t.integer "creator", default: 0, null: false
@@ -585,7 +565,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "field_answer_uuid_index", unique: true
   end
 
-  create_table "field_type", primary_key: "field_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "field_type", primary_key: "field_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", limit: 50
     t.text "description", size: :long
     t.integer "is_set", limit: 2, default: 0, null: false
@@ -596,7 +576,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "field_type_uuid_index", unique: true
   end
 
-  create_table "form", primary_key: "form_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "form", primary_key: "form_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "version", limit: 50, default: "", null: false
     t.integer "build"
@@ -621,7 +601,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "form_uuid_index", unique: true
   end
 
-  create_table "form2program_map", primary_key: ["program", "encounter_type"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "form2program_map", primary_key: ["program", "encounter_type"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program", null: false
     t.integer "encounter_type", null: false
     t.integer "creator", null: false
@@ -634,7 +614,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["encounter_type"], name: "encounter_type"
   end
 
-  create_table "form_field", primary_key: "form_field_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "form_field", primary_key: "form_field_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "form_id", default: 0, null: false
     t.integer "field_id", default: 0, null: false
     t.integer "field_number"
@@ -658,14 +638,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "form_field_uuid_index", unique: true
   end
 
-  create_table "formentry_archive", primary_key: "formentry_archive_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "formentry_archive", primary_key: "formentry_archive_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.text "form_data", size: :medium, null: false
     t.datetime "date_created", precision: nil, null: false
     t.integer "creator", default: 0, null: false
     t.index ["creator"], name: "User who created formentry_archive"
   end
 
-  create_table "formentry_error", primary_key: "formentry_error_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "formentry_error", primary_key: "formentry_error_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.text "form_data", size: :medium, null: false
     t.string "error", default: "", null: false
     t.text "error_details"
@@ -674,13 +654,13 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["creator"], name: "User who created formentry_error"
   end
 
-  create_table "formentry_queue", primary_key: "formentry_queue_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "formentry_queue", primary_key: "formentry_queue_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.text "form_data", size: :medium, null: false
     t.integer "creator", default: 0, null: false
     t.datetime "date_created", precision: nil, null: false
   end
 
-  create_table "formentry_xsn", primary_key: "formentry_xsn_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "formentry_xsn", primary_key: "formentry_xsn_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "form_id", null: false
     t.binary "xsn_data", size: :long, null: false
     t.integer "creator", default: 0, null: false
@@ -693,10 +673,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["form_id"], name: "Form with which this xsn is related"
   end
 
-  create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "general_inventories", primary_key: "gn_inventory_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "drug_id"
     t.string "gn_identifier"
-    t.string "gn_sequence", limit: 4
     t.date "expiration_date"
     t.date "date_received"
     t.integer "received_quantity", default: 0
@@ -706,19 +685,19 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.boolean "voided", default: false
     t.string "void_reason"
     t.integer "voided_by"
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["gn_identifier"], name: "index_general_inventories_on_gn_identifier"
   end
 
-  create_table "global_property", primary_key: "property", id: { type: :binary, limit: 255, default: "" }, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "global_property", primary_key: "property", id: { type: :binary, limit: 255, default: "" }, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.text "property_value", size: :medium
     t.text "description"
     t.string "uuid", limit: 38, null: false
     t.index ["uuid"], name: "global_property_uuid_index", unique: true
   end
 
-  create_table "hl7_in_archive", primary_key: "hl7_in_archive_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "hl7_in_archive", primary_key: "hl7_in_archive_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "hl7_source", default: 0, null: false
     t.string "hl7_source_key"
     t.text "hl7_data", size: :medium, null: false
@@ -729,7 +708,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "hl7_in_archive_uuid_index", unique: true
   end
 
-  create_table "hl7_in_error", primary_key: "hl7_in_error_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "hl7_in_error", primary_key: "hl7_in_error_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "hl7_source", default: 0, null: false
     t.text "hl7_source_key"
     t.text "hl7_data", size: :medium, null: false
@@ -740,7 +719,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "hl7_in_error_uuid_index", unique: true
   end
 
-  create_table "hl7_in_queue", primary_key: "hl7_in_queue_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "hl7_in_queue", primary_key: "hl7_in_queue_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "hl7_source", default: 0, null: false
     t.text "hl7_source_key"
     t.text "hl7_data", size: :medium, null: false
@@ -753,7 +732,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "hl7_in_queue_uuid_index", unique: true
   end
 
-  create_table "hl7_source", primary_key: "hl7_source_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "hl7_source", primary_key: "hl7_source_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.text "description", size: :tiny
     t.integer "creator", default: 0, null: false
@@ -763,7 +742,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "hl7_source_uuid_index", unique: true
   end
 
-  create_table "htmlformentry_html_form", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "htmlformentry_html_form", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "form_id"
     t.string "name", limit: 100, null: false
     t.text "xml_data", size: :medium, null: false
@@ -777,16 +756,16 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["form_id"], name: "Form with which this htmlform is related"
   end
 
-  create_table "issues", primary_key: "issue_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "issues", primary_key: "issue_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "inventory_id"
     t.integer "location_id"
     t.integer "issued_to"
     t.integer "quantity"
-    t.datetime "issue_date", precision: nil
+    t.datetime "issue_date"
     t.integer "issued_by"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "liquibasechangelog", primary_key: ["ID", "AUTHOR", "FILENAME"], charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
@@ -807,7 +786,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "LOCKEDBY"
   end
 
-  create_table "location", primary_key: "location_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "location", primary_key: "location_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "description"
     t.string "address1", limit: 50
@@ -862,7 +841,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["location_tag_id"], name: "location_tag_map_tag"
   end
 
-  create_table "logic_rule_definition", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "logic_rule_definition", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "uuid", limit: 38, null: false
     t.string "name", null: false
     t.string "description", limit: 1000
@@ -882,7 +861,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "retired_by for rule_definition"
   end
 
-  create_table "logic_rule_token", primary_key: "logic_rule_token_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "logic_rule_token", primary_key: "logic_rule_token_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "creator", null: false
     t.datetime "date_created", precision: nil, default: "0002-11-30 00:00:00", null: false
     t.integer "changed_by"
@@ -896,13 +875,13 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "logic_rule_token_uuid", unique: true
   end
 
-  create_table "logic_rule_token_tag", id: false, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "logic_rule_token_tag", id: false, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "logic_rule_token_id", null: false
     t.string "tag", limit: 512, null: false
     t.index ["logic_rule_token_id"], name: "token_tag"
   end
 
-  create_table "logic_token_registration", primary_key: "token_registration_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "logic_token_registration", primary_key: "token_registration_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "creator", null: false
     t.datetime "date_created", precision: nil, default: "0002-11-30 00:00:00", null: false
     t.integer "changed_by"
@@ -917,7 +896,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "uuid", unique: true
   end
 
-  create_table "logic_token_registration_tag", id: false, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "logic_token_registration_tag", id: false, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "token_registration_id", null: false
     t.string "tag", limit: 512, null: false
     t.index ["token_registration_id"], name: "token_registration_tag"
@@ -948,46 +927,32 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "merged_patients", primary_key: "patient_id", id: :integer, default: nil, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "merged_patients", primary_key: "patient_id", id: :integer, default: nil, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "merged_to_id", null: false
   end
 
-  create_table "mime_type", primary_key: "mime_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "mime_type", primary_key: "mime_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "mime_type", limit: 75, default: "", null: false
     t.text "description"
     t.index ["mime_type_id"], name: "mime_type_id"
   end
 
-  create_table "mobile_visit", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
-    t.date "visit_date", null: false
-    t.integer "visit_supervisor", null: false
-    t.text "notes"
-    t.boolean "voided", default: false
-    t.integer "creator"
-    t.datetime "date_created", precision: nil
-    t.integer "changed_by"
-    t.datetime "date_changed", precision: nil
-    t.datetime "created_at", precision: nil
-    t.datetime "updated_at", precision: nil
-    t.index ["visit_supervisor"], name: "index_mobile_visit_on_visit_supervisor"
-  end
-
-  create_table "mobile_visit_products", primary_key: "mvp_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "mobile_visit_products", primary_key: "mvp_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "mobile_visit_id"
     t.string "gn_identifier"
     t.integer "amount_taken"
     t.integer "amount_used"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
-  create_table "mobile_visits", primary_key: "mobile_visit_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "mobile_visits", primary_key: "mobile_visit_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.date "visit_date"
     t.integer "visit_supervisor"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "national_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
@@ -999,7 +964,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.text "issued_to"
   end
 
-  create_table "note", primary_key: "note_id", id: :integer, default: 0, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "note", primary_key: "note_id", id: :integer, default: 0, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "note_type", limit: 50
     t.integer "patient_id"
     t.integer "obs_id"
@@ -1021,7 +986,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "note_uuid_index", unique: true
   end
 
-  create_table "notification_alert", primary_key: "alert_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "notification_alert", primary_key: "alert_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "text", limit: 512, null: false
     t.integer "satisfied_by_any", default: 0, null: false
     t.integer "alert_read", default: 0, null: false
@@ -1036,7 +1001,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "notification_alert_uuid_index", unique: true
   end
 
-  create_table "notification_alert_recipient", primary_key: ["alert_id", "user_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "notification_alert_recipient", primary_key: ["alert_id", "user_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "alert_id", null: false
     t.integer "user_id", null: false
     t.integer "alert_read", default: 0, null: false
@@ -1046,7 +1011,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["user_id"], name: "alert_read_by_user"
   end
 
-  create_table "notification_template", primary_key: "template_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "notification_template", primary_key: "template_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", limit: 50
     t.text "template"
     t.string "subject", limit: 100
@@ -1057,7 +1022,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "notification_template_uuid_index", unique: true
   end
 
-  create_table "obs", primary_key: "obs_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "obs", primary_key: "obs_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_id", null: false
     t.integer "concept_id", default: 0, null: false
     t.integer "encounter_id"
@@ -1120,7 +1085,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided"], name: "index_order_entries_on_voided"
   end
 
-  create_table "order_extension", primary_key: "order_extension_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "order_extension", primary_key: "order_extension_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "order_id", null: false
     t.string "value", limit: 50, default: "", null: false
     t.integer "creator", default: 0, null: false
@@ -1145,12 +1110,10 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["order_entry_id"], name: "index_order_payments_on_order_entry_id"
-    t.index ["order_payment_id"], name: "index_order_payments_on_order_payment_id"
     t.index ["receipt_number"], name: "index_order_payments_on_receipt_number"
-    t.index ["voided"], name: "index_order_payments_on_voided"
   end
 
-  create_table "order_type", primary_key: "order_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "order_type", primary_key: "order_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "description", default: "", null: false
     t.integer "creator", default: 0, null: false
@@ -1166,7 +1129,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "order_type_uuid_index", unique: true
   end
 
-  create_table "orders", primary_key: "order_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "orders", primary_key: "order_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "order_type_id", default: 0, null: false
     t.integer "concept_id", default: 0, null: false
     t.integer "orderer", default: 0
@@ -1201,7 +1164,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_order"
   end
 
-  create_table "patient", primary_key: "patient_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patient", primary_key: "patient_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "tribe"
     t.integer "creator", default: 0, null: false
     t.datetime "date_created", precision: nil, null: false
@@ -1228,7 +1191,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "scheme_number"
   end
 
-  create_table "patient_identifier", primary_key: "patient_identifier_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patient_identifier", primary_key: "patient_identifier_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "patient_id", default: 0, null: false
     t.string "identifier", limit: 50, default: "", null: false
     t.integer "identifier_type", default: 0, null: false
@@ -1250,7 +1213,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "identifier_voider"
   end
 
-  create_table "patient_identifier_type", primary_key: "patient_identifier_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patient_identifier_type", primary_key: "patient_identifier_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", limit: 50, default: "", null: false
     t.text "description", null: false
     t.string "format", limit: 50
@@ -1271,7 +1234,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "patient_identifier_type_uuid_index", unique: true
   end
 
-  create_table "patient_program", primary_key: "patient_program_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patient_program", primary_key: "patient_program_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "patient_id", default: 0, null: false
     t.integer "program_id", default: 0, null: false
     t.datetime "date_enrolled", precision: nil
@@ -1294,7 +1257,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_patient_program"
   end
 
-  create_table "patient_state", primary_key: "patient_state_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patient_state", primary_key: "patient_state_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "patient_program_id", default: 0, null: false
     t.integer "state", default: 0, null: false
     t.date "start_date"
@@ -1316,7 +1279,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "patient_state_voider"
   end
 
-  create_table "patientflags_flag", primary_key: "flag_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patientflags_flag", primary_key: "flag_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "criteria", limit: 5000, null: false
     t.string "message", null: false
@@ -1334,14 +1297,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "uuid", limit: 38, null: false
   end
 
-  create_table "patientflags_flag_tag", id: false, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patientflags_flag_tag", id: false, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "flag_id", null: false
     t.integer "tag_id", null: false
     t.index ["flag_id"], name: "flag_id"
     t.index ["tag_id"], name: "tag_id"
   end
 
-  create_table "patientflags_tag", primary_key: "tag_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "patientflags_tag", primary_key: "tag_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "tag", null: false
     t.string "description", limit: 1000
     t.integer "creator", default: 0, null: false
@@ -1355,15 +1318,15 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "uuid", limit: 38, null: false
   end
 
-  create_table "patients_for_location", primary_key: "patient_id", id: :integer, default: nil, charset: "utf8mb3", collation: "utf8mb3_general_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
+  create_table "patients_for_location", primary_key: "patient_id", id: :integer, default: nil, charset: "utf8", collation: "utf8_general_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
   end
 
-  create_table "patients_to_merge", id: false, charset: "utf8mb3", collation: "utf8mb3_general_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
+  create_table "patients_to_merge", id: false, charset: "utf8", collation: "utf8_general_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "to_merge_to_id"
   end
 
-  create_table "person", primary_key: "person_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "person", primary_key: "person_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "gender", limit: 50, default: ""
     t.date "birthdate"
     t.integer "birthdate_estimated", limit: 2, default: 0, null: false
@@ -1388,7 +1351,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_patient"
   end
 
-  create_table "person_address", primary_key: "person_address_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "person_address", primary_key: "person_address_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_id"
     t.integer "preferred", limit: 2, default: 0, null: false
     t.string "address1", limit: 50
@@ -1418,7 +1381,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "patient_address_void"
   end
 
-  create_table "person_attribute", primary_key: "person_attribute_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "person_attribute", primary_key: "person_attribute_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_id", default: 0, null: false
     t.string "value", limit: 50, default: "", null: false
     t.integer "person_attribute_type_id", default: 0, null: false
@@ -1439,7 +1402,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "attribute_voider"
   end
 
-  create_table "person_attribute_type", primary_key: "person_attribute_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "person_attribute_type", primary_key: "person_attribute_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", limit: 50, default: "", null: false
     t.text "description", null: false
     t.string "format", limit: 50
@@ -1466,7 +1429,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "person_attribute_type_uuid_index", unique: true
   end
 
-  create_table "person_name", primary_key: "person_name_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "person_name", primary_key: "person_name_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "preferred", limit: 2, default: 0, null: false
     t.integer "person_id"
     t.string "prefix", limit: 50
@@ -1496,7 +1459,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_name"
   end
 
-  create_table "person_name_code", primary_key: "person_name_code_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "person_name_code", primary_key: "person_name_code_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_name_id"
     t.string "given_name_code", limit: 50
     t.string "middle_name_code", limit: 50
@@ -1544,68 +1507,26 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "void_reason", limit: 225
   end
 
-  create_table "prepack_labels", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.bigint "prepack_id", null: false
-    t.integer "bottle_id", null: false
-    t.string "label_identifier", null: false
-    t.boolean "dispensed", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "deleted", default: false
-    t.boolean "voided", default: false
-    t.integer "patient_id"
-    t.integer "dispensed_by"
-    t.datetime "date_dispensed"
-    t.index ["bottle_id"], name: "fk_prepack_labels_bottle"
-    t.index ["prepack_id"], name: "fk_rails_cadc42c7d0"
-  end
-
-  create_table "prepacks", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.integer "bottle_id", null: false
-    t.integer "drug_id", null: false
-    t.integer "quantity_per_pack", null: false
-    t.integer "num_packs", null: false
-    t.integer "total_quantity", null: false
-    t.string "directions"
-    t.integer "prepacked_by_id", null: false
-    t.string "status", default: "created", null: false
-    t.datetime "dispensed_at", precision: nil
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "pack_identifier", limit: 50
-    t.string "gn_identifier"
-    t.boolean "deleted", default: false
-    t.boolean "voided", default: false
-    t.integer "location_id"
-    t.integer "current_num_packs", default: 0, null: false
-    t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
-    t.index ["drug_id"], name: "fk_rails_10a6425e68"
-    t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
-    t.index ["pack_identifier"], name: "pack_identifier", unique: true
-    t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
-    t.index ["status"], name: "index_prepacks_on_status"
-  end
-
-  create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_unicode_ci", force: :cascade do |t|
+  create_table "prescriptions", primary_key: "rx_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "drug_id"
-    t.datetime "date_prescribed", precision: nil
+    t.datetime "date_prescribed"
     t.integer "quantity"
     t.integer "amount_dispensed"
     t.string "directions"
     t.integer "provider_id"
     t.boolean "voided", default: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
-  create_table "privilege", primary_key: "privilege", id: { type: :string, limit: 50, default: "" }, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "privilege", primary_key: "privilege", id: { type: :string, limit: 50, default: "" }, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "description", limit: 250, default: "", null: false
     t.string "uuid", limit: 38, null: false
     t.index ["uuid"], name: "privilege_uuid_index", unique: true
   end
 
-  create_table "program", primary_key: "program_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program", primary_key: "program_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "creator", default: 0, null: false
     t.datetime "date_created", precision: nil, null: false
@@ -1621,42 +1542,42 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "program_uuid_index", unique: true
   end
 
-  create_table "program_encounter_type_map", primary_key: "program_encounter_type_map_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_encounter_type_map", primary_key: "program_encounter_type_map_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_id"
     t.integer "encounter_type_id"
     t.index ["encounter_type_id"], name: "referenced_encounter_type"
     t.index ["program_id", "encounter_type_id"], name: "program_mapping"
   end
 
-  create_table "program_location_restriction", primary_key: "program_location_restriction_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_location_restriction", primary_key: "program_location_restriction_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_id"
     t.integer "location_id"
     t.index ["location_id"], name: "referenced_location"
     t.index ["program_id", "location_id"], name: "program_mapping"
   end
 
-  create_table "program_orders_map", primary_key: "program_orders_map_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_orders_map", primary_key: "program_orders_map_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_id"
     t.integer "concept_id"
     t.index ["concept_id"], name: "referenced_concept_id"
     t.index ["program_id", "concept_id"], name: "program_mapping"
   end
 
-  create_table "program_patient_identifier_type_map", primary_key: "program_patient_identifier_type_map_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_patient_identifier_type_map", primary_key: "program_patient_identifier_type_map_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_id"
     t.integer "patient_identifier_type_id"
     t.index ["patient_identifier_type_id"], name: "referenced_patient_identifier_type"
     t.index ["program_id", "patient_identifier_type_id"], name: "program_mapping"
   end
 
-  create_table "program_relationship_type_map", primary_key: "program_relationship_type_map_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_relationship_type_map", primary_key: "program_relationship_type_map_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_id"
     t.integer "relationship_type_id"
     t.index ["program_id", "relationship_type_id"], name: "program_mapping"
     t.index ["relationship_type_id"], name: "referenced_relationship_type"
   end
 
-  create_table "program_workflow", primary_key: "program_workflow_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_workflow", primary_key: "program_workflow_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_id", default: 0, null: false
     t.integer "concept_id", default: 0, null: false
     t.integer "creator", default: 0, null: false
@@ -1672,7 +1593,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "program_workflow_uuid_index", unique: true
   end
 
-  create_table "program_workflow_state", primary_key: "program_workflow_state_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "program_workflow_state", primary_key: "program_workflow_state_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "program_workflow_id", default: 0, null: false
     t.integer "concept_id", default: 0, null: false
     t.integer "initial", limit: 2, default: 0, null: false
@@ -1700,13 +1621,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "voided_by"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_receipts_on_patient_id"
-    t.index ["payment_stamp"], name: "index_receipts_on_payment_stamp"
-    t.index ["receipt_number"], name: "index_receipts_on_receipt_number"
-    t.index ["voided"], name: "index_receipts_on_voided"
   end
 
-  create_table "regimen", primary_key: "regimen_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "regimen", primary_key: "regimen_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "min_weight", default: 0, null: false
     t.integer "max_weight", default: 200, null: false
@@ -1719,7 +1636,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["concept_id"], name: "map_concept"
   end
 
-  create_table "regimen_drug_order", primary_key: "regimen_drug_order_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "regimen_drug_order", primary_key: "regimen_drug_order_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "regimen_id", default: 0, null: false
     t.integer "drug_inventory_id", default: 0
     t.float "dose", limit: 53
@@ -1744,7 +1661,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_regimen_drug_order"
   end
 
-  create_table "region", primary_key: "region_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "region", primary_key: "region_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.integer "creator", default: 0, null: false
     t.datetime "date_created", precision: nil, null: false
@@ -1757,7 +1674,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "user_who_retired_region"
   end
 
-  create_table "relationship", primary_key: "relationship_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "relationship", primary_key: "relationship_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_a", null: false
     t.integer "relationship", default: 0, null: false
     t.integer "person_b", null: false
@@ -1776,7 +1693,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "relation_voider"
   end
 
-  create_table "relationship_type", primary_key: "relationship_type_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "relationship_type", primary_key: "relationship_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "a_is_to_b", limit: 50, null: false
     t.string "b_is_to_a", limit: 50, null: false
     t.integer "preferred", default: 0, null: false
@@ -1794,14 +1711,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "relationship_type_uuid_index", unique: true
   end
 
-  create_table "report_def", primary_key: "report_def_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "report_def", primary_key: "report_def_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.text "name", size: :medium, null: false
     t.datetime "date_created", precision: nil, null: false
     t.integer "creator", default: 0, null: false
     t.index ["creator"], name: "User who created report_def"
   end
 
-  create_table "report_object", primary_key: "report_object_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "report_object", primary_key: "report_object_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "description", limit: 1000
     t.string "report_object_type", null: false
@@ -1822,7 +1739,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_report_object"
   end
 
-  create_table "report_schema_xml", primary_key: "report_schema_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "report_schema_xml", primary_key: "report_schema_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "description", null: false
     t.text "xml_data", size: :medium, null: false
@@ -1830,7 +1747,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "report_schema_xml_uuid_index", unique: true
   end
 
-  create_table "reporting_report_design", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "reporting_report_design", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "uuid", limit: 38, null: false
     t.string "name", null: false
     t.string "description", limit: 1000
@@ -1851,7 +1768,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "retired_by for reporting_report_design"
   end
 
-  create_table "reporting_report_design_resource", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "reporting_report_design_resource", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "uuid", limit: 38, null: false
     t.string "name", null: false
     t.string "description", limit: 1000
@@ -1873,38 +1790,25 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "retired_by for reporting_report_design_resource"
   end
 
-  create_table "requests", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.integer "drug_id", null: false
-    t.integer "location_id", null: false
-    t.string "gn_identifier", limit: 20
-    t.integer "quantity", null: false
-    t.integer "quantity_received", default: 0
-    t.boolean "fulfilled", default: false
-    t.datetime "fulfilled_at"
-    t.integer "fulfilled_by"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "role", primary_key: "role", id: { type: :string, limit: 50, default: "" }, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "role", primary_key: "role", id: { type: :string, limit: 50, default: "" }, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "description", default: "", null: false
     t.string "uuid", limit: 38, null: false
     t.index ["uuid"], name: "role_uuid_index", unique: true
   end
 
-  create_table "role_privilege", primary_key: ["privilege", "role"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "role_privilege", primary_key: ["privilege", "role"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "role", limit: 50, default: "", null: false
     t.string "privilege", limit: 50, default: "", null: false
     t.index ["role"], name: "role_privilege"
   end
 
-  create_table "role_role", primary_key: ["parent_role", "child_role"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "role_role", primary_key: ["parent_role", "child_role"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "parent_role", limit: 50, default: "", null: false
     t.string "child_role", default: "", null: false
     t.index ["child_role"], name: "inherited_role"
   end
 
-  create_table "scheduler_task_config", primary_key: "task_config_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "scheduler_task_config", primary_key: "task_config_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "description", limit: 1024
     t.text "schedulable_class"
@@ -1924,7 +1828,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["uuid"], name: "scheduler_task_config_uuid_index", unique: true
   end
 
-  create_table "scheduler_task_config_property", primary_key: "task_config_property_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "scheduler_task_config_property", primary_key: "task_config_property_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "value"
     t.integer "task_config_id"
@@ -2031,7 +1935,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["session_id"], name: "sessions_session_id_index"
   end
 
-  create_table "task", primary_key: "task_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "task", primary_key: "task_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "url"
     t.string "encounter_type"
     t.text "description"
@@ -2064,12 +1968,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["voided_by"], name: "user_who_voided_task"
   end
 
-  create_table "test_joins", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "traditional_authority", primary_key: "traditional_authority_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "traditional_authority", primary_key: "traditional_authority_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.integer "district_id", default: 0, null: false
     t.integer "creator", default: 0, null: false
@@ -2080,29 +1979,28 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "retire_reason"
     t.index ["creator"], name: "user_who_created_traditional_authority"
     t.index ["district_id"], name: "district_for_ta"
-    t.index ["district_id"], name: "idx_traditional_authority_district_id"
     t.index ["retired"], name: "retired_status"
     t.index ["retired_by"], name: "user_who_retired_traditional_authority"
   end
 
-  create_table "tribe", primary_key: "tribe_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "tribe", primary_key: "tribe_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.boolean "retired", default: false, null: false
     t.string "name", limit: 50, default: "", null: false
   end
 
-  create_table "user_property", primary_key: ["user_id", "property"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "user_property", primary_key: ["user_id", "property"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "user_id", default: 0, null: false
     t.string "property", limit: 100, default: "", null: false
     t.string "property_value", limit: 600, default: "", null: false
   end
 
-  create_table "user_role", primary_key: ["role", "user_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "user_role", primary_key: ["role", "user_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "user_id", default: 0, null: false
     t.string "role", limit: 50, default: "", null: false
     t.index ["user_id"], name: "user_role"
   end
 
-  create_table "users", primary_key: "user_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "users", primary_key: "user_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "system_id", limit: 50, default: "", null: false
     t.string "username", limit: 50
     t.string "password", limit: 128
@@ -2126,7 +2024,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.index ["retired_by"], name: "user_who_retired_this_user"
   end
 
-  create_table "village", primary_key: "village_id", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
+  create_table "village", primary_key: "village_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.integer "traditional_authority_id", default: 0, null: false
     t.integer "creator", default: 0, null: false
@@ -2136,20 +2034,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "date_retired", precision: nil
     t.string "retire_reason"
     t.index ["creator"], name: "user_who_created_village"
-    t.index ["name"], name: "index_village_name"
     t.index ["retired"], name: "retired_status"
     t.index ["retired_by"], name: "user_who_retired_village"
-    t.index ["traditional_authority_id"], name: "idx_village_traditional_authority_id"
     t.index ["traditional_authority_id"], name: "ta_for_village"
   end
 
   create_table "village_infos", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "village_list", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.string "name"
   end
 
   create_table "weight_for_height", id: false, charset: "latin1", collation: "latin1_swedish_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
@@ -2255,7 +2147,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   add_foreign_key "concept_synonym", "users", column: "creator", primary_key: "user_id", name: "synonym_creator"
   add_foreign_key "concept_word", "concept", primary_key: "concept_id", name: "word_for"
   add_foreign_key "concept_word", "concept_name", primary_key: "concept_name_id", name: "word_for_name"
-  add_foreign_key "damages", "prepacks"
   add_foreign_key "district", "region", primary_key: "region_id", name: "region_for_district"
   add_foreign_key "district", "users", column: "creator", primary_key: "user_id", name: "user_who_created_district"
   add_foreign_key "district", "users", column: "retired_by", primary_key: "user_id", name: "user_who_retired_district"
@@ -2407,11 +2298,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   add_foreign_key "person_name", "users", column: "creator", primary_key: "user_id", name: "user_who_made_name"
   add_foreign_key "person_name", "users", column: "voided_by", primary_key: "user_id", name: "user_who_voided_name"
   add_foreign_key "person_name_code", "person_name", primary_key: "person_name_id", name: "code for name", on_update: :cascade
-  add_foreign_key "prepack_labels", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id", name: "fk_prepack_labels_bottle"
-  add_foreign_key "prepack_labels", "prepacks"
-  add_foreign_key "prepacks", "drugs", primary_key: "drug_id"
-  add_foreign_key "prepacks", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
-  add_foreign_key "prepacks", "users", column: "prepacked_by_id", primary_key: "user_id"
   add_foreign_key "program", "concept", primary_key: "concept_id", name: "program_concept"
   add_foreign_key "program", "users", column: "changed_by", primary_key: "user_id", name: "user_who_changed_program"
   add_foreign_key "program", "users", column: "creator", primary_key: "user_id", name: "program_creator"

@@ -1,4 +1,4 @@
-class CreatePersonName < ActiveRecord::Migration
+class CreatePersonName < ActiveRecord::Migration[7.0]
   def change
     create_table :person_name, id: false do |t|
       t.primary_key :person_name_id

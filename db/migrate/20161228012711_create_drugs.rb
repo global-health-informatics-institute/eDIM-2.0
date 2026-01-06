@@ -1,4 +1,4 @@
-class CreateDrugs < ActiveRecord::Migration
+class CreateDrugs < ActiveRecord::Migration[7.0]
   def change
     create_table :drugs, :primary_key => :drug_id do |t|
       t.integer :drug_category_id

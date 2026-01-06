@@ -94,7 +94,7 @@
       <div class="summary-card-header">
         <div class="summary-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="none"/>
           </svg>
         </div>
         <div class="summary-card-label">Amount Received</div>
@@ -114,7 +114,7 @@
       <div class="summary-card-header">
         <div class="summary-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            <path d="M5 10l7-7m0 0l7 7m-7-7v18" fill="none"/>
           </svg>
         </div>
         <div class="summary-card-label">Amount Remaining</div>
@@ -138,7 +138,7 @@
       <div class="summary-card-header">
         <div class="summary-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" fill="none"/>
           </svg>
         </div>
         <div class="summary-card-label">Amount Used</div>
@@ -158,7 +158,7 @@
       <div class="summary-card-header">
         <div class="summary-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" fill="none"/>
           </svg>
         </div>
         <div class="summary-card-label">Days to Expiry</div>
@@ -183,12 +183,32 @@
       </div>
     </div>
 
+    <!-- Amount Received -->
+    <div class="summary-card received-card">
+      <div class="summary-card-header">
+        <div class="summary-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="none" />
+          </svg>
+        </div>
+        <div class="summary-card-label">Total Damages Recorded</div>
+      </div>
+      <div class="summary-card-value">
+        <span class="value-number"><%= number_with_delimiter(amount_received) %></span>
+        <span class="value-unit">units</span>
+      </div>
+      <div class="summary-card-progress">
+        <div class="progress-bar" style="width: <%= received_percentage %>%"></div>
+        <div class="progress-label">Initial stock</div>
+      </div>
+    </div>
+
     <!-- Quick Stats -->
     <div class="summary-stats-overview">
       <div class="stats-card">
         <div class="stats-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" fill="none"/>
           </svg>
         </div>
         <div class="stats-content">
@@ -209,7 +229,7 @@
       <div class="stats-card">
         <div class="stats-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" fill="none" fill="none"/>
           </svg>
         </div>
         <div class="stats-content">
@@ -438,11 +458,11 @@
   font-weight: 500;
 }
 
-/* Summary Grid */
+/* Summary grid */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 34px;
+  gap: 56px;
   margin-bottom: 32px;
 }
 
@@ -456,7 +476,8 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  gap: 16px; 
+  gap: 32px;
+  width: 86%;
 }
 
 .summary-card:hover {
@@ -481,30 +502,30 @@
 .summary-card-header {
   display: flex;
   align-items: center;
-  gap: 14px; /* Slightly larger gap */
-  margin-bottom: 24px; /* Increased */
+  gap: 14px; 
+  margin-bottom: 24px; 
 }
 
 .summary-card-icon {
-  width: 52px; /* Larger */
-  height: 52px; /* Larger */
+  width: 52px; 
+  height: 52px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px; /* Larger */
+  border-radius: 14px; 
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   color: #006495;
 }
 
 .summary-card-icon svg {
-  width: 26px; /* Larger */
-  height: 26px; /* Larger */
+  width: 26px; 
+  height: 26px; 
   stroke-width: 2;
 }
 
 .summary-card-label {
-  font-size: 1.2rem; /* Increased from 1rem */
-  font-weight: 700; /* Bolder */
+  font-size: 1.2rem; 
+  font-weight: 700; 
   color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -514,32 +535,32 @@
 .summary-card-value {
   display: flex;
   align-items: baseline;
-  gap: 10px; /* Slightly larger */
-  margin-bottom: 20px; /* Increased */
+  gap: 10px; 
+  margin-bottom: 20px;
 }
 
 .value-number {
-  font-size: 3.2rem; /* Increased from 2.8rem */
+  font-size: 3.2rem; 
   font-weight: 800;
   color: #1e293b;
   line-height: 1;
 }
 
 .value-unit {
-  font-size: 1.4rem; /* Increased from 1rem */
-  color: #64748b; /* Darker for better visibility */
-  font-weight: 600; /* Bolder */
+  font-size: 1.4rem; 
+  color: #64748b; 
+  font-weight: 600; 
 }
 
 /* Progress Bars */
 .summary-card-progress {
-  margin-top: 20px; /* Increased */
+  margin-top: 20px; 
 }
 
 .progress-bar {
-  height: 8px; /* Thicker */
+  height: 8px; 
   border-radius: 4px;
-  margin-bottom: 10px; /* Increased */
+  margin-bottom: 10px; 
   transition: width 1s ease;
 }
 
@@ -549,8 +570,8 @@
 .expiry-card .expiry-progress-bar { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
 
 .progress-label {
-  font-size: 1.1rem; /* Increased from 0.875rem */
-  color: #475569; /* Darker for better visibility */
+  font-size: 1.3rem; 
+  color: #475569;
   text-align: right;
   font-weight: 500;
 }
@@ -559,16 +580,16 @@
 .stock-indicator {
   display: flex;
   align-items: center;
-  gap: 8px; /* Larger gap */
-  margin-top: 20px; /* Increased */
-  padding: 10px 14px; /* Larger padding */
-  border-radius: 10px; /* Larger */
-  font-size: 1.1rem; /* Increased from 0.875rem */
+  gap: 8px;
+  margin-top: 20px; 
+  padding: 10px 14px; 
+  border-radius: 10px; 
+  font-size: 1.1rem; 
   font-weight: 600;
 }
 
 .high-stock {
-  background: rgba(16, 185, 129, 0.12); /* Slightly more visible */
+  background: rgba(16, 185, 129, 0.12); 
   color: #065f46;
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
@@ -588,8 +609,8 @@
 .high-stock .indicator-dot,
 .medium-stock .indicator-dot,
 .low-stock .indicator-dot {
-  width: 10px; /* Larger */
-  height: 10px; /* Larger */
+  width: 10px; 
+  height: 10px; 
   border-radius: 50%;
   display: inline-block;
 }
@@ -604,14 +625,14 @@
 }
 
 .expiry-info {
-  margin-top: 24px; /* Increased */
+  margin-top: 24px;
 }
 
 .expiry-progress {
-  height: 8px; /* Thicker */
+  height: 8px;
   background: #e2e8f0;
   border-radius: 4px;
-  margin-bottom: 14px; /* Increased */
+  margin-bottom: 14px;
   overflow: hidden;
 }
 
@@ -622,21 +643,21 @@
 }
 
 .expiry-date {
-  font-size: 1.2rem; /* Increased from 0.9rem */
-  color: #475569; /* Darker for better visibility */
-  margin-bottom: 10px; /* Increased */
+  font-size: 1.2rem;
+  color: #475569; 
+  margin-bottom: 10px;
   font-weight: 500;
 }
 
 .expiry-status {
   display: flex;
   align-items: center;
-  gap: 8px; /* Larger gap */
-  font-size: 1.1rem; /* Increased from 0.875rem */
+  gap: 8px;
+  font-size: 1.1rem;
   font-weight: 600;
-  padding: 10px 12px; /* Larger padding */
-  border-radius: 8px; /* Larger */
-  border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border */
+  padding: 10px 12px; 
+  border-radius: 8px; 
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .safe-expiry {
@@ -682,18 +703,18 @@
 .summary-stats-overview {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Wider min */
-  gap: 20px; /* Larger gap */
-  margin-top: 24px; /* Increased */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px; 
+  margin-top: 24px;
 }
 
 .stats-card {
   background: white;
-  border-radius: 14px; /* Larger */
-  padding: 24px; /* Increased */
+  border-radius: 14px; 
+  padding: 24px;
   display: flex;
   align-items: center;
-  gap: 18px; /* Larger gap */
+  gap: 18px;
   border: 1px solid #f1f5f9;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
@@ -725,21 +746,21 @@
 }
 
 .stats-label {
-  font-size: 1.1rem; /* Increased from 0.875rem */
+  font-size: 1.3rem;
   color: #475569;
-  font-weight: 600; /* Bolder */
-  margin-bottom: 6px; /* Increased */
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
 .stats-value {
-  font-size: 1.8rem; /* Increased from 1.5rem */
+  font-size: 1.8rem;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 4px; /* Increased */
+  margin-bottom: 4px;
 }
 
 .stats-subtext {
-  font-size: 1rem; /* Increased from 0.75rem */
+  font-size: 1.2rem;
   color: #64748b;
   font-weight: 500;
 }
@@ -747,29 +768,29 @@
 /* Footer */
 .summary-footer {
   padding-top: 24px;
-  border-top: 2px solid #f1f5f9; /* Thicker border */
-  margin-top: 28px; /* Increased */
+  border-top: 2px solid #f1f5f9;
+  margin-top: 28px;
 }
 
 .summary-notes {
   display: flex;
-  align-items: flex-start; /* Align to top for multi-line */
-  gap: 12px; /* Larger gap */
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .notes-label {
-  font-weight: 700; /* Bolder */
+  font-weight: 700;
   color: #475569;
-  font-size: 1.3rem; /* Increased from 0.9rem */
-  flex-shrink: 0; /* Prevent shrinking */
-  margin-top: 2px; /* Slight alignment */
+  font-size: 1.3rem;
+  flex-shrink: 0; 
+  margin-top: 2px;
 }
 
 .notes-text {
-  color: #475569; /* Darker for better readability */
-  font-size: 1.2rem; /* Increased from 0.9rem */
+  color: #475569;
+  font-size: 1.2rem;
   font-weight: 500;
-  line-height: 1.4; /* Better line spacing */
+  line-height: 1.4;
   flex: 1;
 }
 

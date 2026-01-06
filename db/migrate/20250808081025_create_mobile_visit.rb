@@ -1,4 +1,4 @@
-class CreateMobileVisit < ActiveRecord::Migration
+class CreateMobileVisit < ActiveRecord::Migration[7.0]
   def change
     create_table :mobile_visit do |t|
       t.date :visit_date, null: false

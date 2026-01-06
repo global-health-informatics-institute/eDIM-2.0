@@ -1,6 +1,7 @@
 class SessionsController < ApplicationController
-
+skip_before_action :verify_authenticity_token, :only => :create
   def new
+    reset_session
     session[:user_id] = nil
     User.current = nil
     render :layout => "touch"
@@ -50,4 +51,27 @@ class SessionsController < ApplicationController
     User.current = nil
     redirect_to "/sessions/new"
   end
+
+  private
+
+  def check_logged_in
+    unless session[:user_id].present?
+      flash[:error]="you're session has expired.please login again"
+      redirect_to "/sessions/new"
+    end
+  end
+
+  def redirect_if_logged_in
+    if session[:user_id].present?
+      flash[:info]="you are already logged in"
+      redirect_to "/sessions/add_location"
+    end
+  end
+
+
+  #class ApplicationController <ActionController::Base
+
+    #auto_session_timeout 30.minutes
+  #end
+
 end

@@ -1,4 +1,4 @@
-class CreateMobileVisitProducts < ActiveRecord::Migration
+class CreateMobileVisitProducts < ActiveRecord::Migration[7.0]
   def change
     create_table :mobile_visit_products,:primary_key => :mvp_id do |t|
 			t.integer :mobile_visit_id

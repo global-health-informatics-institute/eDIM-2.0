@@ -1,4 +1,4 @@
-class CreateDispensations < ActiveRecord::Migration
+class CreateDispensations < ActiveRecord::Migration[7.0]
   def change
     create_table :dispensations,:primary_key => :dispensation_id do |t|
       t.integer :rx_id

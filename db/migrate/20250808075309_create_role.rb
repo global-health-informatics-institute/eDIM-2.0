@@ -1,4 +1,4 @@
-class CreateRole < ActiveRecord::Migration
+class CreateRole < ActiveRecord::Migration[7.0]
   def change
     create_table :role, id: false do |t|
       t.string :role, null: false

@@ -1,4 +1,4 @@
-class CreateDrugThresholds < ActiveRecord::Migration
+class CreateDrugThresholds < ActiveRecord::Migration[7.0]
   def change
     create_table :drug_thresholds, :primary_key => :threshold_id do |t|
       t.string :drug_id

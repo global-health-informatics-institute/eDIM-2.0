@@ -1,4 +1,4 @@
-class CreateGeneralInventories < ActiveRecord::Migration
+class CreateGeneralInventories < ActiveRecord::Migration[7.0]
   def change
     create_table :general_inventories, :primary_key => :gn_inventory_id do |t|
       t.integer :drug_id

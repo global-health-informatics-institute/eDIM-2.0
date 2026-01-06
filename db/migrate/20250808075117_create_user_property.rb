@@ -1,4 +1,4 @@
-class CreateUserProperty < ActiveRecord::Migration
+class CreateUserProperty < ActiveRecord::Migration[7.0]
   def change
     create_table :user_property, id: false do |t|
       t.integer :user_id, null: false
