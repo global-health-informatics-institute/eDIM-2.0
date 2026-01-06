@@ -1,4 +1,4 @@
-class CreatePatientIdentifierType < ActiveRecord::Migration
+class CreatePatientIdentifierType < ActiveRecord::Migration[7.0]
   def change
     create_table :patient_identifier_type, id: false do |t|
       t.primary_key :patient_identifier_type_id

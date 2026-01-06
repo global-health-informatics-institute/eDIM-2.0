@@ -1,4 +1,4 @@
-class CreatePrescriptions < ActiveRecord::Migration
+class CreatePrescriptions < ActiveRecord::Migration[7.0]
   def change
     create_table :prescriptions, :primary_key => :rx_id do |t|
       t.integer :patient_id

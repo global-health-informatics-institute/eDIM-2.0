@@ -1,4 +1,4 @@
-class CreateMobileVisits < ActiveRecord::Migration
+class CreateMobileVisits < ActiveRecord::Migration[7.0]
   def change
     create_table :mobile_visits,:primary_key => :mobile_visit_id do |t|
       t.date :visit_date

@@ -302,9 +302,9 @@ class GeneralInventoryController < ApplicationController
           location_id: session[:location]
         )
 
-        if bottle.nil? || bottle.current_quantity <= 0
-          return render json: { error: "Bottle empty for this prepack" }
-        end
+        #if bottle.nil? || bottle.current_quantity <= 0
+         # return render json: { error: "Bottle empty for this prepack" }
+        #end
 
         # Get patient_id from session or params
         patient_id = params[:patient_id] || session[:patient_id]

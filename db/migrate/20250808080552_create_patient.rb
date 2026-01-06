@@ -1,4 +1,4 @@
-class CreatePatient < ActiveRecord::Migration
+class CreatePatient < ActiveRecord::Migration[7.0]
   def change
     create_table :patient do |t|
       t.integer :person_id, null: false

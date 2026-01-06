@@ -1,4 +1,4 @@
-class CreatePersonAttribute < ActiveRecord::Migration
+class CreatePersonAttribute < ActiveRecord::Migration[7.0]
   def change
     create_table :person_attribute, id: false do |t|
       t.primary_key :person_attribute_id

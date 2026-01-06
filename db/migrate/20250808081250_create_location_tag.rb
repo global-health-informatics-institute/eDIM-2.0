@@ -1,4 +1,4 @@
-class CreateLocationTag < ActiveRecord::Migration
+class CreateLocationTag < ActiveRecord::Migration[7.0]
   def change
     create_table :location_tag, id: false do |t|
       t.primary_key :location_tag_id

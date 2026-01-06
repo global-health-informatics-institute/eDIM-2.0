@@ -1,4 +1,4 @@
-class CreateLocationTagMap < ActiveRecord::Migration
+class CreateLocationTagMap < ActiveRecord::Migration [7.0]
   def change
     create_table :location_tag_map, id: false do |t|
       t.integer :location_tag_id, null: false
