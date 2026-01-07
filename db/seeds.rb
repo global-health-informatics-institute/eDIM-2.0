@@ -11,7 +11,7 @@
 # Create or find location
 location = Location.find_or_create_by!(location_id: 1) do |loc|
   loc.name = 'Wandikwe Health Center'
-  loc.description = 'Remote health center'
+  loc.description = 'Dispensary'
   loc.city_village = 'Lilongwe'
   loc.state_province = 'Central'
   loc.country = 'Malawi'

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-class CreateDrugs < ActiveRecord::Migration[7.0]
-=======
 class CreateDrugs < ActiveRecord::Migration[4.2]
->>>>>>> 2d57a4e (clean up migration versions)
   def change
     create_table :drugs, :primary_key => :drug_id do |t|
       t.integer :drug_category_id

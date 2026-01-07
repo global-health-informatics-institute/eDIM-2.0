@@ -1,11 +1,6 @@
 class SessionsController < ApplicationController
-<<<<<<< HEAD
-skip_before_action :verify_authenticity_token, :only => :create
-=======
+skip_before_action :verify_authenticity_token, only: :create
 
-  skip_before_action :verify_authenticity_token, only: :create
-
->>>>>>> 2d57a4e (clean up migration versions)
   def new
     reset_session
     session[:user_id] = nil
@@ -34,14 +29,14 @@ skip_before_action :verify_authenticity_token, :only => :create
 
   def workstation_location
     location = Location.find(params[:location]) rescue nil
-    location ||= Location.find_by_name(params[:location]) rescue nil
+    location ||= Location.find_by_id(params[:location]) rescue nil
 
     Rails.logger.info "Params location: #{params[:location].inspect}"
     Rails.logger.info "Found location: #{location.inspect}"
     Rails.logger.info "Is a workstation? #{location.is_a_workstation? if location}"
 
     if location.blank? || location.is_a_workstation?
-      Rails.logger.warn "Invalid workstation location detected"
+      Rails.logger.warn "Invalid workstation location"
       flash[:error] = "Invalid workstation location"
       redirect_to '/sessions/add_location' and return
     else
