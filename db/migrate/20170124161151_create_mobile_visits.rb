@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 class CreateMobileVisits < ActiveRecord::Migration[7.0]
+=======
+class CreateMobileVisits < ActiveRecord::Migration[4.2]
+>>>>>>> 2d57a4e (clean up migration versions)
   def change
     create_table :mobile_visits,:primary_key => :mobile_visit_id do |t|
       t.date :visit_date

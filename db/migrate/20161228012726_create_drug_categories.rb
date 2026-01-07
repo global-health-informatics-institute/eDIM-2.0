@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 class CreateDrugCategories < ActiveRecord::Migration[7.0]
+=======
+class CreateDrugCategories < ActiveRecord::Migration[4.2]
+>>>>>>> 2d57a4e (clean up migration versions)
   def change
     create_table :drug_categories, :primary_key =>  :drug_category_id do |t|
       t.string  :category

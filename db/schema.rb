@@ -11,6 +11,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
+<<<<<<< HEAD
   create_table "active_list", primary_key: "active_list_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.integer "active_list_type_id", null: false
     t.integer "person_id", null: false
@@ -377,6 +378,28 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "dispensations", primary_key: "dispensation_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "damages", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "general_inventory_id", null: false
+    t.integer "quantity", default: 0, null: false
+    t.string "reason"
+    t.integer "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "reported_by"
+    t.integer "location_id"
+    t.datetime "damage_date"
+    t.string "gn_identifier"
+    t.string "damage_type", default: "pack", null: false
+    t.bigint "prepack_id"
+    t.index ["damage_type"], name: "index_damages_on_damage_type"
+    t.index ["general_inventory_id"], name: "index_damages_on_general_inventory_id"
+    t.index ["gn_identifier"], name: "index_damages_on_gn_identifier"
+    t.index ["prepack_id"], name: "index_damages_on_prepack_id"
+  end
+
+  create_table "dispensations", primary_key: "dispensation_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "rx_id"
     t.string "inventory_id"
     t.integer "patient_id"
@@ -388,6 +411,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "district", primary_key: "district_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.integer "region_id", default: 0, null: false
@@ -429,12 +453,16 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "drug_categories", primary_key: "drug_category_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "drug_categories", primary_key: "drug_category_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.string "category"
     t.boolean "voided", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "drug_ingredient", primary_key: ["ingredient_id", "concept_id"], charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "ingredient_id", default: 0, null: false
@@ -454,6 +482,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "drug_thresholds", primary_key: "threshold_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "drug_thresholds", primary_key: "threshold_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.string "drug_id"
     t.integer "threshold"
     t.boolean "voided", default: false
@@ -461,7 +492,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "drugs", primary_key: "drug_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "drugs", primary_key: "drug_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "drug_category_id"
     t.string "name"
     t.string "dose_strength"
@@ -472,6 +507,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "item_code"
   end
 
+<<<<<<< HEAD
   create_table "encounter", primary_key: "encounter_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "encounter_type", null: false
     t.integer "patient_id", default: 0, null: false
@@ -674,6 +710,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "general_inventories", primary_key: "gn_inventory_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "drug_id"
     t.string "gn_identifier"
     t.date "expiration_date"
@@ -685,6 +724,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.boolean "voided", default: false
     t.string "void_reason"
     t.integer "voided_by"
+<<<<<<< HEAD
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["gn_identifier"], name: "index_general_inventories_on_gn_identifier"
@@ -757,6 +797,15 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "issues", primary_key: "issue_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.string "gn_sequence"
+    t.index ["gn_identifier"], name: "index_general_inventories_on_gn_identifier"
+  end
+
+  create_table "issues", primary_key: "issue_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "inventory_id"
     t.integer "location_id"
     t.integer "issued_to"
@@ -768,6 +817,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "liquibasechangelog", primary_key: ["ID", "AUTHOR", "FILENAME"], charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "ID", limit: 63, null: false
     t.string "AUTHOR", limit: 63, null: false
@@ -843,13 +893,22 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
 
   create_table "logic_rule_definition", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "uuid", limit: 38, null: false
+=======
+  create_table "location", primary_key: "location_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.string "name", null: false
-    t.string "description", limit: 1000
-    t.string "rule_content", limit: 2048, null: false
-    t.string "language", null: false
-    t.integer "creator", default: 0, null: false
-    t.datetime "date_created", precision: nil, null: false
+    t.string "description"
+    t.string "address1"
+    t.string "address2"
+    t.string "city_village"
+    t.string "state_province"
+    t.string "country"
+    t.string "postal_code"
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
     t.integer "changed_by"
+<<<<<<< HEAD
     t.datetime "date_changed", precision: nil
     t.boolean "retired", default: false, null: false
     t.integer "retired_by"
@@ -912,12 +971,19 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.boolean "retired", default: false, null: false
     t.integer "retired_by"
     t.string "retired_reason"
+=======
+    t.datetime "date_changed"
+    t.string "uuid"
+    t.string "neighborhood_cell"
+>>>>>>> 2d57a4e (clean up migration versions)
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_location_on_name"
   end
 
-  create_table "medical_schemes", primary_key: "medical_scheme_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "location_tag", primary_key: "location_tag_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
+<<<<<<< HEAD
     t.integer "medical_scheme_provider", null: false
     t.integer "creator", null: false
     t.boolean "retired", default: false, null: false
@@ -933,11 +999,48 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
 
   create_table "mime_type", primary_key: "mime_type_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "mime_type", limit: 75, default: "", null: false
+=======
+>>>>>>> 2d57a4e (clean up migration versions)
     t.text "description"
-    t.index ["mime_type_id"], name: "mime_type_id"
+    t.boolean "retired", default: false
+    t.integer "creator"
+    t.datetime "date_created"
+    t.integer "retired_by"
+    t.datetime "date_retired"
+    t.string "retire_reason"
+    t.string "uuid"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_location_tag_on_name"
   end
 
+<<<<<<< HEAD
   create_table "mobile_visit_products", primary_key: "mvp_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "location_tag_map", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "location_tag_id", null: false
+    t.integer "location_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_tag_id", "location_id"], name: "index_location_tag_map_on_location_tag_id_and_location_id", unique: true
+  end
+
+  create_table "mobile_visit", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.date "visit_date", null: false
+    t.integer "visit_supervisor", null: false
+    t.text "notes"
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
+    t.integer "changed_by"
+    t.datetime "date_changed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["visit_supervisor"], name: "index_mobile_visit_on_visit_supervisor"
+  end
+
+  create_table "mobile_visit_products", primary_key: "mvp_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "mobile_visit_id"
     t.string "gn_identifier"
     t.integer "amount_taken"
@@ -947,7 +1050,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "mobile_visits", primary_key: "mobile_visit_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "mobile_visits", primary_key: "mobile_visit_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.date "visit_date"
     t.integer "visit_supervisor"
     t.boolean "voided", default: false
@@ -955,6 +1062,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "national_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
     t.string "national_id", limit: 30, default: "", null: false
     t.boolean "assigned", default: false, null: false
@@ -1023,59 +1131,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "obs", primary_key: "obs_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
+=======
+  create_table "patient", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "person_id", null: false
-    t.integer "concept_id", default: 0, null: false
-    t.integer "encounter_id"
-    t.integer "order_id"
-    t.datetime "obs_datetime", precision: nil, null: false
-    t.integer "location_id"
-    t.integer "obs_group_id"
-    t.string "accession_number"
-    t.integer "value_group_id"
-    t.boolean "value_boolean"
-    t.integer "value_coded"
-    t.integer "value_coded_name_id"
-    t.integer "value_drug"
-    t.datetime "value_datetime", precision: nil
-    t.float "value_numeric", limit: 53
-    t.string "value_modifier", limit: 2
-    t.text "value_text"
-    t.datetime "date_started", precision: nil
-    t.datetime "date_stopped", precision: nil
-    t.string "comments"
-    t.integer "creator", default: 0, null: false
-    t.datetime "date_created", precision: nil, null: false
-    t.integer "voided", limit: 2, default: 0, null: false
-    t.integer "voided_by"
-    t.datetime "date_voided", precision: nil
-    t.string "void_reason"
-    t.string "value_complex"
-    t.string "uuid", limit: 38, null: false
-    t.index ["concept_id"], name: "obs_concept"
-    t.index ["creator"], name: "obs_enterer"
-    t.index ["encounter_id"], name: "encounter_observations"
-    t.index ["location_id"], name: "obs_location"
-    t.index ["obs_datetime"], name: "obs_datetime_idx"
-    t.index ["obs_group_id"], name: "obs_grouping_id"
-    t.index ["order_id"], name: "obs_order"
-    t.index ["person_id"], name: "patient_obs"
-    t.index ["uuid"], name: "obs_uuid_index", unique: true
-    t.index ["value_coded"], name: "answer_concept"
-    t.index ["value_coded_name_id"], name: "obs_name_of_coded_value"
-    t.index ["value_drug"], name: "answer_concept_drug"
-    t.index ["voided_by"], name: "user_who_voided_obs"
-  end
-
-  create_table "order_entries", primary_key: "order_entry_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.integer "patient_id", null: false
-    t.integer "service_id", null: false
-    t.datetime "order_date", precision: nil, null: false
-    t.float "quantity", default: 0.0, null: false
-    t.float "full_price", default: 0.0, null: false
-    t.float "amount_paid", default: 0.0, null: false
-    t.integer "cashier", null: false
-    t.integer "location"
     t.boolean "voided", default: false
+<<<<<<< HEAD
     t.integer "voided_by"
     t.string "voided_reason"
     t.datetime "created_at", null: false
@@ -1332,25 +1393,22 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "birthdate_estimated", limit: 2, default: 0, null: false
     t.integer "dead", limit: 2, default: 0, null: false
     t.datetime "death_date", precision: nil
-    t.integer "cause_of_death"
-    t.integer "creator", default: 0, null: false
-    t.datetime "date_created", precision: nil, null: false
+=======
+    t.integer "creator"
+    t.datetime "date_created"
     t.integer "changed_by"
-    t.datetime "date_changed", precision: nil
-    t.integer "voided", limit: 2, default: 0, null: false
-    t.integer "voided_by"
-    t.datetime "date_voided", precision: nil
-    t.string "void_reason"
-    t.string "uuid", limit: 38, null: false
-    t.index ["birthdate"], name: "person_birthdate"
-    t.index ["cause_of_death"], name: "person_died_because"
-    t.index ["changed_by"], name: "user_who_changed_pat"
-    t.index ["creator"], name: "user_who_created_patient"
-    t.index ["death_date"], name: "person_death_date"
-    t.index ["uuid"], name: "person_uuid_index", unique: true
-    t.index ["voided_by"], name: "user_who_voided_patient"
+    t.datetime "date_changed"
+    t.boolean "dead", default: false
+    t.datetime "death_date"
+>>>>>>> 2d57a4e (clean up migration versions)
+    t.integer "cause_of_death"
+    t.boolean "patient_id_card_printed", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_patient_on_person_id"
   end
 
+<<<<<<< HEAD
   create_table "person_address", primary_key: "person_address_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_id"
     t.integer "preferred", limit: 2, default: 0, null: false
@@ -1413,22 +1471,39 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "changed_by"
     t.datetime "date_changed", precision: nil
     t.integer "retired", limit: 2, default: 0, null: false
-    t.integer "retired_by"
-    t.datetime "date_retired", precision: nil
-    t.string "retire_reason"
-    t.string "edit_privilege"
-    t.string "uuid", limit: 38, null: false
-    t.float "sort_weight", limit: 53
-    t.index ["changed_by"], name: "attribute_type_changer"
-    t.index ["creator"], name: "type_creator"
-    t.index ["edit_privilege"], name: "privilege_which_can_edit"
-    t.index ["name"], name: "name_of_attribute"
-    t.index ["retired"], name: "person_attribute_type_retired_status"
-    t.index ["retired_by"], name: "user_who_retired_person_attribute_type"
-    t.index ["searchable"], name: "attribute_is_searchable"
-    t.index ["uuid"], name: "person_attribute_type_uuid_index", unique: true
+=======
+  create_table "patient_identifier", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "patient_id", null: false
+    t.integer "identifier_type", null: false
+    t.string "identifier", null: false
+    t.boolean "preferred", default: false
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
+    t.integer "changed_by"
+    t.datetime "date_changed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identifier_type"], name: "index_patient_identifier_on_identifier_type"
+    t.index ["patient_id", "identifier_type"], name: "index_patient_identifier_on_patient_id_and_identifier_type", unique: true
+    t.index ["patient_id"], name: "index_patient_identifier_on_patient_id"
   end
 
+  create_table "patient_identifier_type", primary_key: "patient_identifier_type_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "retired", default: false
+    t.integer "creator"
+    t.datetime "date_created"
+>>>>>>> 2d57a4e (clean up migration versions)
+    t.integer "retired_by"
+    t.datetime "date_retired"
+    t.string "retire_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+<<<<<<< HEAD
   create_table "person_name", primary_key: "person_name_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "preferred", limit: 2, default: 0, null: false
     t.integer "person_id"
@@ -1443,22 +1518,65 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "creator", default: 0, null: false
     t.datetime "date_created", precision: nil, null: false
     t.integer "voided", limit: 2, default: 0, null: false
-    t.integer "voided_by"
-    t.datetime "date_voided", precision: nil
-    t.string "void_reason"
+=======
+  create_table "person", primary_key: "person_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
     t.integer "changed_by"
-    t.datetime "date_changed", precision: nil
-    t.string "uuid", limit: 38, null: false
-    t.index ["creator"], name: "user_who_made_name"
-    t.index ["family_name"], name: "last_name"
-    t.index ["family_name2"], name: "family_name2"
-    t.index ["given_name"], name: "first_name"
-    t.index ["middle_name"], name: "middle_name"
-    t.index ["person_id"], name: "name_for_patient"
-    t.index ["uuid"], name: "person_name_uuid_index", unique: true
-    t.index ["voided_by"], name: "user_who_voided_name"
+    t.datetime "date_changed"
+    t.boolean "dead", default: false
+    t.date "birthdate"
+    t.boolean "birthdate_estimated", default: false
+    t.date "death_date"
+    t.integer "cause_of_death"
+    t.integer "gender"
+    t.string "gender_string"
+    t.integer "death_reason"
+    t.integer "death_place"
+    t.string "death_place_other"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
+  create_table "person_address", primary_key: "person_address_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "person_id", null: false
+    t.string "address1"
+    t.string "address2"
+    t.string "address3"
+    t.string "city_village"
+    t.string "state_province"
+    t.string "country"
+    t.string "postal_code"
+    t.boolean "preferred", default: false
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
+    t.integer "changed_by"
+    t.datetime "date_changed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_person_address_on_person_id"
+  end
+
+  create_table "person_attribute", primary_key: "person_attribute_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "person_id", null: false
+    t.integer "person_attribute_type_id", null: false
+    t.text "value"
+    t.integer "creator"
+    t.datetime "date_created"
+    t.boolean "voided", default: false
+>>>>>>> 2d57a4e (clean up migration versions)
+    t.integer "voided_by"
+    t.datetime "date_voided"
+    t.string "void_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_attribute_type_id"], name: "index_person_attribute_on_person_attribute_type_id"
+    t.index ["person_id"], name: "index_person_attribute_on_person_id"
+  end
+
+<<<<<<< HEAD
   create_table "person_name_code", primary_key: "person_name_code_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "person_name_id"
     t.string "given_name_code", limit: 50
@@ -1484,30 +1602,91 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "changed_by"
     t.datetime "date_changed", precision: nil
     t.boolean "retired", default: false, null: false
+=======
+  create_table "person_attribute_type", primary_key: "person_attribute_type_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "retired", default: false
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "retired_by"
-    t.datetime "date_retired", precision: nil
-    t.string "retire_reason", limit: 225
+    t.datetime "date_retired"
+    t.string "retire_reason"
+    t.integer "creator"
+    t.datetime "date_created"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
-  create_table "pharmacy_obs", primary_key: "pharmacy_module_id", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
-    t.integer "pharmacy_encounter_type", default: 0, null: false
-    t.integer "drug_id", default: 0, null: false
-    t.float "value_numeric", limit: 53
-    t.integer "value_coded"
-    t.string "value_text", limit: 15
-    t.date "expiry_date"
-    t.date "encounter_date", null: false
-    t.integer "creator", null: false
-    t.datetime "date_created", precision: nil, null: false
+  create_table "person_name", primary_key: "person_name_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "person_id", null: false
+    t.string "given_name"
+    t.string "middle_name"
+    t.string "family_name"
+    t.string "family_name2"
+    t.string "family_name_suffix"
+    t.boolean "preferred", default: false
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
     t.integer "changed_by"
-    t.datetime "date_changed", precision: nil
-    t.boolean "voided", default: false, null: false
-    t.integer "voided_by"
-    t.datetime "date_voided", precision: nil
-    t.string "void_reason", limit: 225
+    t.datetime "date_changed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_person_name_on_person_id"
   end
 
+  create_table "person_name_code", primary_key: "person_name_code_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "person_name_id", null: false
+    t.string "given_name_code"
+    t.string "middle_name_code"
+    t.string "family_name_code"
+    t.string "family_name2_code"
+    t.string "family_name_suffix_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_name_id"], name: "index_person_name_code_on_person_name_id"
+  end
+
+<<<<<<< HEAD
   create_table "prescriptions", primary_key: "rx_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+  create_table "prepack_labels", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.bigint "prepack_id", null: false
+    t.integer "bottle_id", null: false
+    t.string "label_identifier", null: false
+    t.boolean "dispensed", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "dispensed_by"
+    t.datetime "date_dispensed"
+    t.index ["bottle_id"], name: "fk_rails_03e2d3a9d7"
+    t.index ["label_identifier"], name: "index_prepack_labels_on_label_identifier", unique: true
+    t.index ["prepack_id"], name: "index_prepack_labels_on_prepack_id"
+  end
+
+  create_table "prepacks", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "bottle_id", null: false
+    t.integer "drug_id", null: false
+    t.integer "quantity_per_pack", null: false
+    t.integer "num_packs", null: false
+    t.integer "total_quantity", null: false
+    t.string "directions"
+    t.bigint "prepacked_by_id", null: false
+    t.string "status", default: "created", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "gn_identifier"
+    t.integer "location_id"
+    t.integer "current_num_packs", default: 0, null: false
+    t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
+    t.index ["drug_id"], name: "fk_rails_10a6425e68"
+    t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
+    t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
+    t.index ["status"], name: "index_prepacks_on_status"
+  end
+
+  create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "patient_id"
     t.integer "drug_id"
     t.datetime "date_prescribed"
@@ -1520,6 +1699,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "privilege", primary_key: "privilege", id: { type: :string, limit: 50, default: "" }, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.string "description", limit: 250, default: "", null: false
     t.string "uuid", limit: 38, null: false
@@ -1619,10 +1799,20 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "cashier", null: false
     t.boolean "voided", default: false
     t.integer "voided_by"
+=======
+  create_table "requests", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "drug_id", null: false
+    t.integer "location_id", null: false
+    t.integer "quantity", null: false
+    t.boolean "fulfilled", default: false
+    t.datetime "fulfilled_at"
+    t.integer "fulfilled_by"
+>>>>>>> 2d57a4e (clean up migration versions)
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "regimen", primary_key: "regimen_id", id: :integer, charset: "utf8", collation: "utf8_general_ci", force: :cascade do |t|
     t.integer "concept_id", default: 0, null: false
     t.integer "min_weight", default: 0, null: false
@@ -1873,61 +2063,38 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "name", null: false
     t.integer "service_type_id", null: false
     t.integer "creator", null: false
+=======
+  create_table "role", primary_key: "role", id: :string, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.string "description"
+    t.integer "creator"
+    t.datetime "date_created"
+>>>>>>> 2d57a4e (clean up migration versions)
     t.boolean "voided", default: false
-    t.integer "voided_by"
-    t.string "voided_reason"
-    t.date "voided_date"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
-  create_table "service_price_histories", primary_key: "price_history_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.integer "service_id", null: false
-    t.float "price", default: 0.0, null: false
-    t.string "price_type", null: false
-    t.date "active_from", null: false
-    t.date "active_to"
-    t.integer "creator", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "service_prices", primary_key: "price_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.integer "service_id", null: false
-    t.float "price", default: 0.0, null: false
-    t.string "price_type", null: false
-    t.integer "creator", null: false
-    t.integer "updated_by", null: false
+  create_table "user_property", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "property", null: false
+    t.text "property_value"
+    t.integer "creator"
+    t.datetime "date_created"
     t.boolean "voided", default: false
-    t.date "voided_date"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.index ["user_id", "property"], name: "index_user_property_on_user_id_and_property", unique: true
+    t.index ["user_id"], name: "index_user_property_on_user_id"
   end
 
-  create_table "service_types", primary_key: "service_type_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.string "name", null: false
-    t.integer "creator", null: false
-    t.boolean "retired", default: false, null: false
-    t.integer "retired_by"
-    t.string "retired_reason"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "services", primary_key: "service_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
-    t.string "name", null: false
-    t.integer "service_type_id", null: false
-    t.string "unit"
-    t.integer "rank", default: 999, null: false
-    t.integer "creator", null: false
+  create_table "user_role", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "role", null: false
+    t.integer "creator"
+    t.datetime "date_created"
     t.boolean "voided", default: false
-    t.integer "voided_by"
-    t.string "voided_reason"
-    t.date "voided_date"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.index ["role"], name: "index_user_role_on_role"
+    t.index ["user_id", "role"], name: "index_user_role_on_user_id_and_role", unique: true
+    t.index ["user_id"], name: "index_user_role_on_user_id"
   end
 
+<<<<<<< HEAD
   create_table "sessions", id: :integer, charset: "latin1", collation: "latin1_swedish_ci", force: :cascade do |t|
     t.string "session_id"
     t.text "data"
@@ -2011,11 +2178,23 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.datetime "date_created", precision: nil, null: false
     t.integer "changed_by"
     t.datetime "date_changed", precision: nil
+=======
+  create_table "users", primary_key: "user_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+>>>>>>> 2d57a4e (clean up migration versions)
     t.integer "person_id"
-    t.integer "retired", limit: 1, default: 0, null: false
+    t.string "username", null: false
+    t.string "password", null: false
+    t.string "salt"
+    t.boolean "voided", default: false
+    t.integer "creator"
+    t.datetime "date_created"
+    t.datetime "date_changed"
+    t.integer "changed_by"
+    t.boolean "retired", default: false
     t.integer "retired_by"
-    t.datetime "date_retired", precision: nil
+    t.datetime "date_retired"
     t.string "retire_reason"
+<<<<<<< HEAD
     t.string "uuid", limit: 38, null: false
     t.string "authentication_token"
     t.index ["changed_by"], name: "user_who_changed_user"
@@ -2040,10 +2219,15 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   end
 
   create_table "village_infos", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+=======
+>>>>>>> 2d57a4e (clean up migration versions)
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_users_on_person_id"
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+<<<<<<< HEAD
   create_table "weight_for_height", id: false, charset: "latin1", collation: "latin1_swedish_ci", options: "ENGINE=MyISAM", force: :cascade do |t|
     t.float "supinecm", limit: 53
     t.float "medianwtht", limit: 53
@@ -2371,4 +2555,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   add_foreign_key "village", "traditional_authority", primary_key: "traditional_authority_id", name: "ta_for_village"
   add_foreign_key "village", "users", column: "creator", primary_key: "user_id", name: "user_who_created_village"
   add_foreign_key "village", "users", column: "retired_by", primary_key: "user_id", name: "user_who_retired_village"
+=======
+  add_foreign_key "damages", "prepacks"
+  add_foreign_key "prepack_labels", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
+  add_foreign_key "prepack_labels", "prepacks"
+  add_foreign_key "prepacks", "drugs", primary_key: "drug_id"
+  add_foreign_key "prepacks", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
+  add_foreign_key "prepacks", "users", column: "prepacked_by_id", primary_key: "user_id"
+>>>>>>> 2d57a4e (clean up migration versions)
 end

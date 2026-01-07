@@ -9,7 +9,7 @@ class CreatePrepacks < ActiveRecord::Migration[7.0]
       t.integer :total_quantity, null: false
 
       t.string :directions
-      t.integer :prepacked_by_id, null: false  # User who prepacked
+      t.bigint :prepacked_by_id, null: false  # User who prepacked
 
       t.string :status, default: 'created', null: false # created / printed / used
 

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 class CreatePrescriptions < ActiveRecord::Migration[7.0]
+=======
+class CreatePrescriptions < ActiveRecord::Migration[4.2]
+>>>>>>> 2d57a4e (clean up migration versions)
   def change
     create_table :prescriptions, :primary_key => :rx_id do |t|
       t.integer :patient_id

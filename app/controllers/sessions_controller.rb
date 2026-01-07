@@ -1,11 +1,18 @@
 class SessionsController < ApplicationController
+<<<<<<< HEAD
 skip_before_action :verify_authenticity_token, :only => :create
+=======
+
+  skip_before_action :verify_authenticity_token, only: :create
+
+>>>>>>> 2d57a4e (clean up migration versions)
   def new
     reset_session
     session[:user_id] = nil
     User.current = nil
     render :layout => "touch"
   end
+  
   def create
     state = User.authenticate(params['login'],params['password'])
 

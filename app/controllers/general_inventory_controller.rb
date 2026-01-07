@@ -380,8 +380,7 @@ class GeneralInventoryController < ApplicationController
                             .find_by(
                               gn_identifier: scanned,
                               location_id: session[:location],
-                              voided: false,
-                              expiration_date: (Date.current..)
+                              voided: false
                             )
 
     if entry.nil?

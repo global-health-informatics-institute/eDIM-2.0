@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 class CreateDispensations < ActiveRecord::Migration[7.0]
+=======
+class CreateDispensations < ActiveRecord::Migration[4.2]
+>>>>>>> 2d57a4e (clean up migration versions)
   def change
     create_table :dispensations,:primary_key => :dispensation_id do |t|
       t.integer :rx_id

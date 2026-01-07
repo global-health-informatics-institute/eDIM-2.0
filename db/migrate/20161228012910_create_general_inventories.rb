@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 class CreateGeneralInventories < ActiveRecord::Migration[7.0]
+=======
+class CreateGeneralInventories < ActiveRecord::Migration[4.2]
+>>>>>>> 2d57a4e (clean up migration versions)
   def change
     create_table :general_inventories, :primary_key => :gn_inventory_id do |t|
       t.integer :drug_id
