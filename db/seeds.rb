@@ -23,7 +23,7 @@ end
 
 # Seed LocationTag for 'workstation location'
 workstation_tag = LocationTag.find_or_create_by!(
-  location_tag_id: 1,
+  location_tag_id: 2,
   name: 'workstation location'
 )
 

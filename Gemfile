@@ -34,6 +34,7 @@ gem 'rails-i18n', '~> 7.0' # for Rails 4
 gem "i18n-js"
 gem 'composite_primary_keys'
 
+
 gem 'nokogiri', '>= 1.15.7'
 gem 'loofah', '~> 2.21'               # compatible with Nokogiri 1.10.x and Ruby 2.4
 gem 'rails-html-sanitizer', '~> 1.6'
