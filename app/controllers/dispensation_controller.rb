@@ -1,6 +1,6 @@
 class DispensationController < ApplicationController
   def create
-    @patient = Patient.find(params[:patient_id]) if params[:patient_id].present?
+    @patient = BillingPatient.find(params[:patient_id]) if params[:patient_id].present?
     session[:patient_id] = @patient.id if @patient.present?
 
     return_path =

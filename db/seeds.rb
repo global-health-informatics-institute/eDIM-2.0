@@ -10,7 +10,7 @@
 # Create location
 # Create or find location
 location = Location.find_or_create_by!(location_id: 1) do |loc|
-  loc.name = 'Wandikwe Health Center'
+  loc.name = 'chilomoni Health Center'
   loc.description = 'Dispensary'
   loc.city_village = 'Lilongwe'
   loc.state_province = 'Central'
@@ -53,8 +53,8 @@ person = Person.create!(
 PersonName.create!(
   person_name_id: 1,
   person_id: person.person_id,
-  given_name: "Shadreck",
-  family_name: "Khamba",
+  given_name: "nyaraih",
+  family_name: "Banda",
   preferred: true,
   voided: false,
   creator: 1,
@@ -72,7 +72,7 @@ user = User.new(
 )
 
 # Use setter so that encryption is handled by model
-user.password = "password"
+user.password = "tester"
 user.save!
 
 # Link user to role
@@ -81,4 +81,4 @@ UserRole.create!(
   role: admin_role.role
 )
 
-puts "Seeded initial user: admin / password"
+puts "Seeded initial user: admin / tester"
