@@ -10,7 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
+ActiveRecord::Schema[7.0].define(version: 2026_01_09_041621) do
+  create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_app_options_on_name", unique: true
+  end
+
   create_table "damages", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "general_inventory_id", null: false
     t.integer "quantity", default: 0, null: false
@@ -330,7 +338,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.integer "dispensed_by"
     t.datetime "date_dispensed"
     t.index ["bottle_id"], name: "fk_rails_03e2d3a9d7"
-    t.index ["label_identifier"], name: "index_prepack_labels_on_label_identifier", unique: true
     t.index ["prepack_id"], name: "index_prepack_labels_on_prepack_id"
   end
 
@@ -348,11 +355,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
     t.string "gn_identifier"
     t.integer "location_id"
     t.integer "current_num_packs", default: 0, null: false
+    t.boolean "voided", default: false, null: false
+    t.boolean "deleted", default: false, null: false
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
+    t.index ["deleted"], name: "index_prepacks_on_deleted"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
     t.index ["gn_identifier"], name: "index_prepacks_on_gn_identifier"
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
-    t.index ["status"], name: "index_prepacks_on_status"
+    t.index ["voided"], name: "index_prepacks_on_voided"
   end
 
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
@@ -431,7 +441,4 @@ ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
   add_foreign_key "damages", "prepacks"
   add_foreign_key "prepack_labels", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
   add_foreign_key "prepack_labels", "prepacks"
-  add_foreign_key "prepacks", "drugs", primary_key: "drug_id"
-  add_foreign_key "prepacks", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
-  add_foreign_key "prepacks", "users", column: "prepacked_by_id", primary_key: "user_id"
 end

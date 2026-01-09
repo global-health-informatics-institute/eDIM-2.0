@@ -318,7 +318,9 @@
             <tr>
               <td rowspan="2">
                   <div class="<%=@patient.sex.downcase%>">
-                    <img src="/assets/<%=@patient.sex.downcase%>.png">
+                    <img src="/assets/<%=@patient.sex.downcase%>.png"
+                    style="height: 8vh;  width: 8vh;  display: block; object-fit:contain" />
+
                   </div>
               </td>
               <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.name') %></th>

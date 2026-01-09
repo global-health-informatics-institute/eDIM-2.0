@@ -1,7 +1,7 @@
 class PatientsController < ApplicationController
   def show
     Rails.logger.debug "Params ID: #{params[:id].inspect}"
-    @patient = Patient.includes(person: :addresses).find(params[:id]) rescue nil
+    @patient = BillingPatient.find(params[:id]) rescue nil
 
     if @patient.blank?
       flash[:errors] = "Patient with ID #{params[:id]} not found"
@@ -21,38 +21,38 @@ class PatientsController < ApplicationController
 
     if  params[:patient][:first_name].blank?
       if params[:patient][:last_name].blank?
-        rawPatients = Patient.where("voided = ? AND (birthdate LIKE ?)",false,
+        rawPatients = BillingPatient.where("voided = ? AND (birthdate LIKE ?)",false,
                                     "%#{date}%").pluck(:first_name, :last_name, :gender,:birthdate,:state,
                                                        :city,:patient_id)
       elsif date.blank?
-        rawPatients = Patient.where("voided = ? AND (last_name LIKE ?)", false,
+        rawPatients = BillingPatient.where("voided = ? AND (last_name LIKE ?)", false,
                                     "%#{params[:patient][:last_name]}%").pluck(:first_name, :last_name, :gender,
                                                                                :birthdate,:state, :city,:patient_id)
       else
 
-        rawPatients = Patient.where("voided = ? AND (last_name LIKE ? OR birthdate LIKE ?)", false,
+        rawPatients = BillingPatient.where("voided = ? AND (last_name LIKE ? OR birthdate LIKE ?)", false,
                                     "%#{params[:patient][:last_name]}%","%#{date}%").pluck(:first_name, :last_name,
                                                                                            :gender,:birthdate,:state,
                                                                                            :city,:patient_id)
       end
     else
       if params[:patient][:last_name].blank? and date.blank?
-        rawPatients = Patient.where("voided = ? AND first_name LIKE ? ",
+        rawPatients = BillingPatient.where("voided = ? AND first_name LIKE ? ",
                                     false, "%#{params[:patient][:first_name]}%").pluck(:first_name, :last_name, :gender,
                                                                                        :birthdate,:state,:city,:patient_id)
       elsif params[:patient][:last_name].blank? and !date.blank?
-        rawPatients = Patient.where("voided = ? AND (first_name LIKE ? OR birthdate LIKE ?)",
+        rawPatients = BillingPatient.where("voided = ? AND (first_name LIKE ? OR birthdate LIKE ?)",
                                     false, "%#{params[:patient][:first_name]}%",
                                     "%#{date}%").pluck(:first_name, :last_name, :gender,:birthdate,:state,
                                                        :city,:patient_id)
       elsif date.blank? and !params[:patient][:last_name].blank?
-        rawPatients = Patient.where("voided = ? AND (first_name LIKE ? OR last_name LIKE ?)", false,
+        rawPatients = BillingPatient.where("voided = ? AND (first_name LIKE ? OR last_name LIKE ?)", false,
                                     "%#{params[:patient][:first_name]}%",
                                     "%#{params[:patient][:last_name]}%").pluck(:first_name, :last_name, :gender,
                                                                                :birthdate,:state,:city,:patient_id)
       else
 
-        rawPatients = Patient.where("voided = ? AND (first_name LIKE ? OR last_name LIKE ? OR birthdate LIKE ?)",
+        rawPatients = BillingPatient.where("voided = ? AND (first_name LIKE ? OR last_name LIKE ? OR birthdate LIKE ?)",
                                     false, "%#{params[:patient][:first_name]}%","%#{params[:patient][:last_name]}%",
                                     "%#{date}%").pluck(:first_name, :last_name, :gender,:birthdate,:state,:city,:patient_id)
 
