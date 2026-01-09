@@ -10,7 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_12_08_125242) do
+ActiveRecord::Schema[7.0].define(version: 2026_01_09_041621) do
+  create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_app_options_on_name", unique: true
+  end
+
   create_table "damages", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "general_inventory_id", null: false
     t.integer "quantity", default: 0, null: false

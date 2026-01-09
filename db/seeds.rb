@@ -1,14 +1,7 @@
-# Delete all existing records to start fresh
-#UserRole.delete_all
-#UserProperty.delete_all
-#ser.delete_all
-#Role.delete_all
-#PersonName.delete_all
-#Person.delete_all
-#Location.delete_all
+puts "Running eDIM seeds..."
 
-# Create location
-# Create or find location
+# Bootstrap data
+
 location = Location.find_or_create_by!(location_id: 1) do |loc|
   loc.name = 'chilomoni Health Center'
   loc.description = 'Dispensary'
@@ -21,64 +14,64 @@ location = Location.find_or_create_by!(location_id: 1) do |loc|
   loc.uuid = SecureRandom.uuid
 end
 
-# Seed LocationTag for 'workstation location'
 workstation_tag = LocationTag.find_or_create_by!(
   location_tag_id: 2,
   name: 'workstation location'
 )
 
-# Link the location to the workstation location tag via LocationTagMap
 LocationTagMap.find_or_create_by!(
   location_tag_id: workstation_tag.location_tag_id,
   location_id: location.location_id
 )
 
+admin_role = Role.find_or_create_by!(
+  role: "admin"
+) do |r|
+  r.description = "Administrator"
+end
 
-# Create role
-admin_role = Role.create!(
-  role: "admin",
-  description: "Administrator"
-)
+person = Person.find_or_create_by!(person_id: 1) do |p|
+  p.gender = "M"
+  p.birthdate = "1990-01-01"
+  p.voided = false
+  p.creator = 1
+  p.date_created = Time.now
+end
 
-# Create person and name
-person = Person.create!(
-  person_id: 1,
-  gender: "M",
-  birthdate: "1990-01-01",
-  voided: false,
-  creator: 1,
-  date_created: Time.now
-)
+PersonName.find_or_create_by!(
+  person_name_id: 1
+) do |pn|
+  pn.person_id = person.person_id
+  pn.given_name = "nyaraih"
+  pn.family_name = "Banda"
+  pn.preferred = true
+  pn.voided = false
+  pn.creator = 1
+  pn.date_created = Time.now
+end
 
-PersonName.create!(
-  person_name_id: 1,
-  person_id: person.person_id,
-  given_name: "nyaraih",
-  family_name: "Banda",
-  preferred: true,
-  voided: false,
-  creator: 1,
-  date_created: Time.now
-)
+user = User.find_or_initialize_by(user_id: 1)
+if user.new_record?
+  user.username = "admin"
+  user.person_id = person.person_id
+  user.voided = false
+  user.creator = 1
+  user.date_created = Time.now
+  user.password = "password"
+  user.save!
+end
 
-# Create the user (with password encryption logic if applicable)
-user = User.new(
-  user_id: 1,
-  username: "admin",
-  person_id: person.person_id,
-  voided: false,
-  creator: 1,
-  date_created: Time.now
-)
-
-# Use setter so that encryption is handled by model
-user.password = "tester"
-user.save!
-
-# Link user to role
-UserRole.create!(
+UserRole.find_or_create_by!(
   user_id: user.user_id,
   role: admin_role.role
 )
 
-puts "Seeded initial user: admin / tester"
+puts "Core bootstrap data ensured"
+
+# Load data-import seeds
+
+require_relative "seeds/drugs"
+require_relative "seeds/cmst"
+require_relative "seeds/app_options"
+
+puts "All seeds completed successfully"
