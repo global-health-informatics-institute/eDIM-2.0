@@ -3,8 +3,8 @@ puts "Running eDIM seeds..."
 # Bootstrap data
 
 location = Location.find_or_create_by!(location_id: 1) do |loc|
-  loc.name = 'chilomoni Health Center'
-  loc.description = 'Dispensary'
+  loc.name = 'Dispensary'
+  loc.description = 'Wandikweza Health Center Dispensary'
   loc.city_village = 'Lilongwe'
   loc.state_province = 'Central'
   loc.country = 'Malawi'
@@ -42,8 +42,8 @@ PersonName.find_or_create_by!(
   person_name_id: 1
 ) do |pn|
   pn.person_id = person.person_id
-  pn.given_name = "nyaraih"
-  pn.family_name = "Banda"
+  pn.given_name = "Shadreck"
+  pn.family_name = "Khamba"
   pn.preferred = true
   pn.voided = false
   pn.creator = 1

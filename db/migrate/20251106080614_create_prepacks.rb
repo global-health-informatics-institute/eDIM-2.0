@@ -24,5 +24,3 @@ class CreatePrepacks < ActiveRecord::Migration[7.0]
     add_foreign_key :prepacks, :users, column: :prepacked_by_id, primary_key: :user_id
   end
 end
-
-rails generate migration AddDeletedAndVoidedToPrepacks deleted:boolean voided:boolean
