@@ -402,17 +402,17 @@ class GeneralInventoryController < ApplicationController
   def show
     @item = GeneralInventory.find_by(
       gn_identifier: params[:id].to_s,
+      gn_sequence: params[:sequence].to_s,
       location_id: session[:location]
     )
 
     if @item.blank?
-      flash[:errors] = "Item with ID #{params[:id]} not found in this location"
+      flash[:errors] = "Item with ID #{params[:id]} sequence #{params[:sequence]} not found in this location"
       redirect_to "/" and return
     end
 
     # Load all transaction records for this inventory item at this location
     @records = Issue.where(inventory_id: @item.gn_inventory_id).order(issue_date: :desc)
-
   end
 
   def list
@@ -506,42 +506,37 @@ class GeneralInventoryController < ApplicationController
   end
 
   def damage_item
-    # Check if the ID corresponds to a prepack or general inventory
-    prepack = Prepack.find_by(
-      id: params[:id],
-      location_id: session[:location] || User.current.location_id,
-      voided: 0,
-      deleted: 0
-    )
+    damage_type = params[:damage_type].to_s.downcase
 
-    if prepack
-      # Find general inventory record via gn_identifier
+    if damage_type == "pack"
+      # Pack damage should require a valid prepack ID
+      prepack = Prepack.find_by(
+        id: params[:prepack_id],
+        location_id: session[:location] || User.current.location_id,
+        voided: 0,
+        deleted: 0
+      )
+
+      unless prepack
+        render json: { success: false, message: "Prepack not found" }, status: 404 and return
+      end
+
+      # Load the general inventory via the prepack
       item = GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)
       unless item
         render json: { success: false, message: "Inventory item not found" }, status: 404 and return
       end
-      
-      # For pharmacy context, damage_type can be "pack" or "bottle"
-      damage_type = params[:damage_type].to_s.downcase
-      
     else
-      # Find general inventory directly
+      # Bottle damage require a general inventory ID
       item = GeneralInventory.find_by(gn_inventory_id: params[:id])
-      
       unless item
         render json: { success: false, message: "Inventory item not found" }, status: 404 and return
       end
-      
-      # Override any passed damage_type to ensure it's bottle-only
-      damage_type = "bottle"
-      
-      # For backstore damage, prepack is nil
       prepack = nil
     end
 
     qty = params[:quantity].to_i
     reason = params[:reason].to_s.strip
-
     if qty <= 0
       render json: { success: false, message: "Quantity must be greater than zero" } and return
     end
@@ -553,43 +548,22 @@ class GeneralInventoryController < ApplicationController
         end
 
         item.update!(current_quantity: item.current_quantity - qty)
-
       else
-        unless prepack
-          render json: { success: false, message: "Pack damage requires a prepack" } and return
-        end
-        
-        labels = PrepackLabel.where(
-          prepack_id: prepack.id,
-          voided: 0,
-          deleted: 0,
-          dispensed: 0
-        ).order(:id).limit(qty)
+        # handle pack damage (your existing code)
+        labels = PrepackLabel.where(prepack_id: prepack.id, voided: 0, deleted: 0, dispensed: 0)
+                              .order(:id).limit(qty)
 
         if labels.count < qty
           render json: { success: false, message: "Not enough unvoided packs available" } and return
         end
 
-        # Void labels
         labels.update_all(voided: 1, updated_at: Time.current)
-
-        # Calculate total units lost
         total_units_lost = prepack.quantity_per_pack * qty
-        
-        current_num_packs_value = prepack.current_num_packs
-        
-        if current_num_packs_value == 0
-          current_num_packs_value = prepack.num_packs
-        end
-        
-        # Update all fields
-        prepack.update!(
-          current_num_packs: current_num_packs_value - qty,
-          total_quantity: prepack.total_quantity - total_units_lost
-        )
+        current_num_packs_value = prepack.current_num_packs.nonzero? || prepack.num_packs
+        prepack.update!(current_num_packs: current_num_packs_value - qty,
+                        total_quantity: prepack.total_quantity - total_units_lost)
       end
 
-      # Log the damage
       damage_params = {
         general_inventory_id: item.gn_inventory_id,
         gn_identifier: item.gn_identifier,
@@ -600,10 +574,8 @@ class GeneralInventoryController < ApplicationController
         damage_date: Time.current,
         damage_type: damage_type
       }
-      
-      # Only include prepack_id if we have one
-      damage_params[:prepack_id] = prepack.id if prepack
-      
+      damage_params[:prepack_id] = prepack.id if damage_type == "pack"
+
       Damage.create!(damage_params)
     end
 
@@ -614,4 +586,5 @@ class GeneralInventoryController < ApplicationController
     Rails.logger.error e.backtrace.join("\n")
     render json: { success: false, message: "Failed to record damage: #{e.message}" }, status: 500
   end
+
 end

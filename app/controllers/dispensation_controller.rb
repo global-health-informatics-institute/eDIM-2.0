@@ -93,10 +93,17 @@ class DispensationController < ApplicationController
     begin
       GeneralInventory.transaction do
         # Determine requested quantities
-        is_a_bottle = Misc.bottle_item(params[:administration].to_s, item.dose_form.to_s)
-        qty_per_pack = is_a_bottle ? 1 : params[:quantity].to_i
-        num_packs   = params[:numPacks].to_i
-        total_qty   = qty_per_pack * num_packs
+        requested_qty = params[:quantity].to_i
+
+        if requested_qty <= 0
+          flash[:errors] = "Invalid quantity"
+          redirect_to return_path and return
+        end
+
+        qty_per_pack = requested_qty
+        num_packs    = params[:numPacks].to_i.presence || 1
+        total_qty    = qty_per_pack * num_packs
+
 
         amount_dispensed = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
                             [item.current_quantity.to_i, total_qty].min

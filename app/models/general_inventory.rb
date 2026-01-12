@@ -2,7 +2,9 @@ class GeneralInventory < ActiveRecord::Base
   belongs_to :drug, foreign_key: :drug_id
   before_create :complete_record
   after_create  :reorder_gn_sequence_for_drug
-  has_many  :damages
+  has_many :damages,
+           foreign_key: :general_inventory_id,
+           primary_key: :gn_inventory_id
   self.primary_key = 'gn_inventory_id'
 
   validates :expiration_date, :date_received, :received_quantity, :current_quantity, presence: true
@@ -33,6 +35,10 @@ class GeneralInventory < ActiveRecord::Base
 
   def dose_form
     self.drug.dose_form
+  end
+
+  def bottle_damages
+    damages.where(damage_type: 'bottle', gn_identifier: self.gn_identifier).sum(:quantity)
   end
 
   private

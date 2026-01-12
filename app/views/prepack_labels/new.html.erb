@@ -1845,7 +1845,7 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
   }, 100);
 }
 
-// ========== NEW FUNCTIONS ADDED FOR CONFIRMATION AND SUCCESS ==========
+// NEW FUNCTIONS ADDED FOR CONFIRMATION AND SUCCESS
 
 // Show confirmation modal before submitting damage
 function showDamageConfirmationModal(quantity, drugName, reason, prepackId, damageType) {
@@ -1961,7 +1961,6 @@ function showDamageConfirmationModal(quantity, drugName, reason, prepackId, dama
       </div>
     `;
 
-    // Add to page
     document.body.appendChild(confirmationModal);
     
     // Animate in
@@ -2033,7 +2032,8 @@ function processDamageSubmission(prepackId, quantity, reason, damageType) {
     body: JSON.stringify({
       quantity: quantity,
       reason: reason,
-      damage_type: damageType
+      damage_type: damageType,
+      prepack_id: prepackId
     })
   })
   .then(res => {
@@ -2168,59 +2168,34 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, 
   const quantityInput = document.getElementById('damageQuantity');
   const reasonSelect = document.getElementById('damageReason');
 
-  // Ensure quantity is a number
   let quantity = parseInt(quantityInput.value, 10);
-  
-  // Check for NaN or negative values
+
   if (isNaN(quantity) || quantity < 0) {
     alert('Please enter a valid quantity (0 or greater)');
     return;
   }
 
-  // Check for 0 quantity
   if (quantity === 0) {
-    if (!confirm("You're reporting 0 damages. Are you sure you want to continue?")) {
-      return;
-    }
+    if (!confirm("You're reporting 0 damages. Are you sure?")) return;
   }
 
-  // Get damage type
-  const damageTypeRadios = document.getElementsByName('damageType');
-  let damageType = 'pack';
-  for (let radio of damageTypeRadios) {
-    if (radio.checked) {
-      damageType = radio.value;
-      break;
-    }
-  }
+  // Determine damage type
+  const damageType = [...document.getElementsByName('damageType')]
+    .find(r => r.checked)?.value || 'pack';
 
-  // Check if quantity exceeds max
   const maxQty = damageType === 'pack' ? maxQuantity : bottle_quantity;
   if (quantity > maxQty) {
-    alert(`Quantity cannot exceed maximum available: ${maxQty}`);
+    alert(`Quantity cannot exceed available: ${maxQty}`);
     return;
   }
 
-  // Convert quantity if needed
-  let finalQuantity = quantity;
-  if (damageType === 'pack' && packSize && packSize > 0) {
-    finalQuantity = Math.ceil(quantity * packSize);
-  }
+  const finalQuantity = quantity;
 
-  console.log("Preparing to show confirmation:", {
-    prepackId,
-    drugName,
-    quantity: finalQuantity,
-    reason: reasonSelect.value,
-    damageType
-  });
-
-  // Show confirmation modal instead of directly submitting
   showDamageConfirmationModal(
-    finalQuantity, 
-    drugName, 
-    reasonSelect.value, 
-    prepackId, 
+    finalQuantity,
+    drugName,
+    reasonSelect.value,
+    prepackId,
     damageType
   );
 }

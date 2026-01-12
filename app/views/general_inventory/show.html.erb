@@ -35,9 +35,13 @@
   <div class="summary-grid">
     <% 
       # Calculate values dynamically based on your model structure
-      amount_received = @item.received_quantity.to_i
+      amount_received  = @item.received_quantity.to_i
       amount_remaining = @item.current_quantity.to_i
-      amount_used = amount_received - amount_remaining
+      amount_damaged   = @item.bottle_damages.to_i
+
+      amount_used = amount_received - amount_remaining - amount_damaged
+      amount_used = [amount_used, 0].max
+
       received_percentage = amount_received > 0 ? 100 : 0
       remaining_percentage = amount_received > 0 ? (amount_remaining.to_f / amount_received.to_f * 100).round(1) : 0
       used_percentage = amount_received > 0 ? (amount_used.to_f / amount_received.to_f * 100).round(1) : 0
@@ -194,7 +198,7 @@
         <div class="summary-card-label">Total Damages Recorded</div>
       </div>
       <div class="summary-card-value">
-        <span class="value-number"><%= number_with_delimiter(amount_received) %></span>
+        <span class="value-number"><%= number_with_delimiter(@item.bottle_damages) %></span>
         <span class="value-unit">units</span>
       </div>
       <div class="summary-card-progress">
