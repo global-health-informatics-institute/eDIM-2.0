@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_01_12_074135) do
+ActiveRecord::Schema[7.0].define(version: 2026_01_16_090931) do
   create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
@@ -92,6 +92,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_12_074135) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "gn_sequence"
+    t.integer "reorder_level", default: 10, null: false
     t.index ["gn_identifier"], name: "index_general_inventories_on_gn_identifier"
   end
 

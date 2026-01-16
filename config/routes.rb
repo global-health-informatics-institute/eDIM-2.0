@@ -40,6 +40,9 @@ Rails.application.routes.draw do
   post "/edit_user" => "user#edit"
   get "/user/users_names"
 
+  ###################### Alerts Controller ##########################
+  get "/alerts/inventory", to: "alerts#inventory"
+
   ###################### Prescription Controller ######################
   get "/void_prescriptions/:id" => "prescription#destroy"
   get "/prescriptions" => "prescription#ajax_prescriptions"

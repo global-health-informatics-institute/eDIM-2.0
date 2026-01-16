@@ -410,7 +410,6 @@ class GeneralInventoryController < ApplicationController
       flash[:errors] = "Item with ID #{params[:id]} sequence #{params[:sequence]} not found in this location"
       redirect_to "/" and return
     end
-
     # Load all transaction records for this inventory item at this location
     @records = Issue.where(inventory_id: @item.gn_inventory_id).order(issue_date: :desc)
   end

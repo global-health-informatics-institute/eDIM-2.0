@@ -19,7 +19,11 @@
     ::-webkit-scrollbar-corner { background: #000; }
   </style>
 </head>
-<body style="background-color: white;">
+<body
+  data-controller="<%= controller_name %>"
+  data-action="<%= action_name %>"
+  style="background-color: white;"
+>
 
 <div id="shadowLayer" class="opaqueLayer" style="display:none;"></div>
   <div id="messageLayer" class="questionLayer" style="font-size:0.9em; display:none;">
@@ -63,6 +67,33 @@
     </div>
   </div>
 
+  <div id="inventoryAlertPanel">
+
+    <div id="inventoryAlertHeader">
+      <button id="closeInventoryAlert" style="
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: #d9534f;
+        color: #fff;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10010;
+      ">X</button>
+    </div>
+
+    <div id="inventoryAlertContent"></div>
+
+  </div>
+
   <%= yield %>
 
   <% if flash[:errors].present? || flash[:success].present? %>
@@ -88,6 +119,26 @@
     document.getElementById('messageLayer').style.display = 'none';
     document.getElementById('shadowLayer').style.display = 'none'; // remove dim
   }
-  </script>
+
+  // Manual close button
+  document.addEventListener("DOMContentLoaded", () => {
+    const closeBtn = document.getElementById("closeInventoryAlert");
+    const panel = document.getElementById("inventoryAlertPanel");
+
+    closeBtn?.addEventListener("click", () => {
+      // stop normal transition
+      panel.classList.remove("show");
+
+      // bounce-close animation
+      panel.classList.add("closing");
+
+      // cleanup so it can open again later
+      setTimeout(() => {
+        panel.classList.remove("closing");
+      }, 450);
+    });
+  });
+
+</script>
 </body>
 </html>
