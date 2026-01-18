@@ -204,7 +204,6 @@ input.radio:checked label {
   transform: translateY(-50%);
   z-index: 99;
   pointer-events: none;
-  animation: extendConnection 0.3s ease-out forwards;
 }
 
 @keyframes extendConnection {
@@ -224,14 +223,6 @@ input.radio:checked label {
 
 /* Animate option icons in with stagger */
 .view-options-menu.show .option-item img {
-  animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes slideInFromRight {
-  to {
-    opacity: 1;
-    transform: scale(1) translateX(0) !important;
-  }
 }
 
 /* Hover effects for option items */
@@ -254,18 +245,15 @@ input.radio:checked label {
 img[src*="/assets/"] {
   transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
 }
-.option-item:hover {
-  border-radius: 8px;
-}
 
 /* Prepack styles */
-/* Compact Brand Section - DARKER VERSION */
+/* Compact Brand Section */
 .brand-section-compact {
-  width: 280px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); /* DARKER: Changed from #ffffff to #f1f5f9 */
+  width: 14vw;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-radius: 16px; 
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
-  border: 1px solid #cbd5e1; /* DARKER: Changed from #e5e7eb to #cbd5e1 */
+  border: 1px solid #cbd5e1;
   min-width: 160px; 
   min-height: 160px;
   margin-top: 1vh;
@@ -277,30 +265,19 @@ img[src*="/assets/"] {
   gap: 12px;
   flex: 0 0 auto;
   padding-top: 18px;
-  transition: all 0.3s ease; 
   margin-left: 10px; 
 }
 
-.brand-section-compact:hover {
-  transform: translateY(-2px); 
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25); 
-  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); 
-}
-
 .brand-logo-image {
-  width: 250px; 
-  height: 250px; 
+  flex: 1;
+  width: 12vw; 
+  height: 25vh; 
   object-fit: contain;
   filter: brightness(0) invert(0);
   max-width: 100%;
   max-height: 80px; 
   transition: transform 0.3s ease;
 }
-
-.brand-logo-image:hover {
-  transform: scale(1.02);
-}
-
 .current-date-compact {
   font-size: 1.6rem;
   font-weight: 600;
@@ -311,7 +288,7 @@ img[src*="/assets/"] {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Header Cell - WHITER VERSION */
+/* Header Cell */
 .header-cell{
   flex: 1;
   padding: 15px;
@@ -324,11 +301,6 @@ img[src*="/assets/"] {
   flex-direction: column;
   transition: all 0.3s ease;
   margin-right: 10px;
-}
-
-.header-cell:hover {
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
-  background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%); 
 }
 
 /* scanner input */
@@ -395,7 +367,7 @@ img[src*="/assets/"] {
     </div>
   
   <!-- MAIN CONTENT -->
-  <div style="border:3px solid #06425C; border-radius: 12px 12px 0 0; margin-top:3vh; height:65vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="border:3px solid #06425C; border-radius: 12px 12px 0 0; margin-top:1vh; height:65vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
 
   <!-- PREPACK LISTING SECTION -->
   <div style="width: 100%; background: linear-gradient(135deg, #006495 0%, #004d73 100%); height: 4vh; text-align: center; color: white; padding-top: 1vh; flex-shrink: 0; /* NO border-radius here */ box-shadow: 0 4px 12px rgba(0, 100, 149, 0.3);">

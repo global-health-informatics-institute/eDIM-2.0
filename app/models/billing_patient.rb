@@ -11,7 +11,11 @@ class BillingPatient < BillingReadonlyRecord
            class_name: 'BillingPatientIdentifier',
            foreign_key: 'patient_id'
            
+  # Existing delegates
   delegate :gender, :birthdate, to: :person, prefix: true, allow_nil: true
+
+  # Delegates for names
+  delegate :given_name, :middle_name, :family_name, :full_name, to: :person, allow_nil: true
   
   def sex
     person_gender || 'Unknown'
@@ -28,14 +32,11 @@ class BillingPatient < BillingReadonlyRecord
     age.to_s
   end
   
-
   def formatted_pnid
-
     national_id = patient_identifiers.where(identifier_type: 3).first&.identifier 
     national_id.presence || 'N/A'
   end
   
-
   def current_address
     person&.current_address || 'N/A'
   end

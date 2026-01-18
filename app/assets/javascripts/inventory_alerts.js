@@ -46,7 +46,10 @@ function showInventoryAlertPanel(data) {
                 data-gn="${i.gn_identifier || ''}"
                 data-seq="${i.gn_sequence || ''}">
               <strong>${i.drug}</strong><br>
-              ${title === 'Near Expiry' ? `Expires in <b>${i.days_left} days</b>` : `Remaining: <b>${i.remaining}</b>`}
+              ${title.startsWith('Near Expiry')
+                ? `Expires in <b>${i.days_left} day${i.days_left !== 1 ? 's' : ''}</b>`
+                : `Remaining: <b>${i.remaining}</b>`
+             }
             </div>
           </div>
         `;

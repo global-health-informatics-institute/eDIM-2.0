@@ -29,6 +29,9 @@ module EDispensing
 
     config.active_record.default_timezone = :local
 
+    config.autoload_paths << Rails.root.join('app/services')
+    config.eager_load_paths << Rails.root.join('app/services')
+
     # Do not swallow errors in after_commit/after_rollback callbacks.
     #config.active_record.raise_in_transactional_callbacks = true
   end

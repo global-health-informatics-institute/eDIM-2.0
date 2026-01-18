@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_01_16_090931) do
+ActiveRecord::Schema[7.0].define(version: 2026_01_18_054938) do
   create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
@@ -75,6 +75,18 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_16_090931) do
     t.datetime "updated_at", precision: nil, null: false
     t.integer "par_level"
     t.string "item_code"
+  end
+
+  create_table "edim_patients", primary_key: "patient_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.string "given_name", limit: 50
+    t.string "family_name", limit: 50
+    t.string "full_name", limit: 120
+    t.string "gender", limit: 1
+    t.date "birthdate"
+    t.string "identifier", limit: 50
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identifier"], name: "index_edim_patients_on_identifier", unique: true
   end
 
   create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|

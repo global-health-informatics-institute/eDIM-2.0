@@ -5,6 +5,9 @@ class BillingPerson < BillingReadonlyRecord
   has_one :preferred_name, -> { where(preferred: 1) }, class_name: 'BillingPersonName', foreign_key: 'person_id'
   has_many :person_addresses, class_name: 'BillingPersonAddress', foreign_key: 'person_id'
   
+  # Delegates to preferred_name for convenience
+  delegate :given_name, :middle_name, :family_name, :full_name, to: :preferred_name, allow_nil: true
+
   def full_name
     preferred_name&.full_name || person_names.first&.full_name || 'Unknown'
   end
