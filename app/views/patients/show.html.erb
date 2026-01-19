@@ -263,6 +263,37 @@
                         </div>
                       </td>
                     </tr>
+                    <tr>
+                      <td colspan="2">
+                        <h4 style="margin-top:15px; font-size: 1.4rem;">Time of Day</h4>
+
+                        <div class="timeOfDayGrid">
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="morning" onchange="setDirections()">
+                            <img style=" width: 40px; height: 40px;" src="/assets/sunrise.png" alt="Morning">
+                            <span style="font-size: 1.3rem">Morning</span>
+                          </label>
+
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="afternoon" onchange="setDirections()">
+                            <img style=" width: 40px; height: 40px;" src="/assets/sun.png" alt="Afternoon">
+                            <span style="font-size: 1.3rem">Afternoon</span>
+                          </label>
+
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="evening" onchange="setDirections()">
+                            <img style=" width: 46px; height: 46px;" src="/assets/sunset.png" alt="Evening">
+                            <span style="font-size: 1.3rem">Evening</span>
+                          </label>
+
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="night" onchange="setDirections()">
+                            <img src="/assets/moon.png" alt="Night">
+                            <span style="font-size: 1.3rem">Night&nbsp;&nbsp;</span>
+                          </label>
+                        </div>
+                      </td>
+                    </tr>
                   </table>
                 </div>
               </div>
@@ -508,7 +539,7 @@
     }
   }
 
- // Function to reset the modal to its initial state - UPDATED
+ // Function to reset the modal to its initial state
   function resetDispenseModal() {
       // Reset input fields
       document.getElementById('dose').value = '';
@@ -620,7 +651,7 @@
     return checkRadio(route) && checkRadio(doseType) && checkRadio(frequency) && dose > 0 && qty > 0;
   }
 
-  // showDispenseDiv function - UPDATED to ensure proper tab styling
+  // showDispenseDiv function
   function showDispenseDiv(option) {
       var tabs = ['routesDiv','doseDiv','directionsDiv','qtyDiv','doseTypeDiv'];
       var currentTab = tabs.indexOf(option);
@@ -870,7 +901,22 @@
             initializeBarcodeListener();
           }
         } else {
-          alert(`Bottle ID ${bottleId} could not be fetched.`);
+          let message = `Bottle ID ${bottleId} could not be fetched.`;
+
+          try {
+            const res = JSON.parse(xmlhttp.responseText);
+
+            if (res.expired) {
+              message = `\n\nThis bottle is expired.\nExpiration date: ${res.expiration_date}`;
+            } else if (res.error) {
+              message = res.error;
+            }
+          } catch (e) {
+            // ignore JSON parse errors
+          }
+
+          showFlashMessage(message, true);
+
           isModalOpen = false;
           initializeBarcodeListener();
         }
@@ -966,7 +1012,7 @@
     if (doseLabel) doseLabel.id = "doseLabel";
   });
 
-  // Update cancelDispense - UPDATED
+  // Update cancelDispense
   function cancelDispense() {
       isModalOpen = false;
 
@@ -990,4 +1036,52 @@
       }
   }
 </script>
+<style>
+#flashMessage {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  font-weight: bold;
+}
+.timeBox {
+  border: 2px solid #ccc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.timeBox input {
+  margin-right: 6px;
+  transform: scale(1.3);
+}
+.timeOfDayGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 10px;
+  padding-left: 42px;
+}
+
+.timeBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  background: #f9f9f9;
+}
+
+.timeBox img {
+  width: 36px;
+  height: 36px;
+}
+
+.timeBox input {
+  transform: scale(1.3);
+}
+</style>
 </html>

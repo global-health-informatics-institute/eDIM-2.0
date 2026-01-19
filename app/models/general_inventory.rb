@@ -41,6 +41,10 @@ class GeneralInventory < ActiveRecord::Base
     damages.where(damage_type: 'bottle', gn_identifier: self.gn_identifier).sum(:quantity)
   end
 
+  def expired?
+    expiration_date.present? && expiration_date <= Date.current
+  end
+
   private
 
   def complete_record

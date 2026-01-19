@@ -277,48 +277,55 @@ class GeneralInventoryController < ApplicationController
     scanned = params[:id].to_s.strip
 
     # Determine context
-    context = params[:context] || 
-              (request.referer&.include?('/prepack_labels') ? 'prepacking' : 'patient')
+    context =
+      params[:context] ||
+      (request.referer&.include?('/prepack_labels') ? 'prepacking' : 'patient')
 
     # Fix malformed PK codes
     if scanned =~ /\APK(G\d{7}-\d+)\z/i
       scanned = scanned.sub("PKG", "PK-G")
     end
 
-    # Handle Prepack labels
+    # Prepack scan label
     if scanned.start_with?("PK-")
-      # Fetch undispensed label only
-      label = PrepackLabel.find_by(label_identifier: scanned, dispensed: 0, voided: 0, deleted: 0)
 
-      if label.nil?
-        return render json: { error: "This prepack has already been dispensed or is invalid" }
-      end
+      label = PrepackLabel.find_by(
+        label_identifier: scanned,
+        dispensed: 0,
+        voided: 0,
+        deleted: 0
+      )
+
+      return render json: { error: "This prepack has already been dispensed or is invalid" } if label.nil?
 
       prepack = label.prepack
 
       if context == "patient"
+
         bottle = GeneralInventory.find_by(
           gn_inventory_id: prepack.bottle_id,
           location_id: session[:location]
         )
 
-        #if bottle.nil? || bottle.current_quantity <= 0
-         # return render json: { error: "Bottle empty for this prepack" }
-        #end
+        return render json: { error: "Bottle not found" } if bottle.nil?
 
-        # Get patient_id from session or params
-        patient_id = params[:patient_id] || session[:patient_id]
-
-        # If patient_id is still nil
-        if patient_id.nil?
-          return render json: { error: "Patient context missing" }
+        # Hard stop, expired
+        if bottle.expiration_date.present? && bottle.expiration_date <= Date.current
+          return render json: {
+            error: "This bottle has expired and cannot be dispensed.",
+            expired: true,
+            expiration_date: bottle.expiration_date
+          }, status: :unprocessable_entity
         end
+
+        patient_id = params[:patient_id] || session[:patient_id]
+        return render json: { error: "Patient context missing" } if patient_id.nil?
 
         disp = nil
         prescription = nil
 
         GeneralInventory.transaction do
-          # Create a prescription record for this prepack dispensing
+
           prescription = Prescription.create!(
             patient_id: patient_id,
             drug_id: bottle.drug_id,
@@ -329,7 +336,6 @@ class GeneralInventoryController < ApplicationController
             provider_id: User.current.id
           )
 
-          # Record dispensation WITH the newly created prescription_id
           disp = Dispensation.create!(
             rx_id: prescription.id,
             inventory_id: bottle.gn_inventory_id,
@@ -339,19 +345,17 @@ class GeneralInventoryController < ApplicationController
             dispensed_by: User.current.id
           )
 
-          label.assign_attributes(
+          label.update!(
             dispensed: 1,
             patient_id: patient_id,
-            dispensed_by: User.current.id,
+            dispensed_by: User.current.id
           )
-
-          label.save!
 
           if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
             prepack.update!(
               status: 'dispensed',
               dispensed_at: Time.current,
-              location_id: prepack.location_id || session[:location]  
+              location_id: prepack.location_id || session[:location]
             )
           end
         end
@@ -366,7 +370,7 @@ class GeneralInventoryController < ApplicationController
         }
       end
 
-      # Prepacking mode, return info about this pack
+      # Prepacking mode, No dispensing
       return render json: {
         prepack: true,
         drug_id: prepack.bottle_id,
@@ -375,19 +379,28 @@ class GeneralInventoryController < ApplicationController
       }
     end
 
-    # Handle regular bottle scan
-    entry = GeneralInventory.includes(:drug)
-                            .find_by(
-                              gn_identifier: scanned,
-                              location_id: session[:location],
-                              voided: false
-                            )
+    # Regular bottle scan
+    entry = GeneralInventory.includes(:drug).find_by(
+      gn_identifier: scanned,
+      location_id: session[:location],
+      voided: false
+    )
 
     if entry.nil?
-      return render plain: "false"
+      return render json: {
+        error: "Bottle not found"
+      }, status: :not_found
     end
 
-    # Check if any active prepacks exist for this bottle
+    # Hard stop, expired
+    if entry.expiration_date.present? && entry.expiration_date <= Date.current
+      return render json: {
+        error: "This bottle has expired and cannot be used.",
+        expired: true,
+        expiration_date: entry.expiration_date
+      }, status: :unprocessable_entity
+    end
+
     has_active_prepacks = PrepackLabel
                             .where(bottle_id: entry.gn_inventory_id, dispensed: 0)
                             .exists?

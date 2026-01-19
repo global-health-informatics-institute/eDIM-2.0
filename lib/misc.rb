@@ -60,7 +60,7 @@ module Misc
     label.print(1)
   end
 
-  def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_id:, bottle_id:, expiration_date:, pack_index: nil, total_packs: nil)
+  def self.create_dispensation_label(item, quantity, directions, patient_name, date, pack_id:, bottle_id:, times: [], expiration_date:, pack_index: nil, total_packs: nil)
 
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 4
@@ -73,7 +73,12 @@ module Misc
     label.draw_multi_text("Drug: #{item}", column_width: 2700)
     label.draw_multi_text("Dir : #{directions}", column_width: 2700)
 
-    dose_pattern = Misc.extract_dose_pattern(directions)
+    # Format dose pattern directly from times hash
+    if times.is_a?(Hash)
+      dose_pattern = "#{times[:morning] || 0} - #{times[:afternoon] || 0} - #{times[:evening] || 0} - #{times[:night] || 0}"
+    else
+      dose_pattern = Misc.extract_dose_pattern(directions, times)
+    end
     label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
 
     label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
@@ -96,33 +101,64 @@ module Misc
 
       label.draw_barcode(150, 230, 0, 1, 2, 3, 80, false, pack_id)
     else
-      puts "DEBUG - SKIPPING BARCODE for: #{pack_id}"
+      puts "SKIPPING BARCODE for: #{pack_id}"
     end
 
     label.print(1)
   end
 
-  def self.extract_dose_pattern(directions)
+  def self.extract_dose_pattern(directions, times = [])
     return "" if directions.blank?
 
     normalized = directions.downcase.strip
-    
-    # Capture numeric dose dose
-    dose_match = normalized.match(/take\s+(\d+)\s*(tablet|tab|capsule|cap)?/)
-    dose = dose_match ? dose_match[1] : "1"
 
-    case normalized
-    when /three times a day|3 times a day|tds|t\.?d\.?s\.?/i
-      "#{dose} - #{dose} - #{dose}"
-    when /twice a day|two times a day|2 times a day|bd|b\.?d\.?/i
-      "#{dose} - 0 - #{dose}"
-    when /once a day|one time a day|1 time a day|od|o\.?d\.?/i
-      "#{dose} - 0 - 0"
-    when /four times a day|4 times a day|qid|q\.?i\.?d\.?/i
-      "#{dose} - #{dose} - #{dose} - #{dose}"
+    dose_match = normalized.match(/take\s+(\d+)/)
+    dose = dose_match ? dose_match[1].to_i : 1
+
+    pattern = {
+      morning: 0,
+      afternoon: 0,
+      evening: 0,
+      night: 0
+    }
+
+    if times.present?
+      if times.is_a?(Hash)
+        # times is already a dose_map hash - use it directly
+        times.each do |key, value|
+          sym_key = key.to_sym
+          if pattern.key?(sym_key)
+            pattern[sym_key] = value
+          end
+        end
+      else
+        # times is an array of time strings
+        times.each do |t|
+          key = t.to_sym
+          if pattern.key?(key)
+            pattern[key] = dose
+          end
+        end
+      end
     else
-      ""
+      # backward compatibility
+      case normalized
+      when /once a day|od/
+        pattern[:morning] = dose
+      when /twice a day|bd/
+        pattern[:morning] = dose
+        pattern[:evening] = dose
+      when /three times a day|tds/
+        pattern[:morning] = dose
+        pattern[:afternoon] = dose
+        pattern[:evening] = dose
+      when /four times a day|qid/
+        pattern.each_key { |k| pattern[k] = dose }
+      end
     end
+
+    result = "#{pattern[:morning]} - #{pattern[:afternoon]} - #{pattern[:evening]} - #{pattern[:night]}"
+    result
   end
 
   def self.dash_formatter(id)
