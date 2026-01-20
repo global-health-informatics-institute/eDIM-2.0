@@ -767,6 +767,39 @@ img[src*="/assets/"] {
                         </div>
                       </td>
                     </tr>
+
+                    <tr>
+                      <td colspan="2">
+                        <h4 style="margin-top:15px; font-size: 1.4rem; margin-left: 10px;">Time of Day</h4>
+
+                        <div class="timeOfDayGrid">
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="morning" onchange="setDirections()">
+                            <img style=" width: 40px; height: 40px;" src="/assets/sunrise.png" alt="Morning">
+                            <span style="font-size: 1.3rem">Morning</span>
+                          </label>
+
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="afternoon" onchange="setDirections()">
+                            <img style=" width: 40px; height: 40px;" src="/assets/sun.png" alt="Afternoon">
+                            <span style="font-size: 1.3rem">Afternoon</span>
+                          </label>
+
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="evening" onchange="setDirections()">
+                            <img style=" width: 46px; height: 46px;" src="/assets/sunset.png" alt="Evening">
+                            <span style="font-size: 1.3rem">Evening</span>
+                          </label>
+
+                          <label class="timeBox">
+                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="night" onchange="setDirections()">
+                            <img src="/assets/moon.png" alt="Night">
+                            <span style="font-size: 1.3rem">Night&nbsp;&nbsp;</span>
+                          </label>
+                        </div>
+                      </td>
+                    </tr>
+
                   </table>
                 </div>
             </div>
@@ -852,6 +885,475 @@ img[src*="/assets/"] {
 </html>
 
 <script>
+// Checkbox Validation for Prepack Labels
+const prepackFrequencyMap = {
+  OD: 1,
+  BD: 2,
+  TDS: 3,
+  QID: 4
+};
+
+const prepackFreqRadios = document.querySelectorAll("input[name='frequency']");
+const prepackCheckboxes = document.querySelectorAll(".timeOfDayGrid input[type=checkbox]");
+const nextBtn = document.getElementById('nextBtn');
+
+// Define which tabs come after directions
+const tabsAfterDirections = ['qtyTab', 'labelsTab'];
+const tabsBeforeDirections = ['routesTab', 'doseTab'];
+
+// Helpers to get selected frequency and checkbox count
+function getPrepackSelectedFrequency() {
+  const selected = document.querySelector("input[name='frequency']:checked");
+  return selected ? selected.value : null;
+}
+
+function getPrepackSelectedCheckboxCount() {
+  return Array.from(prepackCheckboxes).filter(cb => cb.checked).length;
+}
+
+function isPrepackCheckboxValidationRequired(freq) {
+  // Only these frequencies require checkbox validation
+  return ['OD', 'BD', 'TDS', 'QID'].includes(freq);
+}
+
+// Enhanced validation function
+function validatePrepackCheckboxSelection() {
+  const freq = getPrepackSelectedFrequency();
+  const checkedCount = getPrepackSelectedCheckboxCount();
+  
+  // If no frequency selected or frequency doesn't require checkbox validation
+  if (!freq || !isPrepackCheckboxValidationRequired(freq)) {
+    return { isValid: true, required: 0, selected: checkedCount };
+  }
+  
+  const required = prepackFrequencyMap[freq];
+  const isValid = checkedCount === required;
+  
+  return { isValid, required, selected: checkedCount };
+}
+
+// --- Enhanced updateCheckboxState function ---
+function updateCheckboxState() {
+  const freq = getPrepackSelectedFrequency();
+  const validation = validatePrepackCheckboxSelection();
+
+  // No frequency selected → disable all
+  if (!freq) {
+    prepackCheckboxes.forEach(cb => {
+      cb.checked = false;
+      cb.disabled = true;
+    });
+    updatePrepackTabNavigation();
+    return;
+  }
+
+  // Handle special frequencies
+  switch(freq) {
+    case "QHR":
+    case "Q2HRS":
+    case "Q4HRS":
+      prepackCheckboxes.forEach(cb => { 
+        cb.checked = false; 
+        cb.disabled = true; 
+      });
+      updatePrepackTabNavigation();
+      return;
+
+    case "EOD":
+      prepackCheckboxes.forEach(cb => { 
+        cb.checked = false; 
+        cb.disabled = true; 
+      });
+      updatePrepackTabNavigation();
+      return;
+
+    case "QN":
+      prepackCheckboxes.forEach(cb => { 
+        cb.checked = false; 
+        cb.disabled = false; 
+      });
+      const night = document.querySelector(".timeOfDayGrid input[value='night']");
+      if (night && !night.checked) night.checked = true;
+      updatePrepackTabNavigation();
+      return;
+
+    case "QWK":
+      prepackCheckboxes.forEach(cb => { 
+        cb.checked = false; 
+        cb.disabled = true; 
+      });
+      updatePrepackTabNavigation();
+      return;
+  }
+
+  // Standard frequencies (OD, BD, TDS, QID)
+  const max = prepackFrequencyMap[freq];
+  const checkedCount = getPrepackSelectedCheckboxCount();
+
+  prepackCheckboxes.forEach(cb => {
+    if (!cb.checked) {
+      cb.disabled = checkedCount >= max;
+    } else {
+      cb.disabled = false;
+    }
+  });
+
+  updatePrepackTabNavigation();
+}
+
+// Tab Navigation control based on validation
+function updatePrepackTabNavigation() {
+  const validation = validatePrepackCheckboxSelection();
+  const directionsTab = document.getElementById('directionsTab');
+  const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
+  
+  if (!directionsTab || !currentDiv) return;
+  
+  const currentDivId = currentDiv.id;
+  
+  // Only restrict navigation if we're on the directions tab
+  if (currentDivId === 'directionsDiv' && !validation.isValid && isPrepackCheckboxValidationRequired(getPrepackSelectedFrequency())) {
+    // Disable only tabs AFTER directions (qtyTab, labelsTab)
+    tabsAfterDirections.forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.pointerEvents = 'none';
+        tab.style.opacity = '0.5';
+        tab.style.cursor = 'not-allowed';
+      }
+    });
+    
+    // Keep tabs BEFORE directions enabled
+    tabsBeforeDirections.forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.pointerEvents = 'auto';
+        tab.style.opacity = '1';
+        tab.style.cursor = 'pointer';
+      }
+    });
+    
+    // Show validation message
+    showPrepackValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${getPrepackSelectedFrequency()} frequency.`);
+    
+    // Disable Next button
+    if (nextBtn) {
+      nextBtn.style.pointerEvents = 'none';
+      nextBtn.style.opacity = '0.5';
+      nextBtn.style.cursor = 'not-allowed';
+      nextBtn.title = `Select ${validation.required} time(s) of day first`;
+    }
+  } else {
+    // Enable ALL tabs
+    ['routesTab', 'doseTab', 'directionsTab', 'qtyTab', 'labelsTab'].forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.pointerEvents = 'auto';
+        tab.style.opacity = '1';
+        tab.style.cursor = 'pointer';
+      }
+    });
+    
+    // Enable Next button
+    if (nextBtn) {
+      nextBtn.style.pointerEvents = 'auto';
+      nextBtn.style.opacity = '1';
+      nextBtn.style.cursor = 'pointer';
+      nextBtn.title = '';
+    }
+    
+    // Hide validation message
+    hidePrepackValidationMessage();
+  }
+}
+
+// Validation Message Functions
+function showPrepackValidationMessage(message) {
+  let messageDiv = document.getElementById('prepackCheckboxValidationMessage');
+  if (!messageDiv) {
+    messageDiv = document.createElement('div');
+    messageDiv.id = 'prepackCheckboxValidationMessage';
+    messageDiv.style.color = '#d32f2f';
+    messageDiv.style.backgroundColor = '#ffebee';
+    messageDiv.style.padding = '10px';
+    messageDiv.style.margin = '10px 8px';
+    messageDiv.style.borderRadius = '4px';
+    messageDiv.style.border = '1px solid #ef9a9a';
+    messageDiv.style.fontSize = '20px';
+    
+    const directionsDiv = document.getElementById('directionsDiv');
+    if (directionsDiv) {
+      directionsDiv.insertBefore(messageDiv, directionsDiv.firstChild);
+    }
+  }
+  messageDiv.textContent = message;
+  messageDiv.style.display = 'block';
+}
+
+function hidePrepackValidationMessage() {
+  const messageDiv = document.getElementById('prepackCheckboxValidationMessage');
+  if (messageDiv) {
+    messageDiv.style.display = 'none';
+  }
+}
+
+// Event listeners
+prepackFreqRadios.forEach(radio => {
+  // Remove existing onchange and add new event listener
+  const originalOnChange = radio.getAttribute('onchange');
+  radio.removeAttribute('onchange');
+  
+  radio.addEventListener("change", function() {
+    prepackCheckboxes.forEach(cb => { 
+      cb.checked = false; 
+      cb.disabled = false; 
+    });
+    updateCheckboxState();
+    
+    // Call original setDirections if it exists
+    if (typeof setDirections === 'function') {
+      setDirections();
+    }
+    
+    // Call original onchange if it was set
+    if (originalOnChange) {
+      eval(originalOnChange);
+    }
+  });
+});
+
+prepackCheckboxes.forEach(cb => {
+  // Remove existing onchange and add new event listener
+  const originalOnChange = cb.getAttribute('onchange');
+  cb.removeAttribute('onchange');
+  
+  cb.addEventListener("change", function() {
+    updateCheckboxState();
+    
+    // Call original setDirections if it exists
+    if (typeof setDirections === 'function') {
+      setDirections();
+    }
+    
+    // Call original onchange if it was set
+    if (originalOnChange) {
+      eval(originalOnChange);
+    }
+  });
+});
+
+// Override the handleNextButton function to include validation
+const originalHandleNextButton = handleNextButton;
+handleNextButton = function() {
+  const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
+  
+  // If we're on the directions tab, validate checkboxes
+  if (currentDiv && currentDiv.id === 'directionsDiv') {
+    const freq = getPrepackSelectedFrequency();
+    const validation = validatePrepackCheckboxSelection();
+    
+    if (freq && ['OD', 'BD', 'TDS', 'QID'].includes(freq)) {
+      if (!validation.isValid) {
+        showPrepackValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${freq} frequency before proceeding.`);
+        return; // Prevent navigation
+      }
+    }
+  }
+  
+  // Call original function if validation passes
+  originalHandleNextButton();
+};
+
+// Override the showDispenseDiv function
+const originalShowDispenseDiv = showDispenseDiv;
+showDispenseDiv = function(option) {
+  const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
+  const currentDivId = currentDiv ? currentDiv.id : '';
+  
+  // If trying to navigate away from directions tab to a tab AFTER directions, check validation
+  if (currentDivId === 'directionsDiv') {
+    const tabsAfter = ['qtyDiv', 'labelsDiv'];
+    
+    if (tabsAfter.includes(option)) {
+      const freq = getPrepackSelectedFrequency();
+      const validation = validatePrepackCheckboxSelection();
+      
+      if (!validation.isValid && isPrepackCheckboxValidationRequired(freq)) {
+        showPrepackValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${freq} frequency before proceeding.`);
+        return; // Prevent navigation to tabs after directions
+      }
+    }
+    // Allow navigation to tabs b4 directions (routesDiv, doseDiv) without validation
+  }
+  
+  // Call original function if validation passes or if navigating to tabs before directions
+  originalShowDispenseDiv.call(this, option);
+  
+  // Update navigation after showing new div
+  updatePrepackTabNavigation();
+};
+
+// Override the nextStep function to include validation
+const originalNextStep = nextStep;
+nextStep = function() {
+  const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
+  
+  // If we're on the directions tab, validate checkboxes
+  if (currentDiv && currentDiv.id === 'directionsDiv') {
+    const freq = getPrepackSelectedFrequency();
+    const validation = validatePrepackCheckboxSelection();
+    
+    if (freq && ['OD', 'BD', 'TDS', 'QID'].includes(freq)) {
+      if (!validation.isValid) {
+        showPrepackValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${freq} frequency before proceeding.`);
+        return; // Prevent navigation
+      }
+    }
+  }
+  
+  // Call original function if validation passes
+  originalNextStep();
+  
+  // Update navigation after moving to next step
+  updatePrepackTabNavigation();
+};
+
+// Enhanced setDirections function to include time of day
+const originalSetDirections = typeof setDirections === 'function' ? setDirections : function() {};
+setDirections = function() {
+  // Call original function first
+  originalSetDirections();
+  
+  // Get selected times of day
+  const selectedTimes = [];
+  prepackCheckboxes.forEach(cb => {
+    if (cb.checked) {
+      const label = document.querySelector(`label[for="${cb.id}"]`);
+      selectedTimes.push(label ? label.textContent.trim() : cb.value);
+    }
+  });
+  
+  // Append time of day to directions if any selected
+  if (selectedTimes.length > 0) {
+    const field = document.getElementById("directionsDisp");
+    if (field) {
+      const currentText = field.innerHTML;
+      
+      // Remove any existing time of day text
+      const timeRegex = /\(at .*\)$/;
+      const newText = currentText.replace(timeRegex, '');
+      
+      // Add new time of day
+      field.innerHTML = newText + (selectedTimes.length > 0 ? ` (at ${selectedTimes.join(', ')})` : '');
+    }
+  }
+  
+  // Update checkbox validation state
+  updateCheckboxState();
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait a bit for DOM to be fully ready
+  setTimeout(() => {
+    updateCheckboxState();
+    updatePrepackTabNavigation();
+  }, 100);
+});
+
+// Reset validation
+const originalResetDispenseModal = resetDispenseModal;
+resetDispenseModal = function() {
+  // Call original function first
+  originalResetDispenseModal();
+  
+  // Reset checkbox validation
+  prepackCheckboxes.forEach(cb => {
+    cb.checked = false;
+    cb.disabled = true;
+  });
+  
+  // Reset validation message
+  hidePrepackValidationMessage();
+  
+  // Reset tab navigation
+  updatePrepackTabNavigation();
+};
+
+// ValidateDisp with checkbox validation
+const originalValidateDisp = validateDisp;
+validateDisp = function() {
+  // Check checkbox validation if on directions tab
+  const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
+  if (currentDiv && currentDiv.id === 'directionsDiv') {
+    const freq = getPrepackSelectedFrequency();
+    const validation = validatePrepackCheckboxSelection();
+    
+    if (freq && ['OD', 'BD', 'TDS', 'QID'].includes(freq)) {
+      if (!validation.isValid) {
+        showPrepackValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${freq} frequency before proceeding.`);
+        return; // Prevent submission
+      }
+    }
+  }
+  
+  // Call original validation function
+  originalValidateDisp();
+};
+
+// Current Tab Functionality
+function clearCurrentTab() {
+  const visibleTab = document.querySelector('.mobi-div:not([style*="display: none"])');
+  if (!visibleTab) return;
+
+  const currentTabId = visibleTab.id.replace('Div', 'Tab');
+  
+  if (visibleTab.id === "doseDiv") {
+    document.getElementById("dose").value = "";
+    setDirections();
+    updateQuantity();
+    // Remove completed status for dose tab
+    completedTabs.delete('doseTab');
+  } else if (visibleTab.id === "qtyDiv") {
+    document.getElementById("qty").value = "";
+    setQuantity("qty");
+    // Remove completed status for duration tab
+    completedTabs.delete('qtyTab');
+  } else if (visibleTab.id === "labelsDiv") {
+    document.getElementById("numPacks").value = "";
+    // Remove completed status for labels tab
+    completedTabs.delete('labelsTab');
+  } else if (visibleTab.id === "directionsDiv") {
+
+  }
+
+  // Revert the tab styling to blue and remove checkmark
+  const tab = document.getElementById(currentTabId);
+  if (tab) {
+    tab.style.backgroundColor = '#2196F3';
+    tab.style.color = 'white';
+    tab.style.border = '1px outset silver';
+    
+    // Remove checkmark
+    const checkmark = tab.querySelector('.checkmark');
+    if (checkmark) {
+      checkmark.remove();
+    }
+  }
+
+  updateClearButtonVisibility(visibleTab.id);
+}
+
+// Update Clear Button Visibility
+function updateClearButtonVisibility(activeDivId) {
+  const clearBtn = document.getElementById("dispClear");
+  if (!clearBtn) return;
+  const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
+  clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+}
+</script>
+
+<script>
 function removePrepackFromList(id) {
   if (!confirm("Are you sure you want to delete this prepack")) return;
 
@@ -864,7 +1366,7 @@ function removePrepackFromList(id) {
     if (data.success) {
       console.log("Deleted from server");
       const row = document.getElementById(`prepack_row_${id}`);
-      if (row) row.remove();           // 👈 Now works
+      if (row) row.remove();
     } else {
       console.error("Delete failed:", data);
       alert("Failed to delete. See console for details.");
@@ -1137,9 +1639,9 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        // Reset all tabs to blue (default) except completed ones
+        // Reset all tabs to blue except completed ones
         if (!completedTabs.has(tabId)) {
-          tab.style.backgroundColor = '#2196F3';  // Blue (default)
+          tab.style.backgroundColor = '#2196F3';  // Blue
           tab.style.color = 'white';
           tab.style.border = '1px outset silver';
         } else {
@@ -1157,7 +1659,7 @@ function removePrepackFromList(id) {
       currentTab.style.border = '5px solid #de0404';
     }
 
-    // Update step + button label
+    // Update step button label
     currentStep = tabOrder.indexOf(option);
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) nextBtn.textContent = (option === 'labelsDiv') ? 'Print Labels' : 'Next';
@@ -1234,7 +1736,7 @@ function removePrepackFromList(id) {
     clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
   }
 
-  // UpdateQuantity - mark tabs completed when data is valid
+  // Mark tabs completed when data is valid
   function updateQuantity() {
     var dose = parseFloat(document.getElementById('dose').value) || 0;
     var duration = parseFloat(document.getElementById('qty').value) || 0;
@@ -1270,13 +1772,13 @@ function removePrepackFromList(id) {
       markTabCompleted('doseTab');
     }
 
-    // Mark duration tab as completed when valid duration is entered
+    // Mark duration tab as completed when valid duration
     if (duration > 0 && !completedTabs.has('qtyTab')) {
       markTabCompleted('qtyTab');
     }
   }
 
-  // SetRoute - mark as completed when route is selected
+  // Mark as completed when route is selected
   function setRoute(route) {
     document.getElementById("route_type").innerHTML = route;
     updateQuantity();
@@ -2397,5 +2899,52 @@ document.addEventListener('keydown', function(e) {
   }
 });
 </script>
+
+<style>
+.timeBox input:disabled + img {
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+.timeBox {
+  border: 2px solid #ccc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  user-select: none;
+}
+.timeBox input {
+  margin-right: 6px;
+  transform: scale(1.3);
+}
+.timeOfDayGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 10px;
+  padding-left: 42px;
+}
+.timeBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  background: #f9f9f9;
+}
+
+.timeBox img {
+  width: 36px;
+  height: 36px;
+}
+
+.timeBox input {
+  transform: scale(1.3);
+}
+</style>
+
 </body>
 </html>

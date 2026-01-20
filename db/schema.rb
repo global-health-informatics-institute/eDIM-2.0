@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_01_19_084026) do
+ActiveRecord::Schema[7.0].define(version: 2026_01_20_071216) do
   create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
@@ -375,6 +375,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_19_084026) do
     t.boolean "voided", default: false, null: false
     t.boolean "deleted", default: false, null: false
     t.string "pack_identifier"
+    t.text "times", size: :long, collation: "utf8mb4_bin"
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
     t.index ["deleted"], name: "index_prepacks_on_deleted"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
@@ -382,6 +383,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_19_084026) do
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
     t.index ["voided"], name: "index_prepacks_on_voided"
+    t.check_constraint "json_valid(`times`)", name: "times"
   end
 
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|

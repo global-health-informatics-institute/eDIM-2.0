@@ -5,6 +5,10 @@ class Prepack < ActiveRecord::Base
   belongs_to :location, optional: true
   validates :drug_id, :location_id, :quantity_per_pack, :num_packs, :total_quantity, presence: true
 
+  def times
+    super || []
+  end
+
   #has_many :prepack_labels, foreign_key: :prepack_id
   has_many :prepack_labels, dependent: :destroy
 

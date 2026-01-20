@@ -589,7 +589,7 @@
       // Reset buttons
       var button = document.getElementById('dispNext');
       button.setAttribute('onmousedown', "showDispenseDiv('routesDiv')");
-      button.innerHTML = '<%= t("forms.buttons.next") %>';
+      button.innerHTML = '<%= t("forms.buttons.nexttt") %>';
       
       // Hide Clear button & warnings
       document.getElementById('dispClear').style.display = 'none';
@@ -1036,11 +1036,330 @@
       }
   }
 </script>
+
+<script>
+// Configuration
+const frequencyMap = {
+  OD: 1,
+  BD: 2,
+  TDS: 3,
+  QID: 4
+};
+
+const freqRadios = document.querySelectorAll("input[name='frequency']");
+const checkboxes = document.querySelectorAll(".timeOfDayGrid input[type=checkbox]");
+const nextButton = document.getElementById('dispNext');
+
+// Define which tabs come after directions
+const tabsAfterDirections = ['qtyTab', 'doseTypeTab'];
+const tabsBeforeDirections = ['routesTab', 'doseTab'];
+
+// Helpers
+function getSelectedFrequency() {
+  const selected = document.querySelector("input[name='frequency']:checked");
+  return selected ? selected.value : null;
+}
+
+function getSelectedCheckboxCount() {
+  return Array.from(checkboxes).filter(cb => cb.checked).length;
+}
+
+function isCheckboxValidationRequired(freq) {
+  // Only these frequencies require checkbox validation
+  return ['OD', 'BD', 'TDS', 'QID'].includes(freq);
+}
+
+// Validation function
+function validateCheckboxSelection() {
+  const freq = getSelectedFrequency();
+  const checkedCount = getSelectedCheckboxCount();
+  
+  // If no frequency selected or frequency doesn't require checkbox validation
+  if (!freq || !isCheckboxValidationRequired(freq)) {
+    return { isValid: true, required: 0, selected: checkedCount };
+  }
+  
+  const required = frequencyMap[freq];
+  const isValid = checkedCount === required;
+  
+  return { isValid, required, selected: checkedCount };
+}
+
+// Main function to update state
+function updateCheckboxState() {
+  const freq = getSelectedFrequency();
+  const validation = validateCheckboxSelection();
+
+  // No frequency selected → disable all
+  if (!freq) {
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+      cb.disabled = true;
+    });
+    nextButton.disabled = true;
+    updateTabNavigation();
+    return;
+  }
+
+  // Handle special frequencies
+  switch(freq) {
+    case "QHR":
+    case "Q2HRS":
+    case "Q4HRS":
+      checkboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+      nextButton.disabled = false;
+      updateTabNavigation();
+      return;
+
+    case "EOD":
+      checkboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+      nextButton.disabled = false;
+      updateTabNavigation();
+      return;
+
+    case "QN":
+      checkboxes.forEach(cb => { cb.checked = false; cb.disabled = false; });
+      const night = document.querySelector(".timeOfDayGrid input[value='night']");
+      if (night && !night.checked) night.checked = true;
+      nextButton.disabled = false;
+      updateTabNavigation();
+      return;
+
+    case "QWK":
+      checkboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+      nextButton.disabled = false;
+      updateTabNavigation();
+      return;
+  }
+
+  // Standard frequencies (OD, BD, TDS, QID)
+  const max = frequencyMap[freq];
+  const checkedCount = getSelectedCheckboxCount();
+
+  checkboxes.forEach(cb => {
+    if (!cb.checked) {
+      cb.disabled = checkedCount >= max;
+    } else {
+      cb.disabled = false;
+    }
+  });
+
+  // Disable Next if selected count < required
+  nextButton.disabled = checkedCount < max;
+  updateTabNavigation();
+}
+
+// Tab Navigation Control
+function updateTabNavigation() {
+  const validation = validateCheckboxSelection();
+  const directionsTab = document.getElementById('directionsTab');
+  const currentTab = document.querySelector('.mobi-div:not([style*="display: none"])');
+  
+  if (!directionsTab || !currentTab) return;
+  
+  const currentTabId = currentTab.id;
+  
+  // Only restrict navigation if we're on the directions tab
+  if (currentTabId === 'directionsDiv' && !validation.isValid && isCheckboxValidationRequired(getSelectedFrequency())) {
+    // Disable only tabs AFTER directions (Duration and Dose Type)
+    tabsAfterDirections.forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.pointerEvents = 'none';
+        tab.style.opacity = '0.5';
+        tab.style.cursor = 'not-allowed';
+      }
+    });
+    
+    // Keep tabs b4 directions enabled
+    tabsBeforeDirections.forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.pointerEvents = 'auto';
+        tab.style.opacity = '1';
+        tab.style.cursor = 'pointer';
+      }
+    });
+    
+    // Show validation message
+    showValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${getSelectedFrequency()} frequency from the Time of Day checkboxes.`);
+  } else {
+    // Enable ALL tabs
+    ['routesTab', 'doseTab', 'directionsTab', 'qtyTab', 'doseTypeTab'].forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.style.pointerEvents = 'auto';
+        tab.style.opacity = '1';
+        tab.style.cursor = 'pointer';
+      }
+    });
+    
+    // Hide validation message
+    hideValidationMessage();
+  }
+}
+
+// Validation Message Functions
+function showValidationMessage(message) {
+  let messageDiv = document.getElementById('checkboxValidationMessage');
+  if (!messageDiv) {
+    messageDiv = document.createElement('div');
+    messageDiv.id = 'checkboxValidationMessage';
+    messageDiv.style.color = '#d32f2f';
+    messageDiv.style.backgroundColor = '#ffebee';
+    messageDiv.style.padding = '10px';
+    messageDiv.style.margin = '10px 8px';
+    messageDiv.style.borderRadius = '4px';
+    messageDiv.style.border = '1px solid #ef9a9a';
+    messageDiv.style.fontSize = '20px';
+    
+    const directionsDiv = document.getElementById('directionsDiv');
+    if (directionsDiv) {
+      directionsDiv.insertBefore(messageDiv, directionsDiv.firstChild);
+    }
+  }
+  messageDiv.textContent = message;
+  messageDiv.style.display = 'block';
+}
+
+function hideValidationMessage() {
+  const messageDiv = document.getElementById('checkboxValidationMessage');
+  if (messageDiv) {
+    messageDiv.style.display = 'none';
+  }
+}
+
+// Event listeners
+freqRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    checkboxes.forEach(cb => { cb.checked = false; cb.disabled = false; });
+    updateCheckboxState();
+    // Update directions display when frequency changes
+    setDirections();
+  });
+});
+
+checkboxes.forEach(cb => {
+  cb.addEventListener("change", () => {
+    updateCheckboxState();
+    // Update directions display when checkboxes change
+    setDirections();
+  });
+});
+
+// showDispenseDiv override
+const originalShowDispenseDiv = showDispenseDiv;
+showDispenseDiv = function(option) {
+  const currentTab = document.querySelector('.mobi-div:not([style*="display: none"])');
+  const currentTabId = currentTab ? currentTab.id : '';
+  
+  // If trying to navigate away from directions tab to a tab after directions, check validation
+  if (currentTabId === 'directionsDiv') {
+    const tabsAfter = ['qtyDiv', 'doseTypeDiv'];
+    
+    if (tabsAfter.includes(option)) {
+      const validation = validateCheckboxSelection();
+      const freq = getSelectedFrequency();
+      
+      if (!validation.isValid && isCheckboxValidationRequired(freq)) {
+        showValidationMessage(`Please select exactly ${validation.required} time(s) of day for ${freq} frequency before proceeding.`);
+        return; // Prevent navigation to tabs after directions
+      }
+    }
+    // Allow navigation to tabs before directions without validation
+  }
+  
+  // Call original function if validation passes or if navigating to tabs before directions
+  originalShowDispenseDiv.call(this, option);
+  
+  // Update navigation after showing new div
+  updateTabNavigation();
+};
+
+// Modify the Next button click handler
+const originalNextClick = nextButton.getAttribute('onmousedown');
+if (originalNextClick && originalNextClick.includes('showDispenseDiv')) {
+  // Wrap the next button handler to add validation
+  nextButton.setAttribute('onmousedown', `
+    const currentTab = document.querySelector('.mobi-div:not([style*="display: none"])');
+    if (currentTab && currentTab.id === 'directionsDiv') {
+      const freq = getSelectedFrequency();
+      if (freq && ['OD', 'BD', 'TDS', 'QID'].includes(freq)) {
+        const required = ${JSON.stringify(frequencyMap)};
+        const selected = getSelectedCheckboxCount();
+        if (selected < required[freq]) {
+          showValidationMessage('Please select exactly ' + required[freq] + ' time(s) of day for ' + freq + ' frequency.');
+          return;
+        }
+      }
+    }
+    ${originalNextClick}
+  `);
+}
+
+// Initialize
+updateCheckboxState();
+
+// setDirections with time of day
+const originalSetDirections = setDirections;
+setDirections = function() {
+  originalSetDirections();
+  
+  // Get selected times of day
+  const selectedTimes = [];
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      const label = document.querySelector(`label[for="${cb.id}"]`);
+      selectedTimes.push(label ? label.textContent.trim() : cb.value);
+    }
+  });
+  
+  // Append time of day to directions if any selected
+  if (selectedTimes.length > 0) {
+    const field = document.getElementById("directionsDisp");
+    const currentText = field.innerHTML;
+    
+    // Remove any existing time of day text
+    const timeRegex = /\(at .*\)$/;
+    const newText = currentText.replace(timeRegex, '');
+    
+    // Add new time of day
+    field.innerHTML = newText + (selectedTimes.length > 0 ? ` (at ${selectedTimes.join(', ')})` : '');
+  }
+  
+  // Update checkbox validation state
+  updateCheckboxState();
+};
+
+// reset validations
+const originalResetDispenseModal = resetDispenseModal;
+resetDispenseModal = function() {
+  // Call original function first
+  originalResetDispenseModal();
+  
+  // Reset checkbox validation
+  checkboxes.forEach(cb => {
+    cb.checked = false;
+    cb.disabled = true;
+  });
+  
+  // Reset validation message
+  hideValidationMessage();
+  
+  // Reset tab navigation
+  updateTabNavigation();
+};
+</script>
+
 <style>
 #flashMessage {
   font-size: 1.5rem;
   line-height: 1.4;
   font-weight: bold;
+}
+.timeBox input:disabled + img {
+  opacity: 0.3;
+  transition: opacity 0.2s;
 }
 .timeBox {
   border: 2px solid #ccc;
