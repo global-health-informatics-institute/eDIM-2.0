@@ -55,7 +55,7 @@ module Misc
     barcode_x = (label_width - barcode_width_est) / 2
 
     # Draw barcode
-    label.draw_barcode(barcode_x, current_y, 0, 1, 3, 5, 100, false, "#{bottle_id}")
+    label.draw_barcode(150, 280, 0, 1, 2, 3, 80, false, "#{bottle_id}")
 
     label.print(1)
   end
