@@ -1,14 +1,14 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
 <style>
-/* --- Administration Route --- */
+/* Administration Route  */
 .routes-container {
   display: grid;
   grid-template-columns: repeat(3, minmax(140px, 1fr)); 
   grid-template-rows: repeat(2, auto);                  
-  gap: 1em 2em;                                         
+  gap: 0.5em 0.5em;                                         
   justify-content: start;
-  padding-left: 1.5em;
+  padding-left: 1.2em;
   margin-top: 0.5em;
   width: 100%;
   box-sizing: border-box;
@@ -30,10 +30,8 @@ input.radio:empty {
 label.custom {
   border-radius: 3px;
   border: 1px solid #D1D3D4;
-  font-size: 1.4em !important;
+  font-size: 1.4rem !important;
   display: inline-block;
-  margin-top: 1em;
-  line-height: 3em;
   text-indent: 3.25em;
   position: relative;
   cursor: pointer;
@@ -85,17 +83,16 @@ input.radio:checked label {
   font-size: 1.2em;   
 }
 
-/* --- Dose Keypad  --- */
+/* Dose Keypad */
 .dose-keypad {
   display: grid;
-  grid-template-columns: repeat(3, 60px);
-  grid-auto-rows: 60px;
-  gap: 60px 60px;
+  grid-template-columns: repeat(3, 80px);
+  grid-auto-rows: 80px;
+  gap: 60px 90px;
   justify-content: start;
-  margin-top: 10px;
-  margin-left: 10px;         
+  margin-top: 15px;
+  margin-left: 25px;         
 }
-
 .customButton {
   display: flex;
   align-items: center;
@@ -103,56 +100,20 @@ input.radio:checked label {
   background-color: #D1D3D4;
   border: 1px solid #999;
   border-radius: 5px;
-  font-size: 1.4em;
+  font-size: 2rem;
   font-weight: bold;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s, transform 0.1s;
-  width: 60px;      
-  height: 60px;     
+  width: 130px;
+  height: 80px;     
 }
-
-.customButton:hover {
-  background-color: #CCCCCC;
-  transform: scale(1.05);
-}
-
-.customButton:active {
-  background-color: #AAAAAA;
-  transform: scale(0.95);
-}
-
-/* Directions selection */
-.directions-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); 
-  grid-template-rows: repeat(5, auto);
-  gap: 0.5em 1em;  
-  justify-content: start;
-  padding-left: 1.5em;
-}
-
-.directions-grid .radioDiv {
-  min-width: auto; 
-}
-/* --- Duration tab --- */
-.duration-keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 60px);
-  grid-auto-rows: 60px;
-  gap: 60px 60px;
-  justify-content: start;     
-  margin-top: 15px;
-  margin-left: 25px; 
-}
-
 .duration-keypad .customButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
-  font-size: 1.4em;
+  width: 130px;
+  height: 80px;
+  font-size: 2rem;
   font-weight: bold;
   background-color: #D1D3D4;
   border: 1px solid #999;
@@ -161,19 +122,32 @@ input.radio:checked label {
   user-select: none;
   transition: background-color 0.2s, transform 0.1s;
 }
-
-.duration-keypad .customButton:hover {
-  background-color: #CCCCCC;
-  transform: scale(1.05);
+/* Directions selection */
+.directions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  grid-template-rows: repeat(4, auto);
+  gap: 0.5em 1em;  
+  justify-content: start;
+  padding-left: 1.5em;
 }
 
-.duration-keypad .customButton:active {
-  background-color: #AAAAAA;
-  transform: scale(0.95);
+.directions-grid .radioDiv {
+  min-width: auto; 
+  width: 100%;
+}
+/* Duration tab */
+.duration-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-auto-rows: 80px;
+  gap: 60px 90px;
+  justify-content: start;     
+  margin-top: 15px;
+  margin-left: 25px; 
 }
 
-
-/* View options animation - Smooth tray slide out */
+/* View options animation */
 .view-options-menu.show {
   opacity: 1 !important;
   transform: translateY(-50%) translateX(0) !important;
@@ -185,7 +159,7 @@ input.radio:checked label {
   opacity: 1 !important;
 }
 
-/* View icon enhancement - no spin, just subtle highlight */
+/* View icon */
 .view-icon.active {
   background: #f0f9ff !important;
   box-shadow: 0 4px 16px rgba(0, 100, 149, 0.25) !important;
@@ -634,11 +608,11 @@ img[src*="/assets/"] {
         <div style="display: table-row;">
           <div style="display: table-cell; width:20%; padding:5px; vertical-align:top;">
             <table style="width:100%; border-spacing:0 10px;">
-              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">Route</th></tr>
-              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">Dose</th></tr>
-              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">Directions</th></tr>
-              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">Duration</th></tr>
-              <tr><th class="tab" style="font-weight:bold; font-size: 1.2rem;" id="labelsTab" onmousedown="showDispenseDiv('labelsDiv')">Labels</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.4rem; padding: 24px 15px;" id="routesTab" onmousedown="showDispenseDiv('routesDiv')">Route</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.4rem; padding: 24px 15px;" id="doseTab" onmousedown="showDispenseDiv('doseDiv')">Dose</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.4rem; padding: 24px 15px;" id="directionsTab" onmousedown="showDispenseDiv('directionsDiv')">Directions</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.4rem; padding: 24px 15px;" id="qtyTab" onmousedown="showDispenseDiv('qtyDiv')">Duration</th></tr>
+              <tr><th class="tab" style="font-weight:bold; font-size: 1.4rem; padding: 24px 15px;" id="labelsTab" onmousedown="showDispenseDiv('labelsDiv')">Labels</th></tr>
             </table>
           </div>
 
@@ -650,23 +624,23 @@ img[src*="/assets/"] {
               <div class="routes-container">
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-oral" value="oral" required onchange="setRoute('oral');setDirections();">
-                <label class="custom" style="font-size:1.2rem;" for="route-oral">Oral</label>
+                <label class="custom" style="font-size:1.3rem; padding: 10px 5px !important;" for="route-oral">Oral</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-topical" value="topical" required onchange="setRoute('topical');setDirections();">
-                <label class="custom" style="font-size:1.2rem;" for="route-topical">Topical</label>
+                <label class="custom" style="font-size:1.3rem; padding: 10px 5px !important;" for="route-topical">Topical</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-respiratory" value="respiratory" required onchange="setRoute('respiratory');setDirections();">
-                <label class="custom" style="font-size:1.2rem;" for="route-respiratory">Respiratory</label>
+                <label class="custom" style="font-size:1.3rem; padding: 10px 5px !important;" for="route-respiratory">Respiratory</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-injection" value="injection" required onchange="setRoute('injection');setDirections();">
-                <label class="custom" style="font-size:1.2rem;" for="route-injection">Injection</label>
+                <label class="custom" style="font-size:1.3rem; padding: 10px 5px !important;" for="route-injection">Injection</label>
               </div>
               <div class="radioDiv">
                 <input type="radio" name="administration" class="radio" id="route-other" value="other" required onchange="setRoute('other');setDirections();">
-                <label class="custom" style="font-size:1.2rem;" for="route-other">Other</label>
+                <label class="custom" style="font-size:1.3rem; padding: 10px 5px !important;" for="route-other">Other</label>
               </div>
               </div>
              </div> 
@@ -675,8 +649,8 @@ img[src*="/assets/"] {
             <!-- DOSE DIV -->
             <div class="mobi-div" id="doseDiv" style="display:none;">
               <div class="section-wrapper">
-                <label for="dose" id="doseLabel" style="font-weight:bold; font-size:1.5rem;">Enter Dose</label>
-                <input type="text" id="dose" name="dose" required style="width:200px; max-width:50%; padding:5px 8px; font-size:1.2rem;">
+                <label for="dose" id="doseLabel" style="font-weight:bold; font-size:1.6rem;">Enter Dose</label>
+                <input type="text" id="dose" name="dose" required style="width:200px; max-width:50%; padding:5px 8px; font-size:1.3rem;">
 
                 <!-- Keypad container -->
                 <div class="dose-keypad">
@@ -694,121 +668,96 @@ img[src*="/assets/"] {
 
             <!-- DIRECTIONS DIV -->
             <div class="mobi-div" id="directionsDiv" style="display: none;">
-                <h3 style="font-weight:bold; font-size:1.5rem; margin-left: 15px;"><%= t('forms.labels.select_directions')%></h3>
-                <div style="height: 55vh; overflow-x: hidden; overflow-y: auto;">
-                  <table width="100" style="border-collapse: collapse">
-                    <tr>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="OD" value="OD" onchange="setDirections()" required>
-                          <label class="custom" for="OD" style="width: 200px !important;"><%= t('forms.options.once_a_day')%></label>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="BD" value="BD" onchange="setDirections()" required>
-                          <label class="custom" for="BD" style="width: 200px !important;"><%= t('forms.options.two_times_a_day')%></label>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="TDS" value="TDS" onchange="setDirections()" required>
-                          <label class="custom" for="TDS" style="width: 200px !important;"><%= t('forms.options.three_times_a_day')%></label>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="QID" value="QID" onchange="setDirections()" required>
-                          <label class="custom" for="QID" style="width: 200px !important;"><%= t('forms.options.four_times_a_day')%></label>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="QHR" value="QHR" onchange="setDirections()" required>
-                          <label class="custom" for="QHR" style="width: 200px !important;"><%= t('forms.options.every_hour')%></label>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="Q2HRS" value="Q2HRS" onchange="setDirections()" required>
-                          <label class="custom" for="Q2HRS" style="width: 200px !important;"><%= t('forms.options.every_two_hours')%></label>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="Q4HRS" value="Q4HRS" onchange="setDirections()" required>
-                          <label class="custom" for="Q4HRS" style="width: 200px !important;"><%= t('forms.options.every_four_hours')%></label>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="EOD" value="EOD" onchange="setDirections()" required>
-                          <label class="custom" for="EOD" style="width: 200px !important;"><%= t('forms.options.every_other_day')%></label>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="QN" value="QN" onchange="setDirections()" required>
-                          <label class="custom" for="QN" style="width: 200px !important;"><%= t('forms.options.every_night')%></label>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="radioDiv">
-                          <input type="radio" name="frequency" class="radio" id="QWK" value="QWK" onchange="setDirections()" required>
-                          <label class="custom" for="QWK" style="width: 200px !important;"><%= t('forms.options.once_a_week')%></label>
-                        </div>
-                      </td>
-                    </tr>
+                <h3 style="font-weight:bold; font-size:1.8rem; margin-left: 15px;"><%= t('forms.labels.select_directions')%></h3>
+                <div style="height: 58vh; overflow-x: hidden; overflow-y: auto;">
+                  <div class="directions-grid">
+                    <!-- Row 1 -->
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="OD" value="OD" onchange="setDirections()" required>
+                      <label class="custom" for="OD" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.once_a_day')%></label>
+                    </div>
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="BD" value="BD" onchange="setDirections()" required>
+                      <label class="custom" for="BD" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.two_times_a_day')%></label>
+                    </div>
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="TDS" value="TDS" onchange="setDirections()" required>
+                      <label class="custom" for="TDS" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.three_times_a_day')%></label>
+                    </div>
+                    
+                    <!-- Row 2 -->
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="QID" value="QID" onchange="setDirections()" required>
+                      <label class="custom" for="QID" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.four_times_a_day')%></label>
+                    </div>
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="QHR" value="QHR" onchange="setDirections()" required>
+                      <label class="custom" for="QHR" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.every_hour')%></label>
+                    </div>
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="Q2HRS" value="Q2HRS" onchange="setDirections()" required>
+                      <label class="custom" for="Q2HRS" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.every_two_hours')%></label>
+                    </div>
+                    
+                    <!-- Row 3 -->
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="Q4HRS" value="Q4HRS" onchange="setDirections()" required>
+                      <label class="custom" for="Q4HRS" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.every_four_hours')%></label>
+                    </div>
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="EOD" value="EOD" onchange="setDirections()" required>
+                      <label class="custom" for="EOD" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.every_other_day')%></label>
+                    </div>
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="QN" value="QN" onchange="setDirections()" required>
+                      <label class="custom" for="QN" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.every_night')%></label>
+                    </div>
+                    
+                    <!-- Row 4 - Last row with only one item -->
+                    <div class="radioDiv">
+                      <input type="radio" name="frequency" class="radio" id="QWK" value="QWK" onchange="setDirections()" required>
+                      <label class="custom" for="QWK" style="font-size:1.3rem; padding: 10px 5px !important;"><%= t('forms.options.once_a_week')%></label>
+                    </div>
+                  </div>
 
-                    <tr>
-                      <td colspan="2">
-                        <h4 style="margin-top:15px; font-size: 1.4rem; margin-left: 10px;">Time of Day</h4>
+                  <!-- Time of Day section -->
+                  <div style="margin-top: 25px; padding: 0 1.5em;">
+                    <h4 style="margin-top:15px; font-size: 1.6rem; margin-left: 0;">Time of Day</h4>
 
-                        <div class="timeOfDayGrid">
-                          <label class="timeBox">
-                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="morning" onchange="setDirections()">
-                            <img style=" width: 40px; height: 40px;" src="/assets/sunrise.png" alt="Morning">
-                            <span style="font-size: 1.3rem">Morning</span>
-                          </label>
+                    <div class="timeOfDayGrid">
+                      <label class="timeBox">
+                        <input style="width: 24px; height: 24px;" type="checkbox" name="times[]" value="morning" onchange="setDirections()">
+                        <img style="width: 40px; height: 40px;" src="/assets/sunrise.png" alt="Morning">
+                        <span style="font-size: 1.3rem">Morning</span>
+                      </label>
 
-                          <label class="timeBox">
-                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="afternoon" onchange="setDirections()">
-                            <img style=" width: 40px; height: 40px;" src="/assets/sun.png" alt="Afternoon">
-                            <span style="font-size: 1.3rem">Afternoon</span>
-                          </label>
+                      <label class="timeBox">
+                        <input style="width: 24px; height: 24px;" type="checkbox" name="times[]" value="afternoon" onchange="setDirections()">
+                        <img style="width: 40px; height: 40px;" src="/assets/sun.png" alt="Afternoon">
+                        <span style="font-size: 1.3rem">Afternoon</span>
+                      </label>
 
-                          <label class="timeBox">
-                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="evening" onchange="setDirections()">
-                            <img style=" width: 46px; height: 46px;" src="/assets/sunset.png" alt="Evening">
-                            <span style="font-size: 1.3rem">Evening</span>
-                          </label>
+                      <label class="timeBox">
+                        <input style="width: 24px; height: 24px;" type="checkbox" name="times[]" value="evening" onchange="setDirections()">
+                        <img style="width: 46px; height: 46px;" src="/assets/sunset.png" alt="Evening">
+                        <span style="font-size: 1.3rem">Evening</span>
+                      </label>
 
-                          <label class="timeBox">
-                            <input style=" width: 20px; height: 20px;" type="checkbox" name="times[]" value="night" onchange="setDirections()">
-                            <img src="/assets/moon.png" alt="Night">
-                            <span style="font-size: 1.3rem">Night&nbsp;&nbsp;</span>
-                          </label>
-                        </div>
-                      </td>
-                    </tr>
-
-                  </table>
+                      <label class="timeBox">
+                        <input style="width: 24px; height: 24px;" type="checkbox" name="times[]" value="night" onchange="setDirections()">
+                        <img src="/assets/moon.png" alt="Night">
+                        <span style="font-size: 1.3rem">Night&nbsp;&nbsp;</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
             </div>
 
             <!--- DURATION DIV ---->  
             <div class="mobi-div" id="qtyDiv" style="display: none;">
                 <div style="margin-top: 5px; margin-left: 15px;">
-                  <label for="qty"><span style="font-weight: bold;font-size: 1.5rem;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
-                  <input type="text" id="qty" name="duration" required style="width:200px; height: 15px;max-width:50%; padding:5px 8px; font-size:1.2rem;">
+                  <label for="qty"><span style="font-weight: bold;font-size: 1.6rem;"><%= t('forms.labels.enter_number_of_days')%></span></label> <br/>
+                  <input type="text" id="qty" name="duration" required style="width:200px; height: 26px; max-width:50%; padding:5px 8px; font-size:1.2rem;">
                 </div>
                 <!-- Duration keypad -->
                 <div class="duration-keypad">
@@ -834,7 +783,7 @@ img[src*="/assets/"] {
             <div class="mobi-div" id="labelsDiv" style="display:none;">
               <div class="section-wrapper">
                 <label for="numPacks" id="numPacksLabel"><span style="font-weight:bold; font-size:1.5rem;">Enter number of packs</span></label>
-                <input type="text" id="numPacks" name="numPacks" required style="width:200px; max-width:50%; height: 15px; padding:5px 8px; font-size:1.2rem;">
+                <input type="text" id="numPacks" name="numPacks" required style="width:200px; max-width:50%; height: 25px; padding:5px 8px; font-size:1.2rem;">
 
                 <!-- Keypad container (reuse same style as Dose/Duration) -->
                 <div class="duration-keypad" style="margin-top:10px; margin-left:15px;">
@@ -1218,7 +1167,7 @@ nextStep = function() {
   updatePrepackTabNavigation();
 };
 
-// Enhanced setDirections function to include time of day
+// setDirections function to include time of day
 const originalSetDirections = typeof setDirections === 'function' ? setDirections : function() {};
 setDirections = function() {
   // Call original function first
@@ -2920,7 +2869,7 @@ document.addEventListener('keydown', function(e) {
 .timeOfDayGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 28px;
+  gap: 40px;
   margin-top: 10px;
   padding-left: 42px;
 }

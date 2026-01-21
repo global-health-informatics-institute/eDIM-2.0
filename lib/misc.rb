@@ -68,7 +68,7 @@ module Misc
     label.font_vertical_multiplier = 1
     label.left_margin = 10
 
-    # Your existing text content
+    # Text content
     label.draw_multi_text("ID: #{bottle_id}", column_width: 2700)
     label.draw_multi_text("Drug: #{item}", column_width: 2700)
     label.draw_multi_text("Dir : #{directions}", column_width: 2700)
@@ -90,7 +90,7 @@ module Misc
     end
     label.draw_multi_text(expiry_text, column_width: 2700)
 
-    label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
+    #label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
 
     #if pack_index && total_packs
     # label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
@@ -99,7 +99,7 @@ module Misc
     # Only draw barcode for PREPACK labels
     if pack_id.present? && pack_id.start_with?("PK-")
 
-      label.draw_barcode(150, 230, 0, 1, 2, 3, 80, false, pack_id)
+      label.draw_barcode(150, 280, 0, 1, 2, 3, 80, false, pack_id)
     else
       puts "SKIPPING BARCODE for: #{pack_id}"
     end
@@ -124,7 +124,7 @@ module Misc
 
     if times.present?
       if times.is_a?(Hash)
-        # times is already a dose_map hash - use it directly
+        # times is already a dose_map hash
         times.each do |key, value|
           sym_key = key.to_sym
           if pattern.key?(sym_key)
