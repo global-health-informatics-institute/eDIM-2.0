@@ -90,19 +90,24 @@ class DispensationController < ApplicationController
       redirect_to return_path and return
     end
     
-    item = GeneralInventory.where(
+    # Find all available bottles for this identifier
+    available_items = GeneralInventory.where(
       gn_identifier: params[:bottle_id],
-      location_id: session[:location]
-    ).lock(true).first
+      location_id: session[:location],
+      voided: false
+    ).where('current_quantity > 0')
+    .order(:expiration_date, :gn_inventory_id)
+    .lock(true)
 
-    if item.blank?
-      flash[:errors] = "Bottle ID #{params[:bottle_id]} not found in general inventory for this location"
+    if available_items.empty?
+      flash[:errors] = "Bottle ID #{params[:bottle_id]} not found or out of stock in this location"
       redirect_to return_path and return
     end
 
     dispense_success = false
     @new_prescription = nil
     @prepack_batch = nil
+    dispense_result = nil
 
     begin
       GeneralInventory.transaction do
@@ -118,20 +123,32 @@ class DispensationController < ApplicationController
         num_packs    = params[:numPacks].to_i.presence || 1
         total_qty    = qty_per_pack * num_packs
 
+        # Calculate total available quantity
+        total_available = available_items.sum(:current_quantity)
 
-        amount_dispensed = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
-                            [item.current_quantity.to_i, total_qty].min
-                          else
-                            [item.current_quantity.to_i, qty_per_pack].min
-                          end
+        # For prepacking, we need the full total quantity
+        # For regular dispensing, we need just the qty_per_pack
+        needed_quantity = if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
+                           total_qty
+                         else
+                           qty_per_pack
+                         end
 
-        if amount_dispensed <= 0
-          flash[:errors] = "Insufficient stock in this location"
+        if needed_quantity > total_available
+          flash[:errors] = "Insufficient stock. Requested: #{needed_quantity}, Available: #{total_available}"
           redirect_to return_path and return
         end
 
-        # Decrement current location stock
-        item.update!(current_quantity: item.current_quantity - amount_dispensed)
+        # Dispense from multiple bottles using FIFO
+        dispense_result = dispense_from_multiple_bottles(available_items, needed_quantity)
+        
+        unless dispense_result[:fully_dispensed]
+          flash[:errors] = "Insufficient stock to dispense full quantity. Requested: #{needed_quantity}, Available: #{total_available}. Dispensation cancelled."
+          redirect_to return_path and return
+        end
+
+        # Use the first item for drug info and primary reference
+        primary_item = dispense_result[:dispensed_items].first[:item]
 
         if ActiveModel::Type::Boolean.new.cast(params[:prepacking])
           # Prepacking: Create prepack and labels
@@ -143,9 +160,9 @@ class DispensationController < ApplicationController
           )
 
           @prepack_batch = Prepack.create!(
-            bottle_id:        item.gn_inventory_id,
-            gn_identifier:    item.gn_identifier,
-            drug_id:          item.drug_id,
+            bottle_id:        primary_item.gn_inventory_id,
+            gn_identifier:    primary_item.gn_identifier,
+            drug_id:          primary_item.drug_id,
             quantity_per_pack: qty_per_pack,
             num_packs:        num_packs,
             total_quantity:   total_qty,
@@ -158,7 +175,7 @@ class DispensationController < ApplicationController
           )
 
           last_label = PrepackLabel
-            .where("label_identifier LIKE ?", "PK-#{item.gn_identifier}-%")
+            .where("label_identifier LIKE ?", "PK-#{primary_item.gn_identifier}-%")
             .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
             .first
 
@@ -168,13 +185,13 @@ class DispensationController < ApplicationController
             PrepackLabel.create!(
               prepack_id:      @prepack_batch.id,
               bottle_id:       @prepack_batch.bottle_id,
-              label_identifier: "PK-#{item.gn_identifier}-#{last_index + i}"
+              label_identifier: "PK-#{primary_item.gn_identifier}-#{last_index + i}"
             )
           end
 
           dispense_success = true
         else
-          # DISPENSING: Create prescription and dispensation
+          # DISPENSING: Create prescription and dispensation records
           directions = Misc.create_directions(
             params[:dose].to_s,
             params[:administration].to_s,
@@ -184,24 +201,26 @@ class DispensationController < ApplicationController
 
           @new_prescription = Prescription.create!(
             patient_id:       @patient&.id || session[:patient_id],
-            drug_id:          item.drug_id,
+            drug_id:          primary_item.drug_id,
             directions:       directions,
             times:            normalized_times_json,
             quantity:         qty_per_pack,
-            amount_dispensed: amount_dispensed,
+            amount_dispensed: dispense_result[:total_dispensed],
             provider_id:      User.current.id,
             date_prescribed:  Time.current
           )
 
-          # Record dispensation linked to prescription
-          @dispensation = Dispensation.create!(
-            rx_id:             @new_prescription.id,
-            inventory_id:      item.gn_inventory_id,
-            patient_id:        @patient&.id || session[:patient_id],  
-            quantity:          amount_dispensed,
-            dispensation_date: Time.current,
-            dispensed_by:      User.current.id
-          )
+          # Create dispensation records for each bottle used
+          dispense_result[:dispensed_items].each do |dispensed_item|
+            Dispensation.create!(
+              rx_id:             @new_prescription.id,
+              inventory_id:      dispensed_item[:item].gn_inventory_id,
+              patient_id:        @patient&.id || session[:patient_id],
+              quantity:          dispensed_item[:quantity],
+              dispensation_date: Time.current,
+              dispensed_by:      User.current.id
+            )
+          end
 
           dispense_success = true
         end
@@ -219,7 +238,12 @@ class DispensationController < ApplicationController
         # Print using the prepack batch ID with special prefix
         print_and_redirect("/print_dispensation_label/PREPACK-#{@prepack_batch.id}", return_path)
       else
+        # Check if prescription was fully dispensed
         if @new_prescription.quantity.to_i <= @new_prescription.amount_dispensed.to_i
+          bottles_used = dispense_result&.dig(:dispensed_items)&.size || 1
+          if bottles_used > 1
+            flash[:success] = "Successfully dispensed #{@new_prescription.amount_dispensed} units from #{bottles_used} bottles"
+          end
           print_and_redirect("/print_dispensation_label/#{@new_prescription.id}", return_path)
         else
           flash[:notice] = 'Insufficient quantity. Top up from another bottle'
@@ -450,6 +474,54 @@ class DispensationController < ApplicationController
   end
 
   private
+
+  # Multi-bottle FIFO dispensing method
+  def dispense_from_multiple_bottles(available_items, requested_quantity)
+    # First, do a dry run to check if we have enough stock
+    total_available = available_items.sum(:current_quantity)
+    
+    if requested_quantity > total_available
+      return {
+        dispensed_items: [],
+        total_dispensed: 0,
+        fully_dispensed: false,
+        available: total_available
+      }
+    end
+
+    # If we have enough stock, proceed with actual dispensing
+    dispensed_items = []
+    remaining_to_dispense = requested_quantity
+    total_dispensed = 0
+
+    available_items.each do |item|
+      break if remaining_to_dispense <= 0
+
+      # Calculate how much to take from this bottle
+      quantity_from_this_bottle = [item.current_quantity, remaining_to_dispense].min
+      
+      if quantity_from_this_bottle > 0
+        # Update the bottle quantity
+        item.update!(current_quantity: item.current_quantity - quantity_from_this_bottle)
+        
+        # Track what we dispensed
+        dispensed_items << {
+          item: item,
+          quantity: quantity_from_this_bottle
+        }
+        
+        total_dispensed += quantity_from_this_bottle
+        remaining_to_dispense -= quantity_from_this_bottle
+      end
+    end
+
+    {
+      dispensed_items: dispensed_items,
+      total_dispensed: total_dispensed,
+      fully_dispensed: remaining_to_dispense <= 0,
+      available: total_available
+    }
+  end
 
   def dispense_item(inventory,prescription,dispense_amount)
 

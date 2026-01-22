@@ -392,17 +392,39 @@ class GeneralInventoryController < ApplicationController
     end
 
     # Regular bottle scan
-    entry = GeneralInventory.includes(:drug).find_by(
+    # Find the best available entry (earliest expiration with stock, or sum total if needed)
+    entries = GeneralInventory.includes(:drug).where(
       gn_identifier: scanned,
       location_id: session[:location],
       voided: false
-    )
+    ).where('current_quantity > 0')
 
-    if entry.nil?
-      return render json: {
-        error: "Bottle not found"
-      }, status: :not_found
+    if entries.empty?
+      # Check if there are any entries at all (even with 0 quantity)
+      any_entry = GeneralInventory.includes(:drug).find_by(
+        gn_identifier: scanned,
+        location_id: session[:location],
+        voided: false
+      )
+      
+      if any_entry.nil?
+        return render json: {
+          error: "Bottle not found"
+        }, status: :not_found
+      else
+        return render json: {
+          error: "This bottle is out of stock",
+          name: any_entry.drug.name,
+          currentQty: 0
+        }, status: :unprocessable_entity
+      end
     end
+
+    # Get the entry with earliest expiration date that has stock
+    entry = entries.order(:expiration_date, :gn_inventory_id).first
+
+    # Calculate total available quantity across all sequences
+    total_quantity = entries.sum(:current_quantity)
 
     # Hard stop, expired
     if entry.expiration_date.present? && entry.expiration_date <= Date.current
@@ -419,7 +441,7 @@ class GeneralInventoryController < ApplicationController
 
     render json: {
       name: entry.drug.name,
-      currentQty: entry.current_quantity,
+      currentQty: total_quantity,
       prepack: has_active_prepacks
     }
   end
