@@ -1,55 +1,3 @@
-<<<<<<< HEAD
-*.gem
-*.rbc
-/.config
-/coverage/
-/InstalledFiles
-/pkg/
-/spec/reports/
-/spec/examples.txt
-/test/tmp/
-/test/version_tmp/
-/tmp/
-#/db/seeds.rb
-# Used by dotenv library to load environment variables.
-# .env
-
-# Ignore Byebug command history file.
-.byebug_history
-
-## Specific to RubyMotion:
-.dat*
-.repl_history
-build/
-*.bridgesupport
-build-iPhoneOS/
-build-iPhoneSimulator/
-
-## Specific to RubyMotion (use of CocoaPods):
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# vendor/Pods/
-
-## Documentation cache and generated files:
-/.yardoc/
-/_yardoc/
-/doc/
-/rdoc/
-
-## Environment normalization:
-/.bundle/
-/vendor/bundle
-/lib/bundler/man/
-
-# for a library or gem, you might want to ignore these files since the code is
-# intended to run in multiple environments; otherwise, check them in:
-# Gemfile.lock
-# .ruby-version
-# .ruby-gemset
-=======
 # Ignore bundler config.
 /.bundle
 
@@ -58,52 +6,70 @@ build-iPhoneSimulator/
 /db/*.sqlite3-journal
 
 # Ignore all logfiles and tempfiles.
-!/log/.keep
-*.yml
-.idea/*
-*.lock
-.ruby-version
-*.rbc
-capybara-*.html
-.rspec
 /log/*
-/tmp
-/db/*.sqlite3
-/db/*.sqlite3-journal
-/public/system
-*~
-# TODO Comment out these rules if you are OK with secrets being uploaded to the repo
-config/initializers/secret_token.rb
-config/secrets.yml
-config/database.yml
-# dotenv
-# TODO Comment out this rule if environment variables can be committed
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+
+# Ignore uploaded files in development
+/storage/*
+!/storage/.keep
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+
+# Ignore application configuration (but keep examples)
+/config/application.yml
+!/config/application.yml.example
+
+# Ignore database configuration (but keep examples)  
+/config/database.yml
+!/config/database.yml.example
+
+# Ignore secrets (but keep examples)
+/config/secrets.yml
+!/config/secrets.yml.example
+
+# Ignore environment variables
 .env
 
-## Environment normalization:
+# Ignore IDE files
+.idea/*
+*.rbc
+.byebug_history
+
+# Ignore system files
+*~
+.DS_Store
+Thumbs.db
+
+# Ignore bundler
 /vendor/bundle
 
-# these should all be checked in to normalize the environment:
-# Gemfile.lock, .ruby-version, .ruby-gemset
->>>>>>> 92fd9b6 (Initial commit after resetting repository)
+# Ignore RVM/rbenv files (these should be committed for consistency)
+# .ruby-version
+# .ruby-gemset
 
-# unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
-.rvmrc
+# Ignore capybara screenshots
+capybara-*.html
 
-<<<<<<< HEAD
-# Used by RuboCop. Remote config files pulled in from inherit_from directive.
-# .rubocop-https?--*
-=======
-# if using bower-rails ignore default bower_components path bower.json files
-/vendor/assets/bower_components
-*.bowerrc
-bower.json
+# Ignore RSpec configuration
+.rspec
+
+# Ignore public uploads
+/public/system
+/public/uploads
 
 # Ignore pow environment settings
 .powenv
 
-# Ignore Byebug command history file.
-.byebug_history
-
+# Ignore rbenv local vars
 .rbenv-vars
->>>>>>> 92fd9b6 (Initial commit after resetting repository)
+
+# Ignore node modules if using any JS tools
+/node_modules
+
+# Keep important files that were previously ignored:
+# - Translation files (config/locales/*.yml) - SHOULD BE COMMITTED
+# - Asset files - SHOULD BE COMMITTED  
+# - .ruby-version - SHOULD BE COMMITTED for consistency
