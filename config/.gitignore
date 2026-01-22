@@ -3,7 +3,7 @@
 /config/secrets.yml
 /config/application.yml
 
-# Keep the example files
+# Example files
 !/config/database.yml.example
 !/config/secrets.yml.example
 !/config/application.yml.example
