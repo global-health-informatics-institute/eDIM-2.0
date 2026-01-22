@@ -1,4 +1,4 @@
-# eDIM 2.0 — Electronic Dispensing and Inventory Management
+# eDIM — Electronic Dispensing and Inventory Management
 
 **eDIM** (Electronic Dispensing and Inventory Management) is an open-source system to help low-resource health facilities manage pharmaceutical supply chains at dispensary level. eDIM improves visibility of consumption, stock levels, expiries, and supports dispensary workflows.
 
@@ -91,11 +91,6 @@ These are steps for the upgraded environment.
 
 ### Troubleshooting Common Issues
 
-**Missing translations errors:**
-- Ensure translation files are present in `config/locales/`
-- Run `git status` to check if locale files were ignored
-- The `.gitignore` should NOT ignore `*.yml` files in the locales directory
-
 **Missing assets:**
 - Run `bundle exec rake assets:precompile`
 - Check that asset files are committed to the repository
@@ -113,7 +108,6 @@ These are steps for the upgraded environment.
 
 ### Development Notes
 
-- Translation files (`config/locales/*.yml`) should be committed to the repository
 - The `.ruby-version` file should be committed for consistency
 - Configuration examples (`.example` files) are provided for sensitive files
 - Always copy example files and customize them for your environment

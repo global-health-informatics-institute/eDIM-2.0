@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# eDIM 2.0 Setup Script
+# eDIM Setup Script
 # This script helps set up the project
-# Do manual setup or carefully read this script first for safety
+# Do manual setup in READM.md or carefully read this script first for safety
 
-echo "Setting up eDIM 2.0..."
+echo "Setting up eDIM"
 
 # Check if Ruby is installed
 if ! command -v ruby &> /dev/null; then
@@ -55,7 +55,7 @@ else
 fi
 
 # Check if database exists
-echo "🗄️  Setting up database..."
+echo "Setting up database..."
 if bundle exec rake db:version &> /dev/null; then
     echo "Database already exists"
 else
