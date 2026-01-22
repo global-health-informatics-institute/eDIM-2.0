@@ -38,6 +38,18 @@ class GeneralInventoryController < ApplicationController
       redirect_to "/" and return
 
     else
+      # Handle GET request 
+      @item = GeneralInventory.find_by(
+        gn_inventory_id: params[:id],
+        location_id: session[:location],
+        voided: false
+      )
+
+      if @item.blank?
+        flash[:errors] = "Item with ID #{params[:id]} not found in this location"
+        redirect_to "/" and return
+      end
+
       dispensary_loc = Location.find_by_name("Dispensary")&.id
       @is_dispensary = session[:location] == dispensary_loc
       render :layout => "touch"

@@ -27,7 +27,6 @@ Rails.application.routes.draw do
   get "/ajax_bottle/:id" => "general_inventory#ajax_bottle"
   get "/general_inventory/print_bottle_barcode"
   post '/general_inventory/:id/damage_item', to: 'general_inventory#damage_item'
-  get 'general_inventory/:id/:sequence', to: 'general_inventory#show', as: :general_inventory_item
   
 
   get '/dispensary/new', to: 'general_inventory#new', as: :new_dispensary_item
@@ -87,6 +86,9 @@ Rails.application.routes.draw do
     end
   end
 
+  # Custom route for viewing specific inventory items
+  get 'general_inventory/:id/:sequence', to: 'general_inventory#show', as: :general_inventory_item
+
   # prepack_labels declaration
   resources :prepack_labels, only: [:show, :new, :create, :destroy] do
     collection do
@@ -98,15 +100,6 @@ Rails.application.routes.draw do
   end
 
   get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
-
-  resources :general_inventory do
-    post 'pre_packing'
-    collection do
-      get 'print_pre_packed(/:id)', action: :print_pre_packed
-      get 'list'
-      post 'merge'
-    end
-  end
 
   resources :requests do
     member do

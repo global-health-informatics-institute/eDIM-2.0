@@ -26,7 +26,7 @@ class GeneralInventory < ActiveRecord::Base
   end
 
   def self.void_item(bottle_id)
-    item = GeneralInventory.find_by(id: bottle_id)
+    item = GeneralInventory.find_by(gn_inventory_id: bottle_id)
     return false if item.blank?
 
     item.update(voided: true, void_reason: "Unspecified")
