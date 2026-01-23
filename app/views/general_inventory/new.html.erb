@@ -14,7 +14,15 @@
   <%= hidden_field_tag "general_inventory[mode]", "add" %>
 
   <table cellpadding=10>    <tr>      <td>Drug Category</td>      <td><% categories_to_show = @available_categories %><select style='width: 100%;' name='general_inventory[drug_category]' id='drug_category' helptext="<%= t('forms.labels.drug_category') %>" doublepane="false">  <% (categories_to_show ||[]).each do| option | %><option value="<%= option %>"><%= option.titleize %></option><% end %></select>  </td>    </tr>    <tr>  <td>Drug Name</td><td><%= text_field_tag "general_inventory[drug_name]", params[:drug_name], id: 'drug_name', ajaxURL: '/drug/search?filter_value=', field_type: 'alpha', helpText: t('forms.labels.select_drug_name'), allowFreeText: false, tt_onLoad: "set_ajaxURL_for_suggestions('/drug/search?filter_value=', document.getElementById('drug_category').value);" %></td></tr>  <tr>  <td>Expiry Date</td>  <td><%= text_field_tag "general_inventory[expiry_date]", Date.today.strftime("%Y-%m-%d"), id: 'expiry_date', field_type: 'date', helpText: t('forms.labels.expiry_date'), maxDate: Date.today + 20 * 365, minDate: Date.today, tt_pageStyleClass: "Date DatesOnly" %></td></tr>  <tr>  <td>Amount Received</td>  <td><%= text_field_tag "general_inventory[amount_received]", nil, id: 'amount_received', field_type: 'number', helpText: t('forms.labels.amount_received'), tt_pageStyleClass: "NumbersOnly" %></td></tr>  <tr>  <td>More Items</td>  <td><%= select_tag "general_inventory[more_items]", options_for_select(['Yes', 'No'], nil), id: 'more_items', class: 'input_cell', helpText: t('forms.labels.more_items_of_type'), required: true %></td></tr>  <tr>  <td>Number of items</td>  <td><%= text_field_tag "general_inventory[number_of_items]", nil, id: 'number_of_items', field_type: 'number', helpText: t('forms.labels.number_of_items'), condition: '$("more_items").value == "Yes"', tt_pageStyleClass: "NumbersOnly" %></td></tr></table><%= submit_tag value: "Submit", id: "submit-button" %><% end %>
-
+<!-- keypad search styles -->
+<style>
+    #keypad { position: fixed; left: 0; right: 0; bottom: 0; background: #eaf1f5; z-index: 4000; padding: 10px; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); }
+    #keypad .keypad { display:flex; flex-direction:column; gap:8px; align-items:center; }
+    #keypad .key-row { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%; }
+    #keypad .keyboardButton { min-width:56px; min-height:56px; padding:8px 12px; font-size:35px; border-radius:8px; border:none; background:#fff; color:#111; touch-action:manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.08); }
+    #keypad .keyboardButton.special { min-width:96px; background:#e9ecef; }
+    #keypad .keyboardButton:active { transform: translateY(1px); }
+</style>
 <script>
 // Category search functionality for touch interface
   function filterCategories() {
@@ -45,18 +53,12 @@
 
   // Function to inject search bar into touch interface
   function injectSearchBar() {
+  if (document.getElementById('category_search')) return;
 
-  // Check if search bar already exists
-  if (document.getElementById('category_search')) {
-  return;
-  }
-
-  // Find the touch interface container
   const touchPage = document.querySelector('#tt_page_drug_category .inputPage2');
   const inputFrame = document.querySelector('#inputFrame0');
 
   if (touchPage && inputFrame) {
-  // Create search bar container
   const searchContainer = document.createElement('div');
   searchContainer.style.cssText = `
   width: 100%;
@@ -67,7 +69,6 @@
   box-sizing: border-box;
   `;
 
-  // Create search input
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
   searchInput.id = 'category_search';
@@ -82,10 +83,19 @@
   outline: none;
   `;
 
-  // Add focus styling
+  // TST attributes to initialize keypad behavior
+  searchInput.setAttribute('field_type', 'alpha');
+  searchInput.setAttribute('tt_pageStyleClass', 'Alpha');
+  searchInput.setAttribute('helptext', 'Tap letters to search categories');
+
   searchInput.addEventListener('focus', function() {
   this.style.borderColor = '#007bff';
   this.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.25)';
+  try {
+  window.tstCurrentPage = window.tstCurrentPage || 0;
+  window['touchscreenInput' + tstCurrentPage] = this;
+  if (typeof listSuggestions === 'function') listSuggestions(tstCurrentPage);
+  } catch (e) { console.log('TST attach failed:', e); }
   });
 
   searchInput.addEventListener('blur', function() {
@@ -93,23 +103,145 @@
   this.style.boxShadow = 'none';
   });
 
-  // Add search functionality
   searchInput.addEventListener('input', filterCategories);
   searchInput.addEventListener('keyup', filterCategories);
 
-  // Assemble and inject
   searchContainer.appendChild(searchInput);
   inputFrame.insertBefore(searchContainer, inputFrame.firstChild);
-
   console.log('Search bar injected successfully');
+
+  attachTouchKeypad();
   }
   }
+
+  injectSearchBar();
+
+  function attachTouchKeypad() {
+  const searchInput = document.getElementById('category_search');
+  if (!searchInput) return;
+
+  let keypadWrap = document.getElementById('keypad');
+  if (!keypadWrap) {
+  keypadWrap = document.createElement('div');
+  keypadWrap.id = 'keypad';
+
+  keypadWrap.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:4000;display:none;';
+  const inner = document.createElement('div');
+  inner.className = 'keypad';
+  keypadWrap.appendChild(inner);
+  document.body.appendChild(keypadWrap);
+  }
+  const keypad = keypadWrap.querySelector('.keypad');
+
+  if (!keypad.dataset.built) {
+  const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+  rows.forEach(rowStr => {
+  const row = document.createElement('div');
+  row.className = 'key-row';
+  Array.from(rowStr).forEach(ch => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'keyboardButton';
+  btn.textContent = ch;
+  btn.setAttribute('aria-label', 'Key ' + ch);
+  btn.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  insertAtCaret(searchInput, ch);
+  searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  row.appendChild(btn);
+  });
+  keypad.appendChild(row);
+  });
+
+  const specialRow = document.createElement('div');
+  specialRow.className = 'key-row';
+
+  const back = document.createElement('button');
+  back.type = 'button';
+  back.className = 'keyboardButton special';
+  back.textContent = '⌫';
+  back.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  searchInput.value = removeAtCaret(searchInput);
+  searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  specialRow.appendChild(back);
+
+  const space = document.createElement('button');
+  space.type = 'button';
+  space.className = 'keyboardButton special';
+  space.textContent = 'Space';
+  space.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  insertAtCaret(searchInput, ' ');
+  searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  specialRow.appendChild(space);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'keyboardButton special';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  hideKeypad();
+  });
+  specialRow.appendChild(closeBtn);
+
+  keypad.appendChild(specialRow);
+  keypad.dataset.built = '1';
+  }
+
+  function showKeypad() {
+  searchInput.readOnly = true;
+  keypadWrap.style.display = 'block';
+  try { searchInput.focus(); } catch (e) {}
+  }
+  function hideKeypad() {
+  keypadWrap.style.display = 'none';
+  searchInput.readOnly = false;
+  try { searchInput.blur(); } catch (e) {}
+  }
+
+  function insertAtCaret(el, text) {
+  const start = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length;
+  const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : start;
+  el.value = el.value.slice(0, start) + text + el.value.slice(end);
+  const pos = start + text.length;
+  try { el.setSelectionRange(pos, pos); } catch (e) {}
+  }
+  function removeAtCaret(el) {
+  const start = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length;
+  const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : start;
+  if (start === end && start > 0) return el.value.slice(0, start - 1) + el.value.slice(end);
+  return el.value.slice(0, start) + el.value.slice(end);
+  }
+
+  searchInput.addEventListener('pointerdown', function(e) {
+  e.preventDefault();
+  showKeypad();
+  });
+  searchInput.addEventListener('focus', showKeypad);
+
+  document.addEventListener('pointerdown', function(e) {
+  const outside = !e.target.closest('#keypad') && e.target !== searchInput;
+  if (outside) hideKeypad();
+  });
+
+  document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') hideKeypad();
+  });
+
+  keypadWrap.style.display = 'none';
+  }
+
   //asnyc function to allow drugcategory select option list and inject search bar load at the same time to reduce delay
 
   async function loadCategoryAndSearchBar() {
   //error  handling for debugging
   try {
-  await waitForTSTPage('#tt_page_drug_category');  // Fixed selector
+  await waitForTSTPage('#tt_page_drug_category');
   injectSearchBar();
   console.log('Category select options loaded and search bar injected');
   } catch (e) {
@@ -335,6 +467,7 @@
   fetchAvailableFor(drugInput.value);
   }
   })();
+
 </script>
 
 <script>
