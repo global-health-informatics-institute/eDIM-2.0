@@ -70,8 +70,8 @@ function showInventoryAlertPanel(data) {
   // Filter and prepare slides
   const nearExpiry = (data.near_expiry || []).filter(i => i.days_left > 0);
   const expired    = (data.near_expiry || []).filter(i => i.days_left <= 0);
-  const lowStock   = (data.low_stock || []).filter(i => i.remaining > 0);
-  const prepacks   = (data.prepacks_low || []).filter(i => i.remaining_packs > 0);
+  const lowStock   = (data.low_stock || []);
+  const prepacks   = (data.prepacks_low || []);
 
   if (expired.length) {
     alertSlides.push(...createSlide('Expired!', expired, '#d9534f'));

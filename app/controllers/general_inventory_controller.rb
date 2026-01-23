@@ -3,12 +3,19 @@ class GeneralInventoryController < ApplicationController
   def index
     location_id = session[:location]
 
+    # Get drugs that have inventory
+    drug_ids_with_stock = GeneralInventory
+                           .where(voided: false, location_id: location_id)
+                           .where('current_quantity > 0')
+                           .distinct
+                           .pluck(:drug_id)
+
+    # Get aggregated data for each drug
     @inventory = GeneralInventory
-                  .where(voided: false, location_id: location_id)
-                  .joins(:drug => :drug_category)       # eager load
-                  .select('general_inventories.*, drugs.name AS drug_name, drug_categories.category AS drug_category_name')
-                  .group('general_inventories.drug_id')
-                  .having('SUM(general_inventories.current_quantity) > 0')
+                  .where(voided: false, location_id: location_id, drug_id: drug_ids_with_stock)
+                  .joins(:drug => :drug_category)
+                  .group('general_inventories.drug_id, drugs.name, drug_categories.category')
+                  .select('general_inventories.drug_id, drugs.name AS drug_name, drug_categories.category AS drug_category_name, SUM(general_inventories.current_quantity) AS current_quantity')
   end
 
   def edit

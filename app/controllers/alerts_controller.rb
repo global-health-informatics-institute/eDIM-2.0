@@ -3,18 +3,26 @@ class AlertsController < ApplicationController
     location_id = session[:location] || User.current.location_id
     today = Date.current
 
+    # Low stock items
     low_stock = GeneralInventory
       .where(location_id: location_id)
-      .where("current_quantity <= COALESCE(reorder_level, 10)")
+      .where("current_quantity > 0 AND current_quantity <= COALESCE(reorder_level, 10)")
+      .where(voided: false)
+      .includes(:drug)
 
+    # Near expiry items
     near_expiry = GeneralInventory
       .where(location_id: location_id)
       .where.not(expiration_date: nil)
       .where(expiration_date: today..(today + 30.days))
+      .where("current_quantity > 0")
+      .where(voided: false)
+      .includes(:drug)
 
+    # Prepacks with low stock
     prepacks_low = Prepack
       .where(location_id: location_id, voided: 0, deleted: 0)
-      .where("current_num_packs <= ?", 5)
+      .where("current_num_packs > 0 AND current_num_packs <= ?", 5)
       .includes(:drug)
 
     render json: {
