@@ -1,24 +1,25 @@
 class DrugController < ApplicationController
 
   def search
-    category = DrugCategory.find_by_category(params[:filter_value])
-    return render html: "".html_safe if category.nil?
+  clean_filter = params[:filter_value]&.strip
+  return render html: "".html_safe if clean_filter.blank?
 
-    # For both dispensary add and backstore add: return all drugs in the category
-    drugs = Drug.where(voided: false, drug_category_id: category.id)
+  # ✅ FIX: Try ID first (your JS sends IDs), then name
+  category = DrugCategory.find_by(drug_category_id: clean_filter.to_i) ||
+             DrugCategory.find_by("LOWER(category) LIKE ?", "%#{clean_filter.downcase}%")
+             
+  return render html: "".html_safe if category.nil?
 
-    if params[:search_string].present?
-      drugs = drugs.where("drugs.name LIKE ?", "%#{params[:search_string]}%")
-    end
-
-    drug_items = drugs.map do |v|
-      "<li value='#{v.name}'>#{v.name}</li>"
-    end
-
-    render html: drug_items.join('').html_safe
+  drugs = Drug.where(voided: false, drug_category_id: category.id)
+  if params[:search_string].present?
+    drugs = drugs.where("drugs.name LIKE ?", "%#{params[:search_string]}%")
   end
 
-  private
+  drug_items = drugs.map { |v| "<li value='#{v.id}'>#{v.name}</li>" }
+  render html: drug_items.join('').html_safe
+end
+
+
 
   # Detect dispensary
   def in_dispensary?
