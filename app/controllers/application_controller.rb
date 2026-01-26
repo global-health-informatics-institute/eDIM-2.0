@@ -1,6 +1,5 @@
 class ApplicationController < ActionController::Base
   # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
   before_action :check_logged_in, unless: :exempted_routes
   helper_method :current_user
@@ -15,7 +14,7 @@ class ApplicationController < ActionController::Base
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Printing...</title>
+        <titles style="font-size: 1.7rem;">Printing label ...</title>
         <meta charset="UTF-8">
       </head>
       <body>
@@ -24,7 +23,7 @@ class ApplicationController < ActionController::Base
         <script type="text/javascript">
           setTimeout(function() {
             window.location = "#{@redirect_url}";
-          }, 1000); // adjust delay if needed
+          }, 1000);
         </script>
       </body>
       </html>

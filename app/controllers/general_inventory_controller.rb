@@ -367,13 +367,13 @@ class GeneralInventoryController < ApplicationController
           label.update!(
             dispensed: 1,
             patient_id: patient_id,
-            dispensed_by: User.current.id
+            dispensed_by: User.current.id,
+            date_dispensed: Time.current
           )
 
           if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
             prepack.update!(
               status: 'dispensed',
-              dispensed_at: Time.current,
               location_id: prepack.location_id || session[:location]
             )
           end
@@ -399,7 +399,7 @@ class GeneralInventoryController < ApplicationController
     end
 
     # Regular bottle scan
-    # Find the best available entry (earliest expiration with stock, or sum total if needed)
+    # Find the best available entry
     entries = GeneralInventory.includes(:drug).where(
       gn_identifier: scanned,
       location_id: session[:location],
@@ -407,7 +407,7 @@ class GeneralInventoryController < ApplicationController
     ).where('current_quantity > 0')
 
     if entries.empty?
-      # Check if there are any entries at all (even with 0 quantity)
+      # Check if there are any entries at all
       any_entry = GeneralInventory.includes(:drug).find_by(
         gn_identifier: scanned,
         location_id: session[:location],
@@ -560,11 +560,12 @@ class GeneralInventoryController < ApplicationController
 
   def damage_item
     damage_type = params[:damage_type].to_s.downcase
+    prepack_id = params[:prepack_id]
 
-    if damage_type == "pack"
-      # Pack damage should require a valid prepack ID
+    if prepack_id.present?
+      # We're dealing with prepack damage (either pack or bottle damage from prepack page)
       prepack = Prepack.find_by(
-        id: params[:prepack_id],
+        id: prepack_id,
         location_id: session[:location] || User.current.location_id,
         voided: 0,
         deleted: 0
@@ -580,7 +581,7 @@ class GeneralInventoryController < ApplicationController
         render json: { success: false, message: "Inventory item not found" }, status: 404 and return
       end
     else
-      # Bottle damage require a general inventory ID
+      # Regular bottle damage from general inventory page
       item = GeneralInventory.find_by(gn_inventory_id: params[:id])
       unless item
         render json: { success: false, message: "Inventory item not found" }, status: 404 and return
@@ -595,14 +596,8 @@ class GeneralInventoryController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
-      if damage_type == "bottle"
-        if qty > item.current_quantity
-          render json: { success: false, message: "Quantity exceeds available stock" } and return
-        end
-
-        item.update!(current_quantity: item.current_quantity - qty)
-      else
-        # handle pack damage (your existing code)
+      if damage_type == "pack" && prepack.present?
+        # Pack damage - void prepack labels
         labels = PrepackLabel.where(prepack_id: prepack.id, voided: 0, deleted: 0, dispensed: 0)
                               .order(:id).limit(qty)
 
@@ -615,6 +610,13 @@ class GeneralInventoryController < ApplicationController
         current_num_packs_value = prepack.current_num_packs.nonzero? || prepack.num_packs
         prepack.update!(current_num_packs: current_num_packs_value - qty,
                         total_quantity: prepack.total_quantity - total_units_lost)
+      else
+        # Bottle damage - reduce inventory quantity
+        if qty > item.current_quantity
+          render json: { success: false, message: "Quantity exceeds available stock" } and return
+        end
+
+        item.update!(current_quantity: item.current_quantity - qty)
       end
 
       damage_params = {

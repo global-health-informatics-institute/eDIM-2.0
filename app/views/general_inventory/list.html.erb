@@ -161,115 +161,156 @@
   </button>
 </div>
 
-  <!-- DAMAGE MODAL -->
+  <!-- IMPROVED DAMAGE MODAL FOR TOUCHSCREENS -->
   <div id="styledDamageModal" 
-      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
               z-index:9999; align-items:center; justify-content:center;
-              opacity:0; transition:opacity 0.25s ease;">
+              opacity:0; transition:opacity 0.3s ease;">
     
     <div id="styledDamageModalContent"
-        style="width:550px; background:#fff; padding:28px; border-radius:14px;
-                box-shadow:0 12px 40px rgba(0,0,0,0.25); transform:scale(0.92);
-                transition:transform 0.25s ease;">
+        style="width:650px; max-width:90vw; background:#fff; padding:32px; border-radius:16px;
+                box-shadow:0 20px 60px rgba(0,0,0,0.3); transform:scale(0.95);
+                transition:transform 0.3s ease; max-height:90vh; overflow-y:auto;">
       
       <!-- Header -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-        <h2 style="margin:0; font-size:1.6rem; color:#d9534f; font-weight:700;">
+      <div style="text-align:center; margin-bottom:24px; padding-bottom:16px; 
+                  border-bottom:2px solid #e9ecef;">
+        <h2 style="margin:0; font-size:2.2rem; color:#d9534f; font-weight:700;">
           Record Damage
         </h2>
-        <img src="/assets/damage.png" 
-            style="width:56px; height:56px; object-fit:contain;">
       </div>
 
-      <!-- Drug info -->
-      <div style="background:#f1f3f5; border:1px solid #d7dde3; padding:14px; 
-                  border-radius:10px; margin-bottom:24px;">
-        <p style="margin:0; font-size:1.3rem; font-weight:600;">
-          Drug: <span id="styledDamageDrugName" style="color:#006495;"></span>
-        </p>
-        <p style="margin:4px 0 0 0; font-size:1.1rem; color:#666;">
-          Inventory #: <span id="styledDamageInventoryNumber" style="font-weight:600;"></span>
-        </p>
-        <p style="margin:4px 0 0 0; font-size:1.1rem; color:#666;">
-          Max Available: <span id="styledDamageMaxQuantity" style="font-weight:600;"></span>
-        </p>
+      <!-- Drug Info Card -->
+      <div style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+                  border:2px solid #dee2e6; padding:20px; border-radius:12px; 
+                  margin-bottom:28px; text-align:center;">
+        <div style="font-size:1.8rem; font-weight:700; color:#495057; margin-bottom:8px;">
+          <span id="styledDamageDrugName" style="color:#006495;"></span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:12px;">
+          <div style="text-align:left;">
+            <div style="font-size:1.2rem; color:#6c757d;">Inventory #</div>
+            <div style="font-size:1.4rem; font-weight:600; color:#495057;">
+              <span id="styledDamageInventoryNumber"></span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:1.2rem; color:#6c757d;">Available</div>
+            <div style="font-size:1.4rem; font-weight:600; color:#28a745;">
+              <span id="styledDamageMaxQuantity"></span> units
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Quantity -->
-      <div style="margin-bottom:18px; width:100%;">
-        <label style="display:block; margin-bottom:8px; font-size:1.5rem; font-weight:600;">
-          Quantity Damaged
-        </label>
+      <!-- Quantity Section -->
+      <div style="margin-bottom:28px;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <label style="font-size:1.8rem; font-weight:700; color:#495057;">
+            Quantity Damaged
+          </label>
+        </div>
         
-        <div style="display:flex; align-items:center; gap:6px; width:100%;">
+        <!-- Quantity Input with Large Controls -->
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px;">
+          <button type="button" id="styledDamageDecreaseBtn"
+                  style="width:60px; height:60px; border:none; border-radius:12px;
+                        background:#dc3545; color:white; font-size:2.5rem; font-weight:700;
+                        cursor:pointer; display:flex; align-items:center; justify-content:center;
+                        box-shadow:0 4px 12px rgba(220,53,69,0.3); user-select:none;
+                        line-height:1; vertical-align:middle;">
+            −
+          </button>
+
           <input type="number" 
                 id="styled_damage_qty" 
                 min="0" 
                 value="0"
-                style="flex:1; min-width:100px; max-width:130px; padding:12px; font-size:1.5rem;
-                        border-radius:8px; border:2px solid #d0d7de; outline:none; 
-                        text-align:center; box-sizing:border-box;
-                        -moz-appearance:textfield; appearance:textfield;"
-                onfocus="this.style.borderColor='#006495'"
-                onblur="this.style.borderColor='#d0d7de'">
+                style="width:120px; height:60px; padding:0; font-size:2.2rem; font-weight:700;
+                        border-radius:12px; border:3px solid #006495; outline:none; 
+                        text-align:center; box-sizing:border-box; color:#495057;
+                        -moz-appearance:textfield; appearance:textfield; line-height:54px;">
 
-          <button type="button" id="styledDamageDecreaseBtn">−</button>
-
-          <button type="button" id="styledDamageIncreaseBtn">+</button>
-
-          <button type="button" id="styledDamageClearBtn">Clear</button>
+          <button type="button" id="styledDamageIncreaseBtn"
+                  style="width:60px; height:60px; border:none; border-radius:12px;
+                        background:#28a745; color:white; font-size:2.5rem; font-weight:700;
+                        cursor:pointer; display:flex; align-items:center; justify-content:center;
+                        box-shadow:0 4px 12px rgba(40,167,69,0.3); user-select:none;
+                        line-height:1; vertical-align:middle;">
+            +
+          </button>
         </div>
 
-        <div style="text-align:center; margin-top:8px;">
-          <span style="font-size:1.1rem; color:#6c757d; font-style:italic;">
-            Tap and hold +/− for fast counting
-          </span>
-        </div>
-      </div>
-
-        <!-- QUICK SELECT BUTTONS -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+        <!-- Quick Select Buttons -->
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:16px;">
           <button type="button" class="styled-quick-select-btn" data-value="0" 
                   onclick="setStyledQuickSelectValue(0)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+                        cursor:pointer; min-height:55px; user-select:none;
+                        display:flex; align-items:center; justify-content:center;
+                        line-height:1; vertical-align:middle;">
             0
           </button>
           <button type="button" class="styled-quick-select-btn" data-value="10" 
                   onclick="setStyledQuickSelectValue(10)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+                        cursor:pointer; min-height:55px; user-select:none;
+                        display:flex; align-items:center; justify-content:center;
+                        line-height:1; vertical-align:middle;">
             10
           </button>
           <button type="button" class="styled-quick-select-btn" data-value="100" 
                   onclick="setStyledQuickSelectValue(100)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+                        cursor:pointer; min-height:55px; user-select:none;
+                        display:flex; align-items:center; justify-content:center;
+                        line-height:1; vertical-align:middle;">
             100
           </button>
           <button type="button" class="styled-quick-select-btn" data-value="1000" 
                   onclick="setStyledQuickSelectValue(1000)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+                        cursor:pointer; min-height:55px; user-select:none;
+                        display:flex; align-items:center; justify-content:center;
+                        line-height:1; vertical-align:middle;">
             1000
           </button>
         </div>
 
-      <!-- Reason -->
-      <div style="margin-bottom:24px; width:100%;">
-        <label style="display:block; margin-bottom:8px; font-size:1.2rem; font-weight:600;">
-          Reason
+        <!-- Clear Button -->
+        <div style="text-align:center;">
+          <button type="button" id="styledDamageClearBtn"
+                  style="padding:12px 24px; border:2px solid #6c757d; border-radius:10px;
+                        background:white; color:#6c757d; font-size:1.3rem; font-weight:600;
+                        cursor:pointer; user-select:none;
+                        display:inline-flex; align-items:center; justify-content:center;
+                        line-height:1; vertical-align:middle; min-height:48px;">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Reason Section -->
+      <div style="margin-bottom:32px;">
+        <label style="display:block; text-align:center; margin-bottom:12px; 
+                      font-size:1.8rem; font-weight:700; color:#495057;">
+          Reason for Damage
         </label>
         <select id="styled_damage_reason"
-                style="width:100%; padding:12px; font-size:1.5rem; border-radius:8px;
-                      border:2px solid #d0d7de; outline:none;
-                      transition:border-color 0.2s ease;"
-                onfocus="this.style.borderColor='#006495'"
-                onblur="this.style.borderColor='#d0d7de'">
+                style="width:100%; padding:16px 60px 16px 16px; font-size:1.6rem; border-radius:12px;
+                      border:3px solid #006495; outline:none; background:white;
+                      color:#495057; font-weight:600; min-height:60px;
+                      background-image:linear-gradient(45deg, transparent 50%, #495057 50%), linear-gradient(135deg, #495057 50%, transparent 50%);
+                      background-position:calc(100% - 25px) calc(1em + 2px), calc(100% - 20px) calc(1em + 2px);
+                      background-size:5px 5px, 5px 5px;
+                      background-repeat:no-repeat;
+                      -webkit-appearance:none;
+                      -moz-appearance:none;
+                      appearance:none;">
           <option value="broken">Broken / Dropped</option>
           <option value="expired">Expired</option>
           <option value="contaminated">Contaminated</option>
@@ -277,35 +318,30 @@
         </select>
       </div>
 
-      <!-- Buttons -->
-      <div style="display:flex; justify-content:flex-start; gap:16px;">
+      <!-- Action Buttons -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
         <button onclick="submitStyledDamage()"
-                style="padding:12px 22px; border:none; border-radius:8px;
-                      background:#d9534f; color:#fff; font-size:1.25rem; font-weight:600;
-                      cursor:pointer; transition:all 0.2s ease;
+                style="padding:18px 24px; border:none; border-radius:12px;
+                      background:#d9534f; color:white; font-size:1.6rem; font-weight:700;
+                      cursor:pointer; min-height:65px; user-select:none;
+                      box-shadow:0 6px 20px rgba(217,83,79,0.3);
                       display:flex; align-items:center; justify-content:center;
-                      line-height:1.2; text-align:center;"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
+                      line-height:1; vertical-align:middle;">
           Log Damage
         </button>
 
         <button onclick="closeStyledDamageModal()"
-                style="padding:12px 22px; border:none; border-radius:8px;
-                      background:#6c757d; color:#fff; font-size:1.15rem; font-weight:600;
-                      cursor:pointer; transition:all 0.2s ease;
+                style="padding:18px 24px; border:2px solid #6c757d; border-radius:12px;
+                      background:white; color:#6c757d; font-size:1.6rem; font-weight:700;
+                      cursor:pointer; min-height:65px; user-select:none;
                       display:flex; align-items:center; justify-content:center;
-                      line-height:1.2; text-align:center;"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
+                      line-height:1; vertical-align:middle;">
           Cancel
         </button>
       </div>
 
     </div>
   </div>
-  
-  <!-- MODAL  -->
   <div id="damageModal" 
        style="display:none; position:fixed; top:20vh; left:25vw; width:50vw; 
               background:white; border:3px solid #000; padding:2vw; z-index:9999;">
@@ -443,12 +479,6 @@ function updateStyledQuickSelectButtons() {
   const maxAllowed = parseInt(input.max, 10) || Infinity;
   const currentValue = parseInt(input.value, 10) || 0;
 
-  console.log("updateStyledQuickSelectButtons:", {
-    currentValue,
-    maxAllowed,
-    buttonsCount: buttons.length
-  });
-
   buttons.forEach(btn => {
     const value = parseInt(btn.dataset.value, 10);
 
@@ -461,12 +491,16 @@ function updateStyledQuickSelectButtons() {
       // Highlight if this button matches current input value
       if (value === currentValue) {
         btn.style.background = '#006495';
+        btn.style.borderColor = '#006495';
         btn.style.color = 'white';
-        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.3)';
+        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
+        btn.style.transform = 'translateY(-2px)';
       } else {
-        btn.style.background = '#e9ecef';
+        btn.style.background = '#f8f9fa';
+        btn.style.borderColor = '#dee2e6';
         btn.style.color = '#495057';
         btn.style.boxShadow = 'none';
+        btn.style.transform = 'translateY(0)';
       }
     }
   });
@@ -477,9 +511,25 @@ function setStyledQuickSelectValue(value) {
   if (!input) return;
 
   const max = parseInt(input.max, 10) || Infinity;
+  const currentValue = parseInt(input.value, 10) || 0;
   
-  if (value <= max) {
-    input.value = value;
+  // If clicking the same button that's currently selected, add to the value
+  // Otherwise, set the value directly
+  let newValue;
+  if (currentValue > 0 && currentValue % value === 0) {
+    // Current value is a multiple of the button value, so add to it
+    newValue = currentValue + value;
+  } else {
+    // Set to the button value directly
+    newValue = value;
+  }
+  
+  // Respect the maximum limit
+  if (newValue <= max) {
+    input.value = newValue;
+  } else {
+    // If adding would exceed max, set to max
+    input.value = max;
   }
   
   // Update button highlights
@@ -488,9 +538,12 @@ function setStyledQuickSelectValue(value) {
 
 function disableStyledQuickButton(btn) {
   btn.disabled = true;
-  btn.style.opacity = '0.4';
+  btn.style.opacity = '0.3';
   btn.style.cursor = 'not-allowed';
   btn.style.pointerEvents = 'none';
+  btn.style.background = '#e9ecef';
+  btn.style.borderColor = '#dee2e6';
+  btn.style.color = '#6c757d';
 }
 
 function enableStyledQuickButton(btn) {
@@ -517,12 +570,16 @@ function updateStyledQuickSelectButtonHighlight(selectedValue) {
     // Highlight if this button matches the current input value
     if (buttonValue === currentValue) {
       btn.style.background = '#006495';
+      btn.style.borderColor = '#006495';
       btn.style.color = 'white';
-      btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.3)';
+      btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
+      btn.style.transform = 'translateY(-2px)';
     } else {
-      btn.style.background = '#e9ecef';
+      btn.style.background = '#f8f9fa';
+      btn.style.borderColor = '#dee2e6';
       btn.style.color = '#495057';
       btn.style.boxShadow = 'none';
+      btn.style.transform = 'translateY(0)';
     }
   });
 }

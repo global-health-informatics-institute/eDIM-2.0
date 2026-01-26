@@ -1,60 +1,129 @@
-<div style="height: 8vh;border: 1px inset black; border-width: 0px 0px 3px 0px;">
-  <h1 style="margin-left: 2vw;"><%= t('menu.terms.settings') %></h1>
+<style>
+.settings-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.settings-card:active {
+  background: #f0f8ff;
+  border-color: #4CAF50;
+  transform: scale(0.98);
+}
+
+.settings-icon {
+  margin-bottom: 12px;
+}
+
+.settings-icon img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.settings-label {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.3;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .settings-card {
+    min-height: 120px;
+    padding: 15px;
+  }
+  
+  .settings-icon img {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .settings-label {
+    font-size: 1em;
+  }
+}
+</style>
+
+<div style="height: 8vh; border-bottom: 3px solid #ccc; background: #f8f9fa; display: flex; align-items: center;">
+  <h1 style="margin-left: 2vw; color: #333; font-size: 2.2em;"><%= t('menu.terms.settings') %></h1>
 </div>
 
-<div style="height: 60vh;">
-  <div style="display: table; padding-top: 10px;padding-left: 10px;margin-left: auto;margin-right: auto;">
-    <div style="display: table-row">
-      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/user/<%= User.current.id%>/edit?section=password'">
-        <img src="/assets/change_password.png">
+<div style="padding: 20px; min-height: 60vh;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto;">
+    
+    <div class="settings-card" onclick="window.location='/user/<%= User.current.id%>/edit?section=password'">
+      <div class="settings-icon">
+        <img src="/assets/change_password.png" alt="Change Password">
       </div>
-      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/user/<%= User.current.id%>/edit?section=language_preference'">
-        <img src="/assets/change_language.png">
-      </div>
-      <% if ['administrator', 'superuser', 'system developer', 'pharmacist'].include? User.current.role.downcase %>
-        <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/drug'">
-          <img src="/assets/drugs_list.png">
-        </div>
-      <% end %>
-      <% if ['administrator', 'superuser', 'system developer'].include? User.current.role.downcase %>
-        <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/user'">
-          <img src="/assets/user_edit.png">
-        </div>
-      <% end %>
-      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/locations/new'">
-        <img src="/assets/add_location.png">
-      </div>
-      <div style="display: table-cell;width: 15vw;text-align: center;" onmousedown="window.location='/locations'">
-        <img src="/assets/print_location.png">
-      </div>
-    </div>
-    <div style="display: table-row">
-      <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/user/<%= User.current.id%>/edit?section=password'">
+      <div class="settings-label">
         <%= t('forms.buttons.change_password')%>
       </div>
-      <div style="display: table-cell;text-align: center;font-size: 1.4em;"
-           onmousedown="window.location='/user/<%= User.current.id%>/edit?section=language_preference'">
+    </div>
+
+    <div class="settings-card" onclick="window.location='/user/<%= User.current.id%>/edit?section=language_preference'">
+      <div class="settings-icon">
+        <img src="/assets/change_language.png" alt="Change Language">
+      </div>
+      <div class="settings-label">
         <%= t('menu.terms.change_language')%>
       </div>
-      <% if ['administrator', 'superuser', 'system developer', 'pharmacist'].include? User.current.role.downcase %>
-        <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/drug'">
+    </div>
+
+    <% if ['administrator', 'superuser', 'system developer', 'pharmacist'].include? User.current.role.downcase %>
+      <div class="settings-card" onclick="window.location='/drug'">
+        <div class="settings-icon">
+          <img src="/assets/drugs_list.png" alt="Manage Drugs">
+        </div>
+        <div class="settings-label">
           <%= t('menu.terms.manage_drugs')%>
         </div>
-      <% end %>
-      <% if ['administrator', 'superuser', 'system developer'].include? User.current.role.downcase %>
-        <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/user'">
+      </div>
+    <% end %>
+
+    <% if ['administrator', 'superuser', 'system developer'].include? User.current.role.downcase %>
+      <div class="settings-card" onclick="window.location='/user'">
+        <div class="settings-icon">
+          <img src="/assets/user_edit.png" alt="User Management">
+        </div>
+        <div class="settings-label">
           <%= t('forms.buttons.user_management')%>
         </div>
-      <% end %>
-      <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/locations/new'">
+      </div>
+    <% end %>
+
+    <div class="settings-card" onclick="window.location='/locations/new'">
+      <div class="settings-icon">
+        <img src="/assets/add_location.png" alt="Add Location">
+      </div>
+      <div class="settings-label">
         Add Location
       </div>
-      <div style="display: table-cell;text-align: center;font-size: 1.4em;" onmousedown="window.location='/locations'">
+    </div>
+
+    <div class="settings-card" onclick="window.location='/locations'">
+      <div class="settings-icon">
+        <img src="/assets/print_location.png" alt="Print Location">
+      </div>
+      <div class="settings-label">
         Print Workstation Location
       </div>
     </div>
+
   </div>
 </div>
-<div class="footer" >
-  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 1vw;float: right;"><%= t('forms.buttons.finish')%></button>
+<div class="footer" style="text-align: right; background: #f8f9fa; border-top: 1px solid #e0e0e0;">
+  <button onclick="window.location = '/'" class="nav-bttn green" style="font-size: 32px !important;">
+    <%= t('forms.buttons.finish')%>
+  </button>
 </div>

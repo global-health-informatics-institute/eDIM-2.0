@@ -451,7 +451,8 @@ img[src*="/assets/"] {
                                       '<%= prepack[:id] %>', 
                                       '<%= prepack[:drug_name] %>', 
                                       <%= prepack[:packs_remaining] %>, 
-                                      <%= prepack[:bottle_quantity] || 0 %>
+                                      <%= prepack[:bottle_quantity] || 0 %>,
+                                      <%= prepack[:quantity_per_pack] || 0 %>
                                     )"
                                     onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
@@ -2193,144 +2194,184 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
 
   const modalHTML = `
   <div id="damageModalOverlay"
-       style="position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+       style="position: fixed; inset: 0; background: rgba(0,0,0,0.5);
               z-index: 9999; display: flex; align-items: center; justify-content: center;
-              opacity: 0; transition: opacity 0.25s ease;">
+              opacity: 0; transition: opacity 0.3s ease;">
     
       <div id="damageModal"
-          style="width: 550px; background: #fff; padding: 28px; border-radius: 14px;
-                  box-shadow: 0 12px 40px rgba(0,0,0,0.25); transform: scale(0.92);
-                  transition: transform 0.25s ease;">
+          style="width: 650px; max-width: 90vw; background: #fff; padding: 32px; border-radius: 16px;
+                  box-shadow: 0 20px 60px rgba(0,0,0,0.3); transform: scale(0.95);
+                  transition: transform 0.3s ease; max-height: 90vh; overflow-y: auto;">
         
-      <div style="
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 18px;
-      ">
-        <h2 style="margin: 0; font-size: 1.6rem; color: #d9534f; font-weight: 700;">
+      <!-- Header -->
+      <div style="text-align: center; margin-bottom: 24px; padding-bottom: 16px; 
+                  border-bottom: 2px solid #e9ecef;">
+        <h2 style="margin: 0; font-size: 2.2rem; color: #d9534f; font-weight: 700;">
           Log Damages
         </h2>
-
-        <img src="/assets/damage.png" 
-            style="width: 56px; height: 56px; object-fit: contain;">
       </div>
 
-      <!-- Drug info -->
-      <div style="background: #f1f3f5; border: 1px solid #d7dde3; padding: 14px; 
-                  border-radius: 10px; margin-bottom: 24px;">
-        <p style="margin: 0; font-size: 1.3rem; font-weight: 600;">
-          Drug: <span style="color: #006495;">${drugName}</span>
-        </p>
+      <!-- Drug Info Card -->
+      <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+                  border: 2px solid #dee2e6; padding: 20px; border-radius: 12px; 
+                  margin-bottom: 28px; text-align: center;">
+        <div style="font-size: 1.8rem; font-weight: 700; color: #006495; margin-bottom: 8px;">
+          ${drugName}
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+          <div style="text-align: left;">
+            <div id="leftInfoLabel" style="font-size: 1.2rem; color: #6c757d;">Available Packs</div>
+            <div id="leftInfoValue" style="font-size: 1.4rem; font-weight: 600; color: #28a745;">
+              ${availablePacks} packs
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div id="rightInfoLabel" style="font-size: 1.2rem; color: #6c757d;">Pack Size</div>
+            <div id="rightInfoValue" style="font-size: 1.4rem; font-weight: 600; color: #495057;">
+              ${packSize} units
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Damage Type -->
-      <div style="margin-bottom: 18px; width:95%;">
-        <label style="display:block; margin-bottom:8px; font-size:1.4rem; font-weight:600;">
-          Damage Type
-        </label>
-        <div>
-          <label style="margin-right:16px; font-size:1.4rem;">
-            <input style="width:24px; height:24px; accent-color:#006495;" type="radio" name="damageType" value="pack" checked 
-                   onchange="updateDamageQuantityLabel('pack', ${availablePacks}, ${packSize}, ${bottle_quantity})">
-            Pack
+      <!-- Damage Type Section -->
+      <div style="margin-bottom: 28px;">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <label style="font-size: 1.8rem; font-weight: 700; color: #495057;">
+            Damage Type
           </label>
-          <label style="font-size:1.4rem;">
-            <input style="width:24px; height:24px; accent-color:#006495;" type="radio" name="damageType" value="bottle" 
-                   onchange="updateDamageQuantityLabel('bottle', ${availablePacks}, ${packSize}, ${bottle_quantity})">
-            Bottle
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <label style="display: flex; align-items: center; justify-content: center; 
+                        padding: 16px; border: 2px solid #dee2e6; border-radius: 12px;
+                        background: #f8f9fa; cursor: pointer; font-size: 1.4rem; font-weight: 600;
+                        min-height: 60px; user-select: none;"
+                 onclick="selectDamageType('pack', ${availablePacks}, ${packSize}, ${bottle_quantity})">
+            <input style="width: 20px; height: 20px; margin-right: 12px; accent-color: #006495;" 
+                   type="radio" name="damageType" value="pack" checked id="damageTypePack">
+            Pack Damage
+          </label>
+          <label style="display: flex; align-items: center; justify-content: center; 
+                        padding: 16px; border: 2px solid #dee2e6; border-radius: 12px;
+                        background: #f8f9fa; cursor: pointer; font-size: 1.4rem; font-weight: 600;
+                        min-height: 60px; user-select: none;"
+                 onclick="selectDamageType('bottle', ${availablePacks}, ${packSize}, ${bottle_quantity})">
+            <input style="width: 20px; height: 20px; margin-right: 12px; accent-color: #006495;" 
+                   type="radio" name="damageType" value="bottle" id="damageTypeBottle">
+            Bottle Damage
           </label>
         </div>
       </div>
 
-      <!-- Quantity -->
-      <div style="margin-bottom: 18px; width:100%;">
-        <label id="damageQuantityLabel" style="display: block; margin-bottom: 8px; font-size: 1.5rem; font-weight: 600;">
-          Number of Packs Damaged
-        </label>
+      <!-- Quantity Section -->
+      <div style="margin-bottom: 28px;">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <label id="damageQuantityLabel" style="font-size: 1.8rem; font-weight: 700; color: #495057;">
+            Number of Packs Damaged
+          </label>
+        </div>
         
-        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-        <input type="number" 
-              id="damageQuantity" 
-              min="1" 
-              max="${availablePacks}" 
-              value="1"
-              style="flex: 1; min-width: 60px; max-width: 120px; padding: 12px; font-size: 1.5rem;
-                      border-radius: 8px; border: 2px solid #d0d7de; outline: none; 
-                      text-align: center; box-sizing: border-box;
-                      -moz-appearance: textfield; appearance: textfield;"
-              onfocus="this.style.borderColor='#006495'"
-              onblur="this.style.borderColor='#d0d7de'">
+        <!-- Quantity Input with Large Controls -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px;">
+          <button type="button" id="decreaseBtn"
+                  style="width: 60px; height: 60px; border: none; border-radius: 12px;
+                        background: #dc3545; color: white; font-size: 2.5rem; font-weight: 700;
+                        cursor: pointer; display: flex; align-items: center; justify-content: center;
+                        box-shadow: 0 4px 12px rgba(220,53,69,0.3); user-select: none;
+                        line-height: 1; vertical-align: middle;">
+            −
+          </button>
 
-        <button type="button" id="decreaseBtn"
-                style="width: 50px; height: 55px; border: none; border-radius: 10px;
-                      background: #f8f9fa; color: #dc3545; font-size: 2rem; font-weight: bold;
-                      cursor: pointer; display: flex; align-items: center; justify-content: center;
-                      box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">−</button>
+          <input type="number" 
+                id="damageQuantity" 
+                min="0" 
+                max="${availablePacks}" 
+                value="1"
+                style="width: 120px; height: 60px; padding: 0; font-size: 2.2rem; font-weight: 700;
+                        border-radius: 12px; border: 3px solid #006495; outline: none; 
+                        text-align: center; box-sizing: border-box; color: #495057;
+                        -moz-appearance: textfield; appearance: textfield; line-height: 54px;">
 
-        <button type="button" id="increaseBtn"
-                style="width: 50px; height: 55px; border: none; border-radius: 10px;
-                      background: #f8f9fa; color: #28a745; font-size: 2rem; font-weight: bold;
-                      cursor: pointer; display: flex; align-items: center; justify-content: center;
-                      box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">+</button>
+          <button type="button" id="increaseBtn"
+                  style="width: 60px; height: 60px; border: none; border-radius: 12px;
+                        background: #28a745; color: white; font-size: 2.5rem; font-weight: 700;
+                        cursor: pointer; display: flex; align-items: center; justify-content: center;
+                        box-shadow: 0 4px 12px rgba(40,167,69,0.3); user-select: none;
+                        line-height: 1; vertical-align: middle;">
+            +
+          </button>
+        </div>
 
-        <button type="button" id="clearBtn"
-                style="width: 65px; height: 55px; border: none; border-radius: 10px;
-                      background: #f8f9fa; color: #6c757d; font-size: 1.3rem; font-weight: 600;
-                      cursor: pointer; display: flex; align-items: center; justify-content: center;
-                      box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex: 0 0 auto;">Clear</button>
-      </div>
-
-        <!-- QUICK SELECT BUTTONS -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+        <!-- Quick Select Buttons -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
           <button type="button" class="quick-select-btn" data-value="0" 
                   onclick="setQuickSelectValue(0)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding: 16px 8px; border: 2px solid #dee2e6; border-radius: 10px;
+                        background: #f8f9fa; color: #495057; font-size: 1.4rem; font-weight: 600;
+                        cursor: pointer; min-height: 55px; user-select: none;
+                        display: flex; align-items: center; justify-content: center;
+                        line-height: 1; vertical-align: middle;">
             0
           </button>
           <button type="button" class="quick-select-btn" data-value="10" 
                   onclick="setQuickSelectValue(10)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding: 16px 8px; border: 2px solid #dee2e6; border-radius: 10px;
+                        background: #f8f9fa; color: #495057; font-size: 1.4rem; font-weight: 600;
+                        cursor: pointer; min-height: 55px; user-select: none;
+                        display: flex; align-items: center; justify-content: center;
+                        line-height: 1; vertical-align: middle;">
             10
           </button>
           <button type="button" class="quick-select-btn" data-value="100" 
                   onclick="setQuickSelectValue(100)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding: 16px 8px; border: 2px solid #dee2e6; border-radius: 10px;
+                        background: #f8f9fa; color: #495057; font-size: 1.4rem; font-weight: 600;
+                        cursor: pointer; min-height: 55px; user-select: none;
+                        display: flex; align-items: center; justify-content: center;
+                        line-height: 1; vertical-align: middle;">
             100
           </button>
           <button type="button" class="quick-select-btn" data-value="1000" 
                   onclick="setQuickSelectValue(1000)"
-                  style="padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #e9ecef; color: #495057; font-size: 1.2rem; font-weight: 600;
-                        cursor: pointer; transition: all 0.2s ease; min-width: 70px;">
+                  style="padding: 16px 8px; border: 2px solid #dee2e6; border-radius: 10px;
+                        background: #f8f9fa; color: #495057; font-size: 1.4rem; font-weight: 600;
+                        cursor: pointer; min-height: 55px; user-select: none;
+                        display: flex; align-items: center; justify-content: center;
+                        line-height: 1; vertical-align: middle;">
             1000
           </button>
         </div>
 
-        <div style="text-align: center; margin-top: 8px;">
-          <span style="font-size: 1.1rem; color: #6c757d; font-style: italic;">
-            Tap and hold +/− for fast counting
-          </span>
+        <!-- Clear Button -->
+        <div style="text-align: center;">
+          <button type="button" id="clearBtn"
+                  style="padding: 12px 24px; border: 2px solid #6c757d; border-radius: 10px;
+                        background: white; color: #6c757d; font-size: 1.3rem; font-weight: 600;
+                        cursor: pointer; user-select: none;
+                        display: inline-flex; align-items: center; justify-content: center;
+                        line-height: 1; vertical-align: middle; min-height: 48px;">
+            Clear
+          </button>
         </div>
       </div>
 
-      <!-- Reason -->
-      <div style="margin-bottom: 18px; width:100%;">
-        <label style="display: block; margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">
-          Reason
+      <!-- Reason Section -->
+      <div style="margin-bottom: 32px;">
+        <label style="display: block; text-align: center; margin-bottom: 12px; 
+                      font-size: 1.8rem; font-weight: 700; color: #495057;">
+          Reason for Damage
         </label>
         <select id="damageReason"
-                style="width: 100%; padding: 12px; font-size: 1.5rem; border-radius: 8px;
-                       border: 2px solid #d0d7de; outline: none;
-                       transition: border-color 0.2s ease;"
-                onfocus="this.style.borderColor='#006495'"
-                onblur="this.style.borderColor='#d0d7de'">
+                style="width: 100%; padding: 16px 60px 16px 16px; font-size: 1.6rem; border-radius: 12px;
+                      border: 3px solid #006495; outline: none; background: white;
+                      color: #495057; font-weight: 600; min-height: 60px;
+                      background-image: linear-gradient(45deg, transparent 50%, #495057 50%), linear-gradient(135deg, #495057 50%, transparent 50%);
+                      background-position: calc(100% - 25px) calc(1em + 2px), calc(100% - 20px) calc(1em + 2px);
+                      background-size: 5px 5px, 5px 5px;
+                      background-repeat: no-repeat;
+                      -webkit-appearance: none;
+                      -moz-appearance: none;
+                      appearance: none;">
           <option value="broken">Broken / Dropped</option>
           <option value="expired">Expired</option>
           <option value="contaminated">Contaminated</option>
@@ -2339,27 +2380,25 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
         </select>
       </div>
 
-      <div style="display: flex; justify-content: flex-start; gap: 16px;">
+      <!-- Action Buttons -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
         <button onclick="submitDamageWithValidation('${prepackId}', '${drugName}', ${availablePacks}, ${packSize}, ${bottle_quantity})"
-                style="padding: 12px 22px; border: none; border-radius: 8px;
-                      background: #d9534f; color: #fff; font-size: 1.25rem; font-weight: 600;
-                      cursor: pointer; transition: all 0.2s ease;
+                style="padding: 18px 24px; border: none; border-radius: 12px;
+                      background: #d9534f; color: white; font-size: 1.6rem; font-weight: 700;
+                      cursor: pointer; min-height: 65px; user-select: none;
+                      box-shadow: 0 6px 20px rgba(217,83,79,0.3);
                       display: flex; align-items: center; justify-content: center;
-                      line-height: 1.2; text-align: center;"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#c9302c'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#d9534f'">
+                      line-height: 1; vertical-align: middle;">
           Log Damage
         </button>
 
         <button onclick="closeDamageModal()"
-                style="padding: 12px 22px; border: none; border-radius: 8px;
-                      background: #6c757d; color: #fff; font-size: 1.15rem; font-weight: 600;
-                      cursor: pointer; transition: all 0.2s ease;
+                style="padding: 18px 24px; border: 2px solid #6c757d; border-radius: 12px;
+                      background: white; color: #6c757d; font-size: 1.6rem; font-weight: 700;
+                      cursor: pointer; min-height: 65px; user-select: none;
                       display: flex; align-items: center; justify-content: center;
-                      line-height: 1.2; text-align: center;"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
-          Close
+                      line-height: 1; vertical-align: middle;">
+          Cancel
         </button>
       </div>
 
@@ -2747,6 +2786,66 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, 
   );
 }
 
+// function to handle damage type selection
+function selectDamageType(type, maxPacks, packSize, bottle_quantity) {
+  // Update radio button selection
+  const packRadio = document.getElementById('damageTypePack');
+  const bottleRadio = document.getElementById('damageTypeBottle');
+  
+  if (type === 'pack') {
+    packRadio.checked = true;
+    bottleRadio.checked = false;
+  } else {
+    packRadio.checked = false;
+    bottleRadio.checked = true;
+  }
+  
+  // Update visual styling of the labels
+  const packLabel = packRadio.parentElement;
+  const bottleLabel = bottleRadio.parentElement;
+  
+  if (type === 'pack') {
+    packLabel.style.background = '#e3f2fd';
+    packLabel.style.borderColor = '#006495';
+    packLabel.style.color = '#006495';
+    bottleLabel.style.background = '#f8f9fa';
+    bottleLabel.style.borderColor = '#dee2e6';
+    bottleLabel.style.color = '#495057';
+  } else {
+    bottleLabel.style.background = '#e3f2fd';
+    bottleLabel.style.borderColor = '#006495';
+    bottleLabel.style.color = '#006495';
+    packLabel.style.background = '#f8f9fa';
+    packLabel.style.borderColor = '#dee2e6';
+    packLabel.style.color = '#495057';
+  }
+  
+  // Update the info card content dynamically
+  const leftInfoLabel = document.getElementById('leftInfoLabel');
+  const leftInfoValue = document.getElementById('leftInfoValue');
+  const rightInfoLabel = document.getElementById('rightInfoLabel');
+  const rightInfoValue = document.getElementById('rightInfoValue');
+  
+  if (type === 'pack') {
+    leftInfoLabel.textContent = 'Available Packs';
+    leftInfoValue.innerHTML = `${maxPacks} packs`;
+    leftInfoValue.style.color = '#28a745';
+    rightInfoLabel.textContent = 'Pack Size';
+    rightInfoValue.innerHTML = `${packSize} units`;
+    rightInfoValue.style.color = '#495057';
+  } else {
+    leftInfoLabel.textContent = 'Bottle Quantity';
+    leftInfoValue.innerHTML = `${bottle_quantity} units`;
+    leftInfoValue.style.color = '#28a745';
+    rightInfoLabel.textContent = 'Available Packs';
+    rightInfoValue.innerHTML = `${maxPacks} packs`;
+    rightInfoValue.style.color = '#495057';
+  }
+  
+  // Update the quantity label and limits
+  updateDamageQuantityLabel(type, maxPacks, packSize, bottle_quantity);
+}
+
 // Helper function to update quantity label and max
 function updateDamageQuantityLabel(type, maxPacks, packSize, bottle_quantity) {
   const label = document.getElementById('damageQuantityLabel');
@@ -2784,7 +2883,7 @@ function updateQuickSelectButtons() {
     maxAllowed = parseInt(input.max, 10);
   }
 
-  const currentValue = parseInt(input.value, 10) || 0; // Changed from 1 to 0
+  const currentValue = parseInt(input.value, 10) || 0;
 
   buttons.forEach(btn => {
     const value = parseInt(btn.dataset.value, 10);
@@ -2795,12 +2894,16 @@ function updateQuickSelectButtons() {
       // Highlight if this button matches current input value
       if (value === currentValue) {
         btn.style.background = '#006495';
+        btn.style.borderColor = '#006495';
         btn.style.color = 'white';
-        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.3)';
+        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
+        btn.style.transform = 'translateY(-2px)';
       } else {
-        btn.style.background = '#e9ecef';
+        btn.style.background = '#f8f9fa';
+        btn.style.borderColor = '#dee2e6';
         btn.style.color = '#495057';
         btn.style.boxShadow = 'none';
+        btn.style.transform = 'translateY(0)';
       }
     } else {
       disableQuickButton(btn);
@@ -2810,9 +2913,12 @@ function updateQuickSelectButtons() {
 
 function disableQuickButton(btn) {
   btn.disabled = true;
-  btn.style.opacity = '0.4';
+  btn.style.opacity = '0.3';
   btn.style.cursor = 'not-allowed';
   btn.style.pointerEvents = 'none';
+  btn.style.background = '#e9ecef';
+  btn.style.borderColor = '#dee2e6';
+  btn.style.color = '#6c757d';
 }
 
 function enableQuickButton(btn) {
@@ -2826,11 +2932,30 @@ function setQuickSelectValue(value) {
   const input = document.getElementById('damageQuantity');
   if (!input) return;
 
-  const max = parseInt(input.max, 10);
-
-  if (value <= max) {
-    input.value = value;
+  const max = parseInt(input.max, 10) || Infinity;
+  const currentValue = parseInt(input.value, 10) || 0;
+  
+  // If clicking the same button that's currently selected, add to the value
+  // Otherwise, set the value directly
+  let newValue;
+  if (currentValue > 0 && currentValue % value === 0) {
+    // Current value is a multiple of the button value, so add to it
+    newValue = currentValue + value;
+  } else {
+    // Set to the button value directly
+    newValue = value;
   }
+  
+  // Respect the maximum limit
+  if (newValue <= max) {
+    input.value = newValue;
+  } else {
+    // If adding would exceed max, set to max
+    input.value = max;
+  }
+  
+  // Update button highlights
+  updateQuickSelectButtons();
 }
 
 function setupQuantityControls(maxPacks, bottle_quantity) {

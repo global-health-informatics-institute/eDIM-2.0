@@ -227,31 +227,31 @@ function createButtons() {
     buttonsDiv.style.zIndex = 1;
 
     // Show/Hide Captured Data
-    buttonsDiv.innerHTML = "<button id='showDataButton' class='button blue navButton' onMouseDown='toggleShowProgress()'><span>Show Data</span></button>";
+    buttonsDiv.innerHTML = "<button id='showDataButton' class='button blue navButton' style='font-size: 1.7rem !important; width: 11vw; height: 100px !important; padding: 10px 25px;' onMouseDown='toggleShowProgress()'><span>Show Data</span></button>";
 
     // create next/finish button
-    buttonsDiv.innerHTML += "<button id='nextButton' class='button green navButton' onMouseDown='if(!this.className.match(/gray/)){gotoNextPage()}'><span>" + I18n.t('forms.buttons.next') + "</span></button>";
+    buttonsDiv.innerHTML += "<button id='nextButton' class='button green navButton' style='font-size: 1.7rem !important; width: 11vw; height: 100px !important; padding: 10px 25px;' onMouseDown='if(!this.className.match(/gray/)){gotoNextPage()}'><span>" + I18n.t('forms.buttons.next') + "</span></button>";
 
     // create back button
-    buttonsDiv.innerHTML += "<button id='backButton' class='button blue navButton'><span>" + I18n.t('forms.buttons.back') + "</span></button>";
+    buttonsDiv.innerHTML += "<button id='backButton' class='button blue navButton' style='font-size: 1.7rem !important; width: 11vw; height: 100px !important; padding: 10px 25px;'><span>" + I18n.t('forms.buttons.back') + "</span></button>";
 
     // create clear button or new patient button if on search page
     if (!tstSearchPage) {
-        buttonsDiv.innerHTML += "<button id='clearButton' class='button blue navButton' onMouseDown='clearInput()'><span>" + I18n.t('forms.buttons.clear') + "</span></button>";
+        buttonsDiv.innerHTML += "<button id='clearButton' class='button blue navButton' style='font-size: 1.7rem !important; width: 11vw; height: 100px !important; padding: 10px 25px;' onMouseDown='clearInput()'><span>" + I18n.t('forms.buttons.clear') + "</span></button>";
     } else {
         var buttonLabel = "New Patient";
         if (tstSearchMode && (tstSearchMode == "guardian")) {
             buttonLabel = "New Guardian";
         }
 
-        buttonsDiv.innerHTML += "<button id='newPatientButton' class='button navButton' onMouseDown='document.forms[0].submit()'><span>" + buttonLabel + "</span></button>";
+        buttonsDiv.innerHTML += "<button id='newPatientButton' class='button navButton' style='font-size: 1.7rem !important; min-width: 11vw; height: 100px !important; padding: 10px 25px;' onMouseDown='document.forms[0].submit()'><span>" + buttonLabel + "</span></button>";
     }
 
     // create div for extra buttons
     buttonsDiv.innerHTML += "<div id='tt_extraButtons'></div>";
 
     // create cancel button
-    buttonsDiv.innerHTML += "<button class='button navButton red' id='cancelButton' onMouseDown='confirmCancelEntry(" + (typeof(save_state) != "undefined" ? "true" : "") + ");'><span>" + I18n.t('forms.buttons.cancel') + "</span></button>";
+    buttonsDiv.innerHTML += "<button class='button navButton red' style='font-size: 1.7rem !important; min-width: 11vw; height: 100px !important; padding: 10px 25px;' id='cancelButton' onMouseDown='confirmCancelEntry(" + (typeof(save_state) != "undefined" ? "true" : "") + ");'><span>" + I18n.t('forms.buttons.cancel') + "</span></button>";
 
     return buttonsDiv
 }
@@ -1632,7 +1632,7 @@ function confirmValue() {
     confirmationBar.appendChild(username);
 
     confirmationBar.innerHTML += "<div style='display: block; margin-top: 15px;'><input type='submit'" +
-        " value='" + I18n.t('forms.buttons.ok_button') + "' class='btn' style='float: left;' onclick='validateConfirmUsername()'" +
+        " value='" + I18n.t('forms.buttons.ok_button') + "' class='btn' style='float: left; font-size: 1.4rem; width: 100vw;' onclick='validateConfirmUsername()'" +
         " onmousedown='validateConfirmUsername()'/><input type='submit' value='" + I18n.t('forms.buttons.cancel') + "' " +
         " class='btn' style='float: right; right: 3px;' onmousedown='cancelConfirmValue()' />";
 
