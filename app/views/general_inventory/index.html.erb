@@ -7,7 +7,7 @@
     $('#generalInventory').DataTable({
       "bLengthChange": false,
       "bDestroy": true,
-      "pageLength": 10,
+      "pageLength": 5,
       "searching": true,
       "ordering": true,
       "info": true,
@@ -93,7 +93,7 @@
   <h1><%= "#{t('menu.terms.inventory')} (#{current_location.name})"%></h1>
 </div>
 
-<div class="table-container">
+<div class="table-container" style="height: 78vh !important;">
   <table id="generalInventory" class="table" style="width: 100%;" cellspacing="0">
     <thead>
       <tr>
