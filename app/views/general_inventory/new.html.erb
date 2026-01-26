@@ -11,11 +11,10 @@
 </script>
 
 <script>
-// ADD MAPPING DATA (you need this from your controller)
+// MAPPING DATA
   const categoryToDrugs =<%= raw(@category_to_drugs_map_json || '{}') %>  ;
   const drugToCategory =<%= raw(@drug_to_category_map_json || '{}') %>  ;
 
-  // NEW:
   const categoryToName =<%= raw(@category_to_name_map_json || '{}') %>  ;
   console.log('Category names:', Object.keys(categoryToName).length);
 
@@ -32,7 +31,6 @@
   });
   console.log('Maps loaded:', Object.keys(normalizedDrugToCategory).length, 'drugs');
 
-  // ADD showTemporaryAlert (referenced by click handler)
   function showTemporaryAlert(message, duration = 4000) {
   const existing = document.getElementById('temp-alert');
   if (existing) existing.remove();
@@ -60,16 +58,64 @@
   <table cellpadding=10>    <tr>      <td>Drug Category</td>      <td><% categories_to_show = @available_categories %><select style='width: 100%;' name='general_inventory[drug_category]' id='drug_category' helptext="<%= t('forms.labels.drug_category') %>" doublepane="false">  <% (categories_to_show ||[]).each do| option | %><option value="    <%= option[:id] || option %>">      <%= option[:name] || option %></option>    <% end %></select></td>    </tr>    <tr>  <td>Drug Name</td><td>    <%= text_field_tag "general_inventory[drug_name]", params[:drug_name], id: 'drug_name', ajaxURL: '/drug/search?filter_value=', field_type: 'alpha', helpText: t('forms.labels.select_drug_name'), allowFreeText: false, tt_onLoad: "set_ajaxURL_for_suggestions('/drug/search?filter_value=', document.getElementById('drug_category').value);" %></td></tr>  <tr>  <td>Expiry Date</td>  <td><%= text_field_tag "general_inventory[expiry_date]", Date.today.strftime("%Y-%m-%d"), id: 'expiry_date', field_type: 'date', helpText: t('forms.labels.expiry_date'), maxDate: Date.today + 20 * 365, minDate: Date.today, tt_pageStyleClass: "Date DatesOnly" %></td></tr>  <tr>  <td>Amount Received</td>  <td><%= text_field_tag "general_inventory[amount_received]", nil, id: 'amount_received', field_type: 'number', helpText: t('forms.labels.amount_received'), tt_pageStyleClass: "NumbersOnly" %></td></tr>  <tr>  <td>More Items</td>  <td><%= select_tag "general_inventory[more_items]", options_for_select(['Yes', 'No'], nil), id: 'more_items', class: 'input_cell', helpText: t('forms.labels.more_items_of_type'), required: true %></td></tr>  <tr>  <td>Number of items</td>  <td><%= text_field_tag "general_inventory[number_of_items]", nil, id: 'number_of_items', field_type: 'number', helpText: t('forms.labels.number_of_items'), condition: '$("more_items").value == "Yes"', tt_pageStyleClass: "NumbersOnly" %></td></tr></table><%= submit_tag value: "Submit", id: "submit-button" %>    <% end %>
     <!-- keypad search styles -->
     <style>
-        #keypad { position: fixed; left: 0; right: 0; bottom: 0; background: #eaf1f5; z-index: 4000; padding: 10px; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); }
-        #keypad .keypad { display:flex; flex-direction:column; gap:8px; align-items:center; }
-        #keypad .key-row { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%; }
-        #keypad .keyboardButton { min-width:56px; min-height:56px; padding:10px 14px; font-size:35px; border-radius:8px; border:none; background:#fff; color:#111; touch-action:manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.08); }
-        #keypad .keyboardButton.special { min-width:96px; background:#e9ecef; }
-        #keypad .keyboardButton:active { transform: translateY(1px); }
+
+        #keypad {
+        position: fixed !important;
+        left: 320px !important;
+        top: 650px !important;
+        width: 67% !important;
+        z-index: 2000 !important;
+        background: #d2d7dd !important;
+        padding: 12px !important;
+        border-radius: 15px !important;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.3) !important;
+        }
+
+        #keypad .keypad {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        }
+
+        #keypad .key-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        }
+
+        #keypad .keyboardButton {
+        min-width: 56px !important;
+        min-height: 56px !important;
+        padding: 10px 14px !important;
+        font-size: 40px !important;
+        font-weight: bold !important;
+        border-radius: 8px !important;
+        border: 2px solid #a8b6d3 !important;
+        background: linear-gradient(145deg, #e5e7eb, #d1d5db) !important;
+        color: #577bf1 !important;
+        touch-action: manipulation !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        transition: all 0.1s !important;
+        }
+
+        #keypad .keyboardButton:active {
+        transform: translateY(2px) !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+        }
+
+        #keypad .keyboardButton#backspace,
+        #keypad .keyboardButton#Space,
+        #keypad .keyboardButton#clear,
+        #keypad .keyboardButton#cancel {
+        min-width: 145px !important;
+        }
     </style>
+
     <script>
 
-      // 1. HELPER FUNCTIONS (place after your mapping code where normalizedDrugToCategory is defined)
+      // normalizedDrugToCategory
       function findCategoryIdForTyped(input) {
       console.log(`findCategoryIdForTyped: "${input}"`);
       const k = String(input || '').trim().toLowerCase();
@@ -151,11 +197,9 @@
       console.log('filterCategories complete');
       }
 
-      // 3. CLICK HANDLER (add ONCE after filterCategories)
+      // CLICK HANDLER
       document.addEventListener('click', function(e) {
       console.log('Click detected');
-
-      // FIXED: Correct selector
       const li = e.target.closest('#category-list li');
       if (!li) {
       console.log('Not a category li');
@@ -187,7 +231,7 @@
       categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
       console.log('Category updated + change fired');
 
-      // Populate drugs
+      // Populate drugs based on selected category
       set_ajaxURL_for_suggestions('/drug/search?filter_value=', matchingOption.value);
       console.log('ajaxURL set - drugs should populate NOW');
 
@@ -201,7 +245,8 @@
 
       // Function to inject search bar into touch interface
       function injectSearchBar() {
-      if (document.getElementById('category_search')) return;
+      const existing = document.getElementById('category_search');
+      if (existing) existing.remove();
 
       const touchPage = document.querySelector('#tt_page_drug_category .inputPage2');
       const inputFrame = document.querySelector('#inputFrame0');
@@ -257,7 +302,6 @@
       searchContainer.appendChild(searchInput);
       inputFrame.insertBefore(searchContainer, inputFrame.firstChild);
       console.log('Search bar injected successfully');
-
       attachTouchKeypad();
       }
       }
@@ -282,7 +326,7 @@
       const keypad = keypadWrap.querySelector('.keypad');
 
       if (!keypad.dataset.built) {
-      const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM', '0123456789'];
+      const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM', '0123456789' ,'.,-+/@#?!'];
       rows.forEach(rowStr => {
       const row = document.createElement('div');
       row.className = 'key-row';
@@ -385,7 +429,6 @@
       }
 
       //asnyc function to allow drugcategory select option list and inject search bar load at the same time to reduce delay
-
       async function loadCategoryAndSearchBar() {
       //error  handling for debugging
       try {
