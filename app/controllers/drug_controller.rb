@@ -4,7 +4,7 @@ class DrugController < ApplicationController
   clean_filter = params[:filter_value]&.strip
   return render html: "".html_safe if clean_filter.blank?
 
-  # ✅ FIX: Try ID first (your JS sends IDs), then name
+
   category = DrugCategory.find_by(drug_category_id: clean_filter.to_i) ||
              DrugCategory.find_by("LOWER(category) LIKE ?", "%#{clean_filter.downcase}%")
              
