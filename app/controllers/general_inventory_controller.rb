@@ -56,52 +56,76 @@ class GeneralInventoryController < ApplicationController
     end
   end
 
-  def new
-    dispensary_loc = Location.find_by_name("Dispensary")&.id
-    @is_dispensary = session[:location] == dispensary_loc
-    backstore_location = Location.find_by_name("Backstore")&.id || 5
+#modified here
+def new
+  dispensary_loc = Location.find_by_name("Dispensary")&.id
+  @is_dispensary = session[:location] == dispensary_loc
+  backstore_location = Location.find_by_name("Backstore")&.id || 5
 
-    # detect if this is "Add Drug" from dispensary menu
-    @dispensary_add_mode = params[:add_mode] == "true"
+  @dispensary_add_mode = params[:add_mode] == "true"
 
-    if @is_dispensary && !@dispensary_add_mode
-      # DISPENSARY normal request flow: only items with stock at Backstore
-      @available_categories = GeneralInventory
-                                .joins(drug: :drug_category)
-                                .where(location_id: backstore_location, voided: false)
-                                .where("current_quantity > 0")
-                                .distinct
-                                .pluck("drug_categories.category")
-                                .sort
-
-      if params[:drug_category].present?
-        @available_drugs = GeneralInventory
-                              .joins(drug: :drug_category)
-                              .where(location_id: backstore_location, voided: false)
-                              .where("current_quantity > 0")
-                              .where("drug_categories.category = ?", params[:drug_category])
-                              .distinct
-                              .pluck("drugs.name")
-                              .sort
-      else
-        @available_drugs = []
-      end
-    else
-      # BACKSTORE add OR DISPENSARY add: show all categories and all drugs in selected category
-      @available_categories = DrugCategory.all.pluck(:category).sort
-
-      if params[:drug_category].present?
-        @available_drugs = Drug.joins(:drug_category)
-                              .where(drug_categories: { category: params[:drug_category] })
-                              .pluck(:name)
-                              .sort
-      else
-        @available_drugs = []
-      end
-    end
-
-    render layout: "touch"
+  # Load categories
+  if @is_dispensary && !@dispensary_add_mode
+    @available_categories = GeneralInventory
+      .joins(drug: :drug_category)
+      .where(location_id: backstore_location, voided: false)
+      .where("current_quantity > 0")
+      .select('drug_categories.drug_category_id, drug_categories.category')
+      .distinct
+      .map { |inv| { id: inv.drug_category_id, name: inv.category.strip } }
+      .uniq { |c| c[:id] }
+      .sort_by { |c| c[:name] }
+  else
+    @available_categories = DrugCategory.where(voided: false).order(:category)
+      .map { |c| { id: c.drug_category_id, name: c.category.strip } }
   end
+
+  # Get all drugs with their categories
+  all_drugs = Drug.includes(:drug_category)
+                  .where(voided: false)
+                  .where.not(drug_category_id: nil)
+                  .order(:name)
+
+  # PROPER JSON maps
+  @drug_to_category_map = {}
+  all_drugs.each do |drug|
+    next unless drug.name.present? && drug.drug_category_id.present?
+    # Use lowercase for consistent searching
+    @drug_to_category_map[drug.name.strip.downcase] = drug.drug_category_id
+  end
+  
+  # Group drugs by category
+  @category_to_drugs_map = {}
+  all_drugs.each do |drug|
+    next unless drug.drug_category_id.present?
+    @category_to_drugs_map[drug.drug_category_id] ||= []
+    @category_to_drugs_map[drug.drug_category_id] << drug.name.strip
+  end
+
+  # Sort drug names within each category
+  @category_to_drugs_map.each do |category_id, drugs|
+    drugs.uniq!  
+    drugs.sort!  
+  end
+
+
+#Convert to JSON for JavaScript
+  @drug_to_category_map_json = @drug_to_category_map.to_json
+  @category_to_drugs_map_json = @category_to_drugs_map.to_json
+
+  @category_to_name_map = DrugCategory.where(drug_category_id: @drug_to_category_map.values.uniq)  # ← drug_category_id
+                                   .pluck(:drug_category_id, :category)                          # ← drug_category_id
+                                   .to_h
+  @category_to_name_map_json = @category_to_name_map.to_json
+# DEBUG:
+puts "=== CATEGORY MAP DEBUG ==="
+puts @category_to_name_map.inspect
+puts "JSON: #{@category_to_name_map_json}"
+puts "========================"
+
+
+  render layout: "touch"
+end
 
   def create
 
