@@ -117,11 +117,7 @@ def new
                                    .pluck(:drug_category_id, :category)                          # ← drug_category_id
                                    .to_h
   @category_to_name_map_json = @category_to_name_map.to_json
-# DEBUG:
-puts "=== CATEGORY MAP DEBUG ==="
-puts @category_to_name_map.inspect
-puts "JSON: #{@category_to_name_map_json}"
-puts "========================"
+
 
 
   render layout: "touch"
