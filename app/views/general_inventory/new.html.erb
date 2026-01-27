@@ -56,9 +56,13 @@
   <%= hidden_field_tag "general_inventory[mode]", "add" %>
 
   <table cellpadding=10>    <tr>      <td>Drug Category</td>      <td><% categories_to_show = @available_categories %><select style='width: 100%;' name='general_inventory[drug_category]' id='drug_category' helptext="<%= t('forms.labels.drug_category') %>" doublepane="false">  <% (categories_to_show ||[]).each do| option | %><option value="    <%= option[:id] || option %>">      <%= option[:name] || option %></option>    <% end %></select></td>    </tr>    <tr>  <td>Drug Name</td><td>    <%= text_field_tag "general_inventory[drug_name]", params[:drug_name], id: 'drug_name', ajaxURL: '/drug/search?filter_value=', field_type: 'alpha', helpText: t('forms.labels.select_drug_name'), allowFreeText: false, tt_onLoad: "set_ajaxURL_for_suggestions('/drug/search?filter_value=', document.getElementById('drug_category').value);" %></td></tr>  <tr>  <td>Expiry Date</td>  <td><%= text_field_tag "general_inventory[expiry_date]", Date.today.strftime("%Y-%m-%d"), id: 'expiry_date', field_type: 'date', helpText: t('forms.labels.expiry_date'), maxDate: Date.today + 20 * 365, minDate: Date.today, tt_pageStyleClass: "Date DatesOnly" %></td></tr>  <tr>  <td>Amount Received</td>  <td><%= text_field_tag "general_inventory[amount_received]", nil, id: 'amount_received', field_type: 'number', helpText: t('forms.labels.amount_received'), tt_pageStyleClass: "NumbersOnly" %></td></tr>  <tr>  <td>More Items</td>  <td><%= select_tag "general_inventory[more_items]", options_for_select(['Yes', 'No'], nil), id: 'more_items', class: 'input_cell', helpText: t('forms.labels.more_items_of_type'), required: true %></td></tr>  <tr>  <td>Number of items</td>  <td><%= text_field_tag "general_inventory[number_of_items]", nil, id: 'number_of_items', field_type: 'number', helpText: t('forms.labels.number_of_items'), condition: '$("more_items").value == "Yes"', tt_pageStyleClass: "NumbersOnly" %></td></tr></table><%= submit_tag value: "Submit", id: "submit-button" %>    <% end %>
-    <!-- keypad search styles -->
+
     <style>
-        #keypad {
+
+        .touch-keypad.hidden {
+        display: none !important;
+        }
+        .touch-keypad {
         position: fixed !important;
         left: 320px !important;
         top: 650px !important;
@@ -70,34 +74,32 @@
         border-radius: 15px !important;
         box-shadow: 0 -4px 12px rgba(0,0,0,0.3) !important;
         box-sizing: border-box !important;
-
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
+        user-select: none;
         }
 
-        #keypad .keypad {
+        .touch-keypad .keypad-inner {
         flex: 1 !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 8px !important;
         }
 
-        #keypad .key-row {
-        /* ✅ FIXED: Even spacing WITHOUT breaking clicks */
+        .touch-keypad .key-row {
         display: flex !important;
-        justify-content: space-evenly !important;  /* Better than space-between */
+        justify-content: space-evenly !important;
         align-items: stretch !important;
         gap: 6px !important;
         width: 100% !important;
         flex: 1 !important;
         }
 
-        #keypad .keyboardButton {
-        /* ✅ FIXED: Larger touch targets */
+        .touch-keypad .keyboardButton {
         flex: 1 !important;
-        min-height: 60px !important;  /* Touch-friendly size */
-        min-width: 48px !important;   /* Prevents shrinking too small */
+        min-height: 60px !important;
+        min-width: 48px !important;
         font-size: 26px !important;
         font-weight: bold !important;
         border-radius: 8px !important;
@@ -108,18 +110,26 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         transition: all 0.1s !important;
         cursor: pointer !important;
-        pointer-events: auto !important;  /* Ensures clicks work */
+        pointer-events: auto !important;
         }
 
-        #keypad .keyboardButton.special {
-        flex: 2.5 !important;  /* Wider special keys */
+        .touch-keypad .keyboardButton.special {
+        flex: 2.5 !important;
         font-size: 20px !important;
         }
 
-        #keypad .keyboardButton:active {
+        .touch-keypad .keyboardButton.close {
+        background: #ef4444 !important;
+        color: white !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        }
+
+        .touch-keypad .keyboardButton:active {
         transform: translateY(2px) !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
         }
+
     </style>
 
     <script>
@@ -326,23 +336,23 @@
       injectSearchBar();
 
       function attachTouchKeypad() {
-      const searchInput = document.getElementById('category_search');
-      if (!searchInput) return;
+
+      function getSearchInput() {
+      return document.getElementById('category_search');
+      }
 
       let keypadWrap = document.getElementById('keypad');
       if (!keypadWrap) {
       keypadWrap = document.createElement('div');
       keypadWrap.id = 'keypad';
+      keypadWrap.className = 'touch-keypad hidden';
+      keypadWrap.setAttribute('role', 'application');
+      keypadWrap.setAttribute('aria-hidden', 'true');
 
-      keypadWrap.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:4000;display:none;';
       const inner = document.createElement('div');
-      inner.className = 'keypad';
+      inner.className = 'keypad-inner';
       keypadWrap.appendChild(inner);
-      document.body.appendChild(keypadWrap);
-      }
-      const keypad = keypadWrap.querySelector('.keypad');
 
-      if (!keypad.dataset.built) {
       const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
       rows.forEach(rowStr => {
       const row = document.createElement('div');
@@ -352,125 +362,137 @@
       btn.type = 'button';
       btn.className = 'keyboardButton';
       btn.textContent = ch;
-      btn.setAttribute('aria-label', 'Key ' + ch);
-      btn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      insertAtCaret(searchInput, ch);
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      });
+      btn.dataset.action = 'char';
       row.appendChild(btn);
       });
-      keypad.appendChild(row);
+      inner.appendChild(row);
       });
 
       const specialRow = document.createElement('div');
-      specialRow.className = 'key-row';
+      specialRow.className = 'key-row special-row';
 
       const back = document.createElement('button');
       back.type = 'button';
       back.className = 'keyboardButton special';
       back.textContent = '⌫';
-      back.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      searchInput.value = removeAtCaret(searchInput);
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      });
+      back.dataset.action = 'back';
       specialRow.appendChild(back);
 
       const space = document.createElement('button');
       space.type = 'button';
       space.className = 'keyboardButton special';
       space.textContent = 'Space';
-      space.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      insertAtCaret(searchInput, ' ');
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      });
+      space.dataset.action = 'space';
       specialRow.appendChild(space);
 
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
       closeBtn.id = 'closeKeyboardBtn';
-      closeBtn.innerHTML = 'Close';
-      closeBtn.style.cssText = `
-      width: 140px !important; height: 70px !important;
-      font-size: 20px !important; font-weight: bold !important;
-      background: #ef4444 !important; color: white !important;
-      border: none !important; border-radius: 8px !important;
-      cursor: pointer !important; position: relative !important;
-      z-index: 99999 !important; touch-action: manipulation !important;
-      pointer-events: auto !important;
-      `;
-
-      closeBtn.addEventListener('click', function(e) {
-      console.log('CLOSE CLICKED!');
-      e.preventDefault();
-      e.stopPropagation();
-
-      const keypad = document.getElementById('keypad');
-      if (keypad) {
-      keypad.style.display = 'none !important';
-      keypad.style.visibility = 'hidden';
-      keypad.hidden = true;
-      }
-
-      const input = document.getElementById('category_search');
-      if (input) {
-      input.readOnly = false;
-      input.blur();
-      }
-
-      closeBtn.style.pointerEvents = 'none';
-      setTimeout(() => closeBtn.style.pointerEvents = 'auto', 300);
-      });
-
+      closeBtn.className = 'keyboardButton close';
+      closeBtn.textContent = 'Close';
       specialRow.appendChild(closeBtn);
 
-      keypad.appendChild(specialRow);
-      keypad.dataset.built = '1';
-      }
+      inner.appendChild(specialRow);
+      document.body.appendChild(keypadWrap);
 
-      function showKeypad() {
-      searchInput.readOnly = true;
-      keypadWrap.style.display = 'block';
-      try { searchInput.focus(); } catch (e) {}
-      }
-      function hideKeypad() {
-      keypadWrap.style.display = 'none';
-      searchInput.readOnly = false;
-      try { searchInput.blur(); } catch (e) {}
+      inner.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const input = getSearchInput();
+      if (!input) return;
+
+      const action = btn.dataset.action;
+      if (action === 'back') removeAtCaret(input);
+      else if (action === 'space') insertAtCaret(input, ' ');
+      else insertAtCaret(input, btn.textContent);
+
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.focus();
+      });
+
+      // Close button handler
+      closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      hideKeypad();
+      });
       }
 
       function insertAtCaret(el, text) {
-      const start = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length;
-      const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : start;
-      el.value = el.value.slice(0, start) + text + el.value.slice(end);
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? start;
+      const val = el.value;
+      el.value = val.slice(0, start) + text + val.slice(end);
       const pos = start + text.length;
-      try { el.setSelectionRange(pos, pos); } catch (e) {}
+      el.selectionStart = el.selectionEnd = pos;
       }
+
       function removeAtCaret(el) {
-      const start = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length;
-      const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : start;
-      if (start === end && start > 0) return el.value.slice(0, start - 1) + el.value.slice(end);
-      return el.value.slice(0, start) + el.value.slice(end);
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? start;
+      if (start === end && start > 0) {
+      const val = el.value;
+      el.value = val.slice(0, start - 1) + val.slice(end);
+      el.selectionStart = el.selectionEnd = start - 1;
+      } else if (start !== end) {
+      const val = el.value;
+      el.value = val.slice(0, start) + val.slice(end);
+      el.selectionStart = el.selectionEnd = start;
+      }
       }
 
-      searchInput.addEventListener('pointerdown', function(e) {
+      function showKeypad() {
+      const wrap = document.getElementById('keypad');
+      if (!wrap) return;
+      wrap.classList.remove('hidden');
+      wrap.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+      const input = getSearchInput();
+      if (input) {
+      input.readOnly = true;
+      input.focus();
+      }
+      }, 50);
+      }
+
+      function hideKeypad() {
+      const wrap = document.getElementById('keypad');
+      if (!wrap) return;
+      wrap.classList.add('hidden');
+      wrap.setAttribute('aria-hidden', 'true');
+      const input = getSearchInput();
+      if (input) {
+      input.readOnly = false;
+      }
+      }
+
+      const input = getSearchInput();
+      if (input) {
+      input.removeEventListener('click', input._keypadClick);
+      input._keypadClick = (e) => {
       e.preventDefault();
+      e.stopPropagation();
       showKeypad();
-      });
-      searchInput.addEventListener('focus', showKeypad);
+      };
+      input.addEventListener('click', input._keypadClick, true);
+      input.addEventListener('touchstart', input._keypadClick, true);
+      }
 
-      document.addEventListener('pointerdown', function(e) {
-      const outside = !e.target.closest('#keypad') && e.target !== searchInput;
-      if (outside) hideKeypad();
-      });
-
-      document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') hideKeypad();
-      });
-
-      keypadWrap.style.display = 'none';
+      document.removeEventListener('click', document._keypadOutside);
+      document._keypadOutside = (e) => {
+      const wrap = document.getElementById('keypad');
+      if (!wrap) return;
+      const input = getSearchInput();
+      const targetIsInput = input && (e.target === input || e.target.closest('#category_search'));
+      const targetInsideKeypad = e.target.closest('#keypad');
+      if (!targetIsInput && !targetInsideKeypad && !wrap.classList.contains('hidden')) {
+      hideKeypad();
+      }
+      };
+      document.addEventListener('click', document._keypadOutside, true);
+      document.addEventListener('touchstart', document._keypadOutside, true);
       }
 
       //asnyc function to allow drugcategory select option list and inject search bar load at the same time to reduce delay
@@ -725,7 +747,6 @@
   console.log('back clicked via delegation', btn, e.target);
 
   if (typeof window.injectSearchBar === 'function') {
-
   setTimeout(() => window.injectSearchBar(), 50);
   } else {
   console.warn('injectSearchBar not available on window');
@@ -740,6 +761,15 @@
   if (!btn) return;
   if (typeof window.injectSearchBar === 'function') {
   setTimeout(() => window.injectSearchBar(), 50);
+  }
+  });
+
+  // RE-INITIALIZES TOUCHPAD AFTER BACK
+  window.addEventListener('pageshow', function(e) {
+  if (e.persisted || document.visibilityState === 'visible') {
+  if (typeof attachTouchKeypad === 'function') {
+  setTimeout(attachTouchKeypad, 100);
+  }
   }
   });
 </script>
