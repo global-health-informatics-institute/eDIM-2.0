@@ -278,7 +278,7 @@
       const inputFrame = document.querySelector('#inputFrame0');
 
       if (!touchPage || !inputFrame) {
-      console.warn('Missing target elements for search bar');
+      console.warn('TST page or input frame not found, cannot inject search bar');
       return;
       }
       const searchContainer = document.createElement('div');
@@ -334,7 +334,6 @@
       searchContainer.appendChild(searchInput);
       inputFrame.insertBefore(searchContainer, inputFrame.firstChild);
 
-      console.log('✅ SINGLE search bar injected CLEAN');
       attachTouchKeypad();
       }
 
@@ -540,9 +539,7 @@
       });
       }
 
-      // Initialize with multiple attempts to ensure touch interface is loaded
       function initializeCategorySearch() {
-      // Try to inject search bar
       injectSearchBar();
 
       // If search bar exists, ensure it has event listeners
@@ -568,7 +565,7 @@
       await loadCategoryAndSearchBar();
       } catch (e) {
       console.warn('Category search fallback:', e);
-      injectSearchBar(); // Fallback sync injection
+      injectSearchBar();
       }
       });
 
@@ -745,6 +742,7 @@
 </script>
 
 <script>
+  //global handlers to detect back navigation and re-inject search bar + re-attach keypad
   if (typeof injectSearchBar === 'function') {
   window.injectSearchBar = injectSearchBar;
   }
