@@ -278,7 +278,6 @@
       const inputFrame = document.querySelector('#inputFrame0');
 
       if (!touchPage || !inputFrame) {
-      console.warn('TST page or input frame not found, cannot inject search bar');
       return;
       }
       const searchContainer = document.createElement('div');
@@ -388,6 +387,23 @@
       space.textContent = 'Space';
       space.dataset.action = 'space';
       specialRow.appendChild(space);
+
+      const clear= document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'keyboardButton special';
+      clear.textContent = 'Clear';
+      clear.dataset.action = 'clear';
+      clear.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const input = getSearchInput();
+      if (input) {
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.focus();
+      }
+      });
+      specialRow.appendChild(clear);
 
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
