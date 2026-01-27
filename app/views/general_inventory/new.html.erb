@@ -252,10 +252,10 @@
 
       // Populate drugs based on selected category
       set_ajaxURL_for_suggestions('/drug/search?filter_value=', matchingOption.value);
-      console.log('ajaxURL set - drugs should populate NOW');
+      console.log('ajaxURL set: drugs should populate NOW');
 
       showTemporaryAlert(`Showing drugs in ${categoryName}`);
-      console.log('COMPLETE!');
+
       } else {
       console.error(`No option matches "${categoryName}"`);
       console.log('Options:', Array.from(categorySelect.options).map(opt => `"${opt.text.trim()} (${opt.value})"`));
@@ -390,6 +390,7 @@
       closeBtn.id = 'closeKeyboardBtn';
       closeBtn.className = 'keyboardButton close';
       closeBtn.textContent = 'Close';
+      closeBtn.dataset.action = 'close';
       specialRow.appendChild(closeBtn);
 
       inner.appendChild(specialRow);
@@ -398,12 +399,15 @@
       inner.addEventListener('pointerdown', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === 'close') return;
+
       e.preventDefault();
       e.stopPropagation();
+
       const input = getSearchInput();
       if (!input) return;
 
-      const action = btn.dataset.action;
       if (action === 'back') removeAtCaret(input);
       else if (action === 'space') insertAtCaret(input, ' ');
       else insertAtCaret(input, btn.textContent);
