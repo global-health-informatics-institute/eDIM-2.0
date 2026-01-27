@@ -264,7 +264,7 @@
 
       document.addEventListener('click', function(e) {
       if (e.target.matches('#backButton, .navButton, .button.blue, [class*="back"]')) {
-      // IMMEDIATE injection - NO WAITING
+
       injectSearchBar();
       }
       }, true);
@@ -739,37 +739,64 @@
   if (typeof injectSearchBar === 'function') {
   window.injectSearchBar = injectSearchBar;
   }
+  if (typeof attachTouchKeypad === 'function') {
+  window.attachTouchKeypad = attachTouchKeypad;
+  }
+  if (typeof loadCategoryAndSearchBar === 'function') {
+  window.loadCategoryAndSearchBar = loadCategoryAndSearchBar;
+  }
 
-  document.addEventListener('click', function debugBackClick(e) {
-  try {
-  const btn = e.target.closest('#backButton, .navButton, .button.blue, [class*="back"]');
-  if (!btn) return;
-  console.log('back clicked via delegation', btn, e.target);
+  let isReinitializing = false;
 
+  function handleBackNavigation() {
+  if (isReinitializing) {
+  return;
+  }
+
+  isReinitializing = true;
+
+  setTimeout(() => {
+  // Load categories
+  if (typeof window.loadCategoryAndSearchBar === 'function') {
+  window.loadCategoryAndSearchBar();
+  }
+
+  // Inject search bar
   if (typeof window.injectSearchBar === 'function') {
-  setTimeout(() => window.injectSearchBar(), 50);
-  } else {
-  console.warn('injectSearchBar not available on window');
+  window.injectSearchBar();
   }
-  } catch (err) {
-  console.error('delegated handler error', err);
+
+  // Reattach keypad
+  if (typeof window.attachTouchKeypad === 'function') {
+  window.attachTouchKeypad();
   }
+  }, 150);
+
+  setTimeout(() => {
+  isReinitializing = false;
+  }, 2000);
+  }
+
+  document.addEventListener('pointerdown', function unifiedBackHandler(e) {
+  const btn = e.target.closest('#backButton, .navButton, .button.blue, [class*="back"], #nextButton');
+  if (!btn) return;
+  handleBackNavigation();
   }, true);
 
-  document.addEventListener('mousedown', function(e) {
-  const btn = e.target.closest('#backButton, .navButton, .button.blue, [class*="back"]');
-  if (!btn) return;
-  if (typeof window.injectSearchBar === 'function') {
-  setTimeout(() => window.injectSearchBar(), 50);
+  window.addEventListener('pageshow', function(e) {
+  if (e.persisted || document.visibilityState === 'visible') {
+  handleBackNavigation();
   }
   });
 
-  // RE-INITIALIZES TOUCHPAD AFTER BACK
-  window.addEventListener('pageshow', function(e) {
-  if (e.persisted || document.visibilityState === 'visible') {
-  if (typeof attachTouchKeypad === 'function') {
-  setTimeout(attachTouchKeypad, 100);
-  }
+  window.addEventListener('popstate', function() {
+  handleBackNavigation();
+  });
+
+  document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+  setTimeout(handleBackNavigation, 100);
   }
   });
+
 </script>
