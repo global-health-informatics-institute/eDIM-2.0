@@ -13,3 +13,4 @@ Rails.application.config.assets.precompile += %w( jquery-1.12.0.min.js )
 Rails.application.config.assets.precompile += %w( jquery.dataTables.min.js )
 Rails.application.config.assets.precompile += %w( i18n.js )
 Rails.application.config.assets.precompile += %w( translations.js )
+
