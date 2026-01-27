@@ -272,14 +272,17 @@
       window.injectSearchBar = injectSearchBar;
       // Function to inject search bar into touch interface
       function injectSearchBar() {
-      const existing = document.getElementById('category_search');
-      if (existing) existing.remove();
+      document.querySelectorAll('#category_search, #search_container').forEach(el => el.remove());
 
       const touchPage = document.querySelector('#tt_page_drug_category .inputPage2');
       const inputFrame = document.querySelector('#inputFrame0');
 
-      if (touchPage && inputFrame) {
+      if (!touchPage || !inputFrame) {
+      console.warn('Missing target elements for search bar');
+      return;
+      }
       const searchContainer = document.createElement('div');
+      searchContainer.id = 'search_container';
       searchContainer.style.cssText = `
       width: 100%;
       padding: 10px;
@@ -315,7 +318,9 @@
       window.tstCurrentPage = window.tstCurrentPage || 0;
       window['touchscreenInput' + tstCurrentPage] = this;
       if (typeof listSuggestions === 'function') listSuggestions(tstCurrentPage);
-      } catch (e) { console.log('TST attach failed:', e); }
+      } catch (e) {
+      console.log('TST attach failed:', e);
+      }
       });
 
       searchInput.addEventListener('blur', function() {
@@ -328,9 +333,9 @@
 
       searchContainer.appendChild(searchInput);
       inputFrame.insertBefore(searchContainer, inputFrame.firstChild);
-      console.log('Search bar injected successfully');
+
+      console.log('✅ SINGLE search bar injected CLEAN');
       attachTouchKeypad();
-      }
       }
 
       injectSearchBar();
@@ -760,25 +765,14 @@
   isReinitializing = true;
 
   setTimeout(() => {
-  // Load categories
   if (typeof window.loadCategoryAndSearchBar === 'function') {
   window.loadCategoryAndSearchBar();
   }
-
-  // Inject search bar
-  if (typeof window.injectSearchBar === 'function') {
-  window.injectSearchBar();
-  }
-
-  // Reattach keypad
-  if (typeof window.attachTouchKeypad === 'function') {
-  window.attachTouchKeypad();
-  }
-  }, 150);
+  }, 250);
 
   setTimeout(() => {
   isReinitializing = false;
-  }, 2000);
+  }, 3000);
   }
 
   document.addEventListener('pointerdown', function unifiedBackHandler(e) {
