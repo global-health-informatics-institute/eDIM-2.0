@@ -352,10 +352,6 @@ img[src*="/assets/"] {
     <div style="display: table; width: 100%;">  
       <% if @prepack_inventory.present? %>
       <% first_prepack = @prepack_inventory.first %>
-      <% puts "DEBUG: First prepack keys: #{first_prepack.keys}" %>
-      <% puts "DEBUG: Has bottle_quantity? #{first_prepack.key?(:bottle_quantity)}" %>
-      <% puts "DEBUG: bottle_quantity value: #{first_prepack[:bottle_quantity]}" %>
-      <% puts "DEBUG: Full hash: #{first_prepack.inspect}" %>
         <% @prepack_inventory.each_with_index.each_slice(2).to_a.each do |prepack_pair| %>
           <div style="display: table-row; width: 100%;">  <!-- Full width row -->
             <% prepack_pair.each do |prepack, global_index| %>
@@ -366,7 +362,10 @@ img[src*="/assets/"] {
                   <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
                       padding: 8px; margin: 3px; 
                       background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
-                      position: relative; border-radius: 8px; min-height: 90px;">
+                      position: relative; border-radius: 8px; min-height: 90px; cursor: pointer; transition: all 0.2s ease;"
+                      onclick="showPrepackDetailModal('<%= prepack[:id] %>', '<%= j(prepack[:drug_name]) %>', '<%= prepack[:packs_dispensed] %>', '<%= prepack[:total_packs_created] %>', '<%= prepack[:quantity_per_pack] %>', '<%= prepack[:gn_identifier] %>', '<%= prepack[:status] %>', '<%= prepack[:created_at].present? ? l(prepack[:created_at].to_date, format: "%d/%m/%Y") : "N/A" %>', '<%= prepack[:packs_remaining] %>')"
+                      onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+                      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
                       
                       <!-- Progress Indicator and Action Buttons -->
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -394,7 +393,8 @@ img[src*="/assets/"] {
                           </div>
                           
                       <!-- Action Buttons -->
-                      <div style="position: absolute; top: 43%; right: 16px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;">
+                      <div style="position: absolute; top: 43%; right: 16px; transform: translateY(-50%); display: flex; gap: 18px; align-items: center;"
+                           onclick="event.stopPropagation();">
                       
                         <!-- View Item Button -->
                         <div class="view-options-container" style="position: relative; right: 32px;">
@@ -406,7 +406,7 @@ img[src*="/assets/"] {
                                     padding-top: 8px; padding-left: -6px;" 
                               src="/assets/view_icon.png" 
                               title="View Options"
-                              onmousedown="toggleViewOptions('<%= prepack[:id] %>')"
+                              onmousedown="event.stopPropagation(); toggleViewOptions('<%= prepack[:id] %>')"
                               
                           <!-- Expandable Options -->
                           <div id="view_options_<%= prepack[:id] %>" 
@@ -431,7 +431,7 @@ img[src*="/assets/"] {
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/edit.png" 
                                     title="Edit Prepack"
-                                    onmousedown="window.location='/prepack_labels/<%= prepack[:id] %>/edit'"
+                                    onmousedown="event.stopPropagation(); window.location='/prepack_labels/<%= prepack[:id] %>/edit'"
                                     onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
                                 <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
@@ -447,7 +447,7 @@ img[src*="/assets/"] {
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/damage.png" 
                                     title="Log Damages"
-                                    onmousedown="logDamages(
+                                    onmousedown="event.stopPropagation(); logDamages(
                                       '<%= prepack[:id] %>', 
                                       '<%= prepack[:drug_name] %>', 
                                       <%= prepack[:packs_remaining] %>, 
@@ -469,7 +469,7 @@ img[src*="/assets/"] {
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/delete.png" 
                                     title="Delete Prepack"
-                                    onmousedown="confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')"
+                                    onmousedown="event.stopPropagation(); confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')"
                                     onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
                                 <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
@@ -486,7 +486,7 @@ img[src*="/assets/"] {
                         <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
                             src="/assets/print.png" 
                             title="Print prepack labels"
-                            onmousedown="window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'"
+                            onmousedown="event.stopPropagation(); window.location='/print_dispensation_label/PREPACK-<%= prepack[:id] %>?single=1'"
                             onmouseover="this.style.transform='scale(1.1)'"
                             onmouseout="this.style.transform='scale(1)'">
                         
@@ -2180,6 +2180,202 @@ function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSi
   
   // Create and show modal
   showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_quantity);
+}
+
+// Show prepack detail modal
+function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks, quantityPerPack, gnIdentifier, status, createdDate, packsRemaining) {
+  // Close any open view options
+  if (openViewOptionsId) {
+    closeViewOptions(openViewOptionsId);
+  }
+  
+  isModalOpen = true;
+  
+  // Calculate progress percentage
+  const progressPercent = (parseFloat(packsDispensed) / parseFloat(totalPacks) * 100).toFixed(1);
+  
+  // Determine status color and text
+  let statusColor, statusText;
+  switch(status) {
+    case 'created':
+    case 'active':
+      statusColor = '#28a745';
+      statusText = 'ACTIVE';
+      break;
+    case 'dispensed':
+      statusColor = '#a10e0e';
+      statusText = 'DONE';
+      break;
+    case 'cancelled':
+      statusColor = '#dc3545';
+      statusText = 'CANCELLED';
+      break;
+    default:
+      statusColor = '#ffc107';
+      statusText = status.toUpperCase();
+  }
+  
+  const modalHTML = `
+    <div id="prepackDetailModalOverlay"
+         style="position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                opacity: 0; transition: opacity 0.3s ease;">
+      
+      <div id="prepackDetailModal"
+           style="width: 900px; max-width: 95vw; background: #fff; border-radius: 8px;
+                  box-shadow: 0 4px 20px rgba(0,0,0,0.3); transform: scale(0.95);
+                  transition: transform 0.3s ease; max-height: 90vh; overflow: hidden;">
+        
+        <!-- Header -->
+        <div style="background: #006495; color: white; padding: 20px 30px; position: relative;
+                    border-bottom: 1px solid #004d73;">
+          <h2 style="margin: 0; font-size: 2.2rem; font-weight: bold;">
+            ${drugName} - Prepack Details
+          </h2>
+          <button onclick="closePrepackDetailModal()" 
+                  style="position: absolute; top: 12px; right: 20px; background: none; 
+                        border: none; color: white; font-size: 32px; cursor: pointer; 
+                        width: 40px; height: 40px; display: flex; align-items: center; 
+                        justify-content: center; border-radius: 4px; line-height: 1;"
+                  onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                  onmouseout="this.style.background='none'">
+            ×
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 30px;">
+          
+          <!-- Status and Progress Row -->
+          <div style="display: flex; gap: 30px; margin-bottom: 30px; align-items: center;">
+            
+            <!-- Status -->
+            <div style="text-align: center;">
+              <div style="font-size: 1.4rem; color: #666; margin-bottom: 8px;">Status</div>
+              <span style="background: ${statusColor}; color: white; padding: 8px 20px; 
+                          border-radius: 4px; font-size: 1.5rem; font-weight: bold;">
+                ${statusText}
+              </span>
+            </div>
+
+            <!-- Progress -->
+            <div style="flex: 1;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 1.4rem; color: #666;">Progress</span>
+                <span style="font-size: 1.6rem; font-weight: bold; color: #006495;">
+                  ${packsDispensed}/${totalPacks} packs (${progressPercent}%)
+                </span>
+              </div>
+              <div style="background: #e9ecef; border-radius: 4px; height: 10px; overflow: hidden;">
+                <div style="height: 100%; background: #28a745; border-radius: 4px; 
+                            width: ${progressPercent}%; transition: width 0.3s ease;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Grid -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 30px;">
+            
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Quantity per Pack</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #006495;">
+                ${quantityPerPack}
+              </div>
+              <div style="font-size: 1.1rem; color: #666;">units</div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Remaining Packs</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #28a745;">
+                ${packsRemaining}
+              </div>
+              <div style="font-size: 1.1rem; color: #666;">packs</div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Total Units</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #6c757d;">
+                ${parseInt(totalPacks) * parseInt(quantityPerPack)}
+              </div>
+              <div style="font-size: 1.1rem; color: #666;">units</div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Created Date</div>
+              <div style="font-size: 1.6rem; font-weight: bold; color: #6c757d;">
+                ${createdDate}
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottle ID -->
+          <div style="background: #e8f4f8; padding: 20px; border-radius: 6px; margin-bottom: 30px; text-align: center;">
+            <div style="font-size: 1.4rem; color: #666; margin-bottom: 8px;">Bottle ID</div>
+            <div style="font-size: 1.8rem; font-weight: bold; color: #006495; font-family: monospace;">
+              ${gnIdentifier || 'N/A'}
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div style="text-align: center;">
+            <button onclick="window.location='/print_dispensation_label/PREPACK-${prepackId}?single=1'"
+                    style="padding: 15px 40px; background: #006495; color: white; border: none; 
+                          border-radius: 6px; font-size: 1.6rem; font-weight: bold; cursor: pointer;
+                          transition: background 0.2s; display: inline-flex; align-items: center; 
+                          justify-content: center; line-height: 1;"
+                    onmouseover="this.style.background='#004d73'"
+                    onmouseout="this.style.background='#006495'">
+              Print Labels
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add modal to page
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Animate in
+  setTimeout(() => {
+    const overlay = document.getElementById('prepackDetailModalOverlay');
+    const modal = document.getElementById('prepackDetailModal');
+    if (overlay && modal) {
+      overlay.style.opacity = '1';
+      modal.style.transform = 'scale(1)';
+    }
+  }, 10);
+  
+  // Add escape key listener
+  document.addEventListener('keydown', function escapeListener(e) {
+    if (e.key === 'Escape') {
+      closePrepackDetailModal();
+      document.removeEventListener('keydown', escapeListener);
+    }
+  });
+}
+
+function closePrepackDetailModal() {
+  const overlay = document.getElementById('prepackDetailModalOverlay');
+  const modal = document.getElementById('prepackDetailModal');
+  
+  if (overlay && modal) {
+    overlay.style.opacity = '0';
+    modal.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.remove();
+      }
+    }, 300);
+  }
+  
+  isModalOpen = false;
+  
+  // Refocus barcode scanner
+  setTimeout(() => {
+    initializeBarcodeListener();
+  }, 100);
 }
 
 function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_quantity) {
