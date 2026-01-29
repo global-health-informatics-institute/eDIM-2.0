@@ -2,109 +2,661 @@
   var tt_cancel_destination = "/";
 
   function set_ajaxURL_for_suggestions(url, filter_value) {
-    // Only call if a category is selected
-    if (!filter_value || filter_value.trim() === "") return;
+  // Only call if a category is selected
+  if (!filter_value || filter_value.trim() === "") return;
 
-    $('touchscreenInput' + tstCurrentPage).setAttribute('ajaxURL', url + encodeURIComponent(filter_value) + "&search_string=");
-    listSuggestions(tstCurrentPage);
+  $('touchscreenInput' + tstCurrentPage).setAttribute('ajaxURL', url + encodeURIComponent(filter_value) + "&search_string=");
+  listSuggestions(tstCurrentPage);
   }
 </script>
 
+<script>
+// MAPPING DATA
+  const categoryToDrugs =<%= raw(@category_to_drugs_map_json || '{}') %>  ;
+  const drugToCategory =<%= raw(@drug_to_category_map_json || '{}') %>  ;
+
+  const categoryToName =<%= raw(@category_to_name_map_json || '{}') %>  ;
+  console.log('Category names:', Object.keys(categoryToName).length);
+
+  function getCategoryNameById(catId) {
+  console.log(`getCategoryNameById: ${catId}`);
+  const name = categoryToName[String(catId)] || catId;
+  console.log(`Category name: ${catId} → "${name}"`);
+  return name;
+  }
+
+  const normalizedDrugToCategory = {};
+  Object.entries(drugToCategory).forEach(([k, v]) => {
+  normalizedDrugToCategory[String(k).trim().toLowerCase()] = String(v);
+  });
+  console.log('Maps loaded:', Object.keys(normalizedDrugToCategory).length, 'drugs');
+
+  function showTemporaryAlert(message, duration = 4000) {
+  const existing = document.getElementById('temp-alert');
+  if (existing) existing.remove();
+
+  const div = document.createElement('div');
+  div.id = 'temp-alert';
+  div.textContent = message;
+  div.style.cssText = `
+  position:fixed; top:20px; right:20px; background:#28a745; color:white;
+  padding:12px 20px; border-radius:5px; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  z-index:9999; font-size:16px; opacity:1; transition:opacity 0.4s;
+  `;
+  document.body.appendChild(div);
+
+  setTimeout(() => {
+  div.style.opacity = '0';
+  setTimeout(() => div.remove(), 450);
+  }, duration);
+  }
+</script>
 <%= form_for :general_inventory, url: general_inventory_index_path, html: { id: 'inventory-form' } do |f| %>
   <%= hidden_field_tag "general_inventory[mode]", "add" %>
 
-  <table cellpadding=10>
-    <tr>
-      <td>Drug Category</td>
-      <td>
-        <% categories_to_show = @available_categories %>
-        <select style='width: 100%;' name='general_inventory[drug_category]' id='drug_category' helptext="<%= t('forms.labels.drug_category')%>" doublepane="false">
-          <% (categories_to_show || []).each do |option| %>
-            <option value="<%= option %>"><%= option.titleize %></option>
-          <% end %>
-        </select>
-      </td>
-    </tr>
+  <table cellpadding=10>    <tr>      <td>Drug Category</td>      <td><% categories_to_show = @available_categories %><select style='width: 100%;' name='general_inventory[drug_category]' id='drug_category' helptext="<%= t('forms.labels.drug_category') %>" doublepane="false">  <% (categories_to_show ||[]).each do| option | %><option value="    <%= option[:id] || option %>">      <%= option[:name] || option %></option>    <% end %></select></td>    </tr>    <tr>  <td>Drug Name</td><td>    <%= text_field_tag "general_inventory[drug_name]", params[:drug_name], id: 'drug_name', ajaxURL: '/drug/search?filter_value=', field_type: 'alpha', helpText: t('forms.labels.select_drug_name'), allowFreeText: false, tt_onLoad: "set_ajaxURL_for_suggestions('/drug/search?filter_value=', document.getElementById('drug_category').value);" %></td></tr>  <tr>  <td>Expiry Date</td>  <td><%= text_field_tag "general_inventory[expiry_date]", Date.today.strftime("%Y-%m-%d"), id: 'expiry_date', field_type: 'date', helpText: t('forms.labels.expiry_date'), maxDate: Date.today + 20 * 365, minDate: Date.today, tt_pageStyleClass: "Date DatesOnly" %></td></tr>  <tr>  <td>Amount Received</td>  <td><%= text_field_tag "general_inventory[amount_received]", nil, id: 'amount_received', field_type: 'number', helpText: t('forms.labels.amount_received'), tt_pageStyleClass: "NumbersOnly" %></td></tr>  <tr>  <td>More Items</td>  <td><%= select_tag "general_inventory[more_items]", options_for_select(['Yes', 'No'], nil), id: 'more_items', class: 'input_cell', helpText: t('forms.labels.more_items_of_type'), required: true %></td></tr>  <tr>  <td>Number of items</td>  <td><%= text_field_tag "general_inventory[number_of_items]", nil, id: 'number_of_items', field_type: 'number', helpText: t('forms.labels.number_of_items'), condition: '$("more_items").value == "Yes"', tt_pageStyleClass: "NumbersOnly" %></td></tr></table><%= submit_tag value: "Submit", id: "submit-button" %>    <% end %>
 
-    <tr>
-      <td>Drug Name</td>
-      <td>
-        <%= text_field_tag "general_inventory[drug_name]", params[:drug_name],
-                          id: 'drug_name',
-                          ajaxURL: '/drug/search?filter_value=',
-                          field_type: 'alpha',
-                          helpText: t('forms.labels.select_drug_name'),
-                          allowFreeText: false,
-                          tt_onLoad: "set_ajaxURL_for_suggestions('/drug/search?filter_value=', document.getElementById('drug_category').value);" %>
-      </td>
-    </tr>
+    <style>
 
-    <tr>
-      <td>Expiry Date</td>
-      <td>
-        <%= text_field_tag "general_inventory[expiry_date]", Date.today.strftime("%Y-%m-%d"),
-                          id: 'expiry_date',
-                          field_type: 'date',
-                          helpText: t('forms.labels.expiry_date'),
-                          maxDate: Date.today + 20*365,
-                          minDate: Date.today,
-                          tt_pageStyleClass: "Date DatesOnly" %>
-      </td>
-    </tr>
+        .touch-keypad.hidden {
+        display: none !important;
+        }
+        .touch-keypad {
+        position: fixed !important;
+        left: 320px !important;
+        top: 650px !important;
+        width: 67% !important;
+        height: 420px !important;
+        z-index: 2000 !important;
+        background: #d2d7dd !important;
+        padding: 16px !important;
+        border-radius: 15px !important;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.3) !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        user-select: none;
+        }
 
-    <tr>
-      <td>Amount Received</td>
-      <td>
-        <%= text_field_tag "general_inventory[amount_received]", nil,
-                          id: 'amount_received',
-                          field_type: 'number',
-                          helpText: t('forms.labels.amount_received'),
-                          tt_pageStyleClass: "NumbersOnly" %>
-      </td>
-    </tr>
+        .touch-keypad .keypad-inner {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        }
 
-    <tr>
-      <td>More Items</td>
-      <td>
-        <%= select_tag "general_inventory[more_items]", options_for_select(['Yes', 'No'], nil),
-                      id: 'more_items',
-                      class: 'input_cell',
-                      helpText: t('forms.labels.more_items_of_type'),
-                      required: true %>
-      </td>
-    </tr>
+        .touch-keypad .key-row {
+        display: flex !important;
+        justify-content: space-evenly !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+        width: 100% !important;
+        flex: 1 !important;
+        }
 
-    <tr>
-      <td>Number of items</td>
-      <td>
-        <%= text_field_tag "general_inventory[number_of_items]", nil,
-                          id: 'number_of_items',
-                          field_type: 'number',
-                          helpText: t('forms.labels.number_of_items'),
-                          condition: '$("more_items").value == "Yes"',
-                          tt_pageStyleClass: "NumbersOnly" %>
-      </td>
-    </tr>
-  </table>
+        .touch-keypad .keyboardButton {
+        flex: 1 !important;
+        min-height: 60px !important;
+        min-width: 48px !important;
+        font-size: 26px !important;
+        font-weight: bold !important;
+        border-radius: 8px !important;
+        border: 2px solid #a8b6d3 !important;
+        background: linear-gradient(145deg, #e5e7eb, #d1d5db) !important;
+        color: #577bf1 !important;
+        touch-action: manipulation !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        transition: all 0.1s !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        }
 
-  <%= submit_tag value: "Submit", id: "submit-button" %>
-<% end %>
+        .touch-keypad .keyboardButton.special {
+        flex: 2.5 !important;
+        font-size: 20px !important;
+        }
 
-<script>
-(function() {
-  const drugInput = document.getElementById('drug_name');
-  const amountInput = document.getElementById('amount_requested');
-  const labelCell = amountInput ? amountInput.closest('tr').querySelector('td:first-child') : null;
-  const form = document.getElementById('inventory-form');
-  if (!drugInput || !amountInput || !labelCell || !form) return;
+        .touch-keypad .keyboardButton#clearKeyboardBtn {
+        flex: 0.8 !important;
+        min-width: 65px !important;
+        font-size: 18px !important;
+        background: #fac552 !important;
+        }
 
-  // Helper function to show temporary alerts
-  function showTemporaryAlert(message, duration = 3000) {
-    try {
-      // Remove any existing alerts
+        .touch-keypad .keyboardButton.close {
+        background: #ef4444 !important;
+        color: white !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        }
+
+        .touch-keypad .keyboardButton:active {
+        transform: translateY(2px) !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+        }
+
+    </style>
+
+    <script>
+
+      // normalizedDrugToCategory
+      function findCategoryIdForTyped(input) {
+      console.log(`findCategoryIdForTyped: "${input}"`);
+      const k = String(input || '').trim().toLowerCase();
+      if (!k) return null;
+
+      if (normalizedDrugToCategory[k]) {
+      console.log(`EXACT match: "${k}" → ${normalizedDrugToCategory[k]}`);
+      return normalizedDrugToCategory[k];
+      }
+
+      const found = Object.keys(normalizedDrugToCategory).find(x => x.startsWith(k));
+      if (found) {
+      console.log(`PARTIAL match: "${k}" → "${found}" → ${normalizedDrugToCategory[found]}`);
+      return normalizedDrugToCategory[found];
+      }
+
+      console.log(`No match for "${k}"`);
+      return null;
+      }
+
+      let searchState=0;
+      let manualState=0;
+
+      function filterCategories() {
+      console.log(`filterCategories called`);
+      const searchInput = document.getElementById('category_search');
+      if (!searchInput) {
+      console.error('category_search input not found');
+      return;
+      }
+
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      console.log(`Processing search: "${searchTerm}"`);
+
+      // SHOW ALL CATEGORIES WHEN SERACHIS EMPTY
+      if (searchTerm === '') {
+      searchState = 0;
+      manualState = 0;
+      console.log('Empty search → showing ALL categories');
+
+      const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
+      categoryItems.forEach(item => {
+      const categoryTextDiv = item.querySelector('div[style*="table-cell"]:last-child');
+      if (!categoryTextDiv) return;
+
+      const originalCatText = categoryTextDiv.textContent.trim();
+      categoryTextDiv.innerHTML = originalCatText;
+      item.style.display = '';
+      item.style.backgroundColor = '';
+      });
+      console.log('Show all categories complete');
+      return;
+      }
+
+      searchState = 1;
+      manualState = 0;
+      const categorySelect = document.getElementById('drug_category');
+      if (categorySelect) {
+      categorySelect.value = '';
+      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      console.log("search states activated; searchstate=1, manualstate=0");
+
+      const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
+      console.log(`Found ${categoryItems.length} category items`);
+
+      const drugCatId = findCategoryIdForTyped(searchTerm);
+      if (drugCatId) {
+      const catName = getCategoryNameById(drugCatId);
+      console.log(`DRUG MATCH FOUND: "${searchTerm}" → ${drugCatId} → "${catName}"`);
+
+      categoryItems.forEach(item => {
+      item.style.display = 'none';
+      });
+
+      categoryItems.forEach(item => {
+      const categoryTextDiv = item.querySelector('div[style*="table-cell"]:last-child');
+      if (!categoryTextDiv) return;
+
+      const originalCatText = categoryTextDiv.textContent.trim();
+      if (originalCatText.toLowerCase().includes(catName.toLowerCase()) ||
+      catName.toLowerCase().includes(originalCatText.toLowerCase())) {
+      categoryTextDiv.innerHTML = originalCatText;
+      item.style.display = '';
+      item.style.backgroundColor = '#e3f2fd';
+      console.log(`SHOWING ONLY: "${originalCatText}" (has ${searchTerm})`);
+      return;
+      }
+      });
+      console.log(' Drug match filtering complete');
+      return;
+      }
+
+      categoryItems.forEach((item, index) => {
+      const categoryTextDiv = item.querySelector('div[style*="table-cell"]:last-child');
+      if (!categoryTextDiv) return;
+
+      const originalCatText = categoryTextDiv.textContent.trim();
+      const catTextLower = originalCatText.toLowerCase();
+      if (catTextLower.includes(searchTerm)) {
+      categoryTextDiv.innerHTML = originalCatText;
+      item.style.display = '';
+      // Highlight matches
+      item.style.backgroundColor = '#e3f2fd';
+      } else {
+      categoryTextDiv.innerHTML = originalCatText;
+      item.style.display = 'none';
+      }
+      });
+
+      console.log('filterCategories complete');
+      }
+
+      // CLICK HANDLER
+      document.addEventListener('click', function(e) {
+      console.log('Click detected');
+      const li = e.target.closest('#category-list li');
+      if (!li) {
+      console.log('Not a category li');
+      return;
+      }
+
+      console.log('CATEGORY CLICKED!');
+      manualState=1;
+      searchState=0;
+      console.log("manual state activated; manualstate=1, searchstate=0");
+
+      const searchInput = document.getElementById('category_search');
+      if (searchInput) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      const categorySelect = document.getElementById('drug_category');
+      if (!categorySelect) {
+      console.error('drug_category select not found');
+      return;
+      }
+
+      const categoryTextDiv = li.querySelector('div[style*="table-cell"]:last-child');
+      const fullText = categoryTextDiv ? categoryTextDiv.textContent : li.textContent;
+      const categoryName = fullText.split(' (')[0].trim();
+
+      console.log(`Category text: "${fullText}" → name: "${categoryName}"`);
+
+    const matchingOption = Array.from(categorySelect.options).find(opt =>
+      opt.text.trim().toLowerCase() === categoryName.toLowerCase()
+      );
+
+      if (matchingOption) {
+      console.log(`MATCH FOUND: ${matchingOption.value} "${matchingOption.text}"`);
+
+      categorySelect.value = matchingOption.value;
+      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log('Category updated + change fired');
+
+      // Populate drugs based on selected category
+      set_ajaxURL_for_suggestions('/drug/search?filter_value=', matchingOption.value);
+      console.log('ajaxURL set: drugs should populate NOW');
+
+      showTemporaryAlert(`Showing drugs in ${categoryName}`);
+
+      } else {
+      console.error(`No option matches "${categoryName}"`);
+      console.log('Options:', Array.from(categorySelect.options).map(opt => `"${opt.text.trim()} (${opt.value})"`));
+      }
+      });
+
+      document.addEventListener('click', function(e) {
+      if (e.target.matches('#backButton, .navButton, .button.blue, [class*="back"]')) {
+
+      injectSearchBar();
+      }
+      }, true);
+
+      window.injectSearchBar = injectSearchBar;
+      // Function to inject search bar into touch interface
+      function injectSearchBar() {
+      document.querySelectorAll('#category_search, #search_container').forEach(el => el.remove());
+
+      const touchPage = document.querySelector('#tt_page_drug_category .inputPage2');
+      const inputFrame = document.querySelector('#inputFrame0');
+
+      if (!touchPage || !inputFrame) {
+      return;
+      }
+      const searchContainer = document.createElement('div');
+      searchContainer.id = 'search_container';
+      searchContainer.style.cssText = `
+      width: 100%;
+      padding: 10px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #ddd;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      `;
+
+      const searchInput = document.createElement('input');
+      searchInput.type = 'text';
+      searchInput.id = 'category_search';
+      searchInput.placeholder = 'Search categories...';
+      searchInput.style.cssText = `
+      width: 100%;
+      padding: 15px;
+      font-size: 24px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      outline: none;
+      `;
+
+      // TST attributes to initialize keypad behavior
+      searchInput.setAttribute('field_type', 'alpha');
+      searchInput.setAttribute('tt_pageStyleClass', 'Alpha');
+      searchInput.setAttribute('helptext', 'Tap letters to search categories');
+
+      searchInput.addEventListener('focus', function() {
+      this.style.borderColor = '#007bff';
+      this.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.25)';
+      try {
+      window.tstCurrentPage = window.tstCurrentPage || 0;
+      window['touchscreenInput' + tstCurrentPage] = this;
+      if (typeof listSuggestions === 'function') listSuggestions(tstCurrentPage);
+      } catch (e) {
+      console.log('TST attach failed:', e);
+      }
+      });
+
+      searchInput.addEventListener('blur', function() {
+      this.style.borderColor = '#ddd';
+      this.style.boxShadow = 'none';
+      });
+
+      searchInput.addEventListener('input', filterCategories);
+      searchInput.addEventListener('keyup', filterCategories);
+
+      searchContainer.appendChild(searchInput);
+      inputFrame.insertBefore(searchContainer, inputFrame.firstChild);
+
+      attachTouchKeypad();
+      }
+
+      injectSearchBar();
+
+      function attachTouchKeypad() {
+
+      function getSearchInput() {
+      return document.getElementById('category_search');
+      }
+
+      let keypadWrap = document.getElementById('keypad');
+      if (!keypadWrap) {
+      keypadWrap = document.createElement('div');
+      keypadWrap.id = 'keypad';
+      keypadWrap.className = 'touch-keypad hidden';
+      keypadWrap.setAttribute('role', 'application');
+      keypadWrap.setAttribute('aria-hidden', 'true');
+
+      const inner = document.createElement('div');
+      inner.className = 'keypad-inner';
+      keypadWrap.appendChild(inner);
+
+      const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+      rows.forEach(rowStr => {
+      const row = document.createElement('div');
+      row.className = 'key-row';
+      Array.from(rowStr).forEach(ch => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'keyboardButton';
+      btn.textContent = ch;
+      btn.dataset.action = 'char';
+      row.appendChild(btn);
+      });
+      inner.appendChild(row);
+      });
+
+      const specialRow = document.createElement('div');
+      specialRow.className = 'key-row special-row';
+
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.className = 'keyboardButton special';
+      back.textContent = '⌫';
+      back.dataset.action = 'back';
+      specialRow.appendChild(back);
+
+      const space = document.createElement('button');
+      space.type = 'button';
+      space.className = 'keyboardButton special';
+      space.textContent = 'Space';
+      space.dataset.action = 'space';
+      specialRow.appendChild(space);
+
+      const clear= document.createElement('button');
+      clear.type = 'button';
+      clear.id = 'clearKeyboardBtn';
+      clear.className = 'keyboardButton special';
+      clear.textContent = 'Clear';
+      clear.dataset.action = 'clear';
+      specialRow.appendChild(clear);
+      specialRow.addEventListener('click', (e) => {
+      const key = e.target.closest('.keyboardButton');
+      if (!key) return;
+
+      const action = key.dataset.action;
+      const input = getSearchInput();
+      if (!input) return;
+
+      if (action === 'clear') {
+
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.focus();
+      return;
+      }
+
+      if (!action) {
+      input.value += key.textContent;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      });
+
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.id = 'closeKeyboardBtn';
+      closeBtn.className = 'keyboardButton close';
+      closeBtn.textContent = 'Close';
+      closeBtn.dataset.action = 'close';
+      specialRow.appendChild(closeBtn);
+
+      inner.appendChild(specialRow);
+      document.body.appendChild(keypadWrap);
+
+      inner.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+
+      if (action === 'close' || action === 'clear') return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const input = getSearchInput();
+      if (!input) return;
+
+      if (action === 'back') removeAtCaret(input);
+      else if (action === 'space') insertAtCaret(input, ' ');
+      else insertAtCaret(input, btn.textContent);
+
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.focus();
+      });
+
+      // Close button handler
+      closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      hideKeypad();
+      });
+      }
+
+      function insertAtCaret(el, text) {
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? start;
+      const val = el.value;
+      el.value = val.slice(0, start) + text + val.slice(end);
+      const pos = start + text.length;
+      el.selectionStart = el.selectionEnd = pos;
+      }
+
+      function removeAtCaret(el) {
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? start;
+      if (start === end && start > 0) {
+      const val = el.value;
+      el.value = val.slice(0, start - 1) + val.slice(end);
+      el.selectionStart = el.selectionEnd = start - 1;
+      } else if (start !== end) {
+      const val = el.value;
+      el.value = val.slice(0, start) + val.slice(end);
+      el.selectionStart = el.selectionEnd = start;
+      }
+      }
+
+      function showKeypad() {
+      const wrap = document.getElementById('keypad');
+      if (!wrap) return;
+      wrap.classList.remove('hidden');
+      wrap.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+      const input = getSearchInput();
+      if (input) {
+      input.readOnly = true;
+      input.focus();
+      }
+      }, 50);
+      }
+
+      function hideKeypad() {
+      const wrap = document.getElementById('keypad');
+      if (!wrap) return;
+      wrap.classList.add('hidden');
+      wrap.setAttribute('aria-hidden', 'true');
+      const input = getSearchInput();
+      if (input) {
+      input.readOnly = false;
+      }
+      }
+
+      const input = getSearchInput();
+      if (input) {
+      input.removeEventListener('click', input._keypadClick);
+      input._keypadClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showKeypad();
+      };
+      input.addEventListener('click', input._keypadClick, true);
+      input.addEventListener('touchstart', input._keypadClick, true);
+      }
+
+      document.removeEventListener('click', document._keypadOutside);
+      document._keypadOutside = (e) => {
+      const wrap = document.getElementById('keypad');
+      if (!wrap) return;
+      const input = getSearchInput();
+      const targetIsInput = input && (e.target === input || e.target.closest('#category_search'));
+      const targetInsideKeypad = e.target.closest('#keypad');
+      if (!targetIsInput && !targetInsideKeypad && !wrap.classList.contains('hidden')) {
+      hideKeypad();
+      }
+      };
+      document.addEventListener('click', document._keypadOutside, true);
+      document.addEventListener('touchstart', document._keypadOutside, true);
+      }
+
+      //asnyc function to allow drugcategory select option list and inject search bar load at the same time to reduce delay
+      async function loadCategoryAndSearchBar() {
+      //error  handling for debugging
+      try {
+      await waitForTSTPage('#tt_page_drug_category');
+      injectSearchBar();
+      console.log('Category select options loaded and search bar injected');
+      } catch (e) {
+      console.warn('TST wait failed:', e);
+      injectSearchBar();
+      }
+      }
+
+      function waitForTSTPage(pageSelector, timeout = 2000) {
+      return new Promise((resolve, reject) => {
+      const start = Date.now();
+
+      function checkPage() {
+      if (document.querySelector(pageSelector) &&
+      document.querySelector('li[source_id="drug_category"]')) {
+      resolve();
+      return;
+      }
+
+      if (Date.now() - start > timeout) {
+      reject(new Error('TST page timeout'));
+      return;
+      }
+
+      setTimeout(checkPage, 20);
+      }
+
+      checkPage();
+      });
+      }
+
+      function initializeCategorySearch() {
+      injectSearchBar();
+
+      // If search bar exists, ensure it has event listeners
+      const categorySearchInput = document.getElementById('category_search');
+      if (categorySearchInput && !categorySearchInput.hasAttribute('data-initialized')) {
+      categorySearchInput.setAttribute('data-initialized', 'true');
+      categorySearchInput.addEventListener('input', filterCategories);
+      categorySearchInput.addEventListener('keyup', filterCategories);
+      console.log('Category search initialized');
+      }
+      }
+
+      // Try to initialize at different times
+      //document.addEventListener('DOMContentLoaded', initializeCategorySearch);
+      //setTimeout(initializeCategorySearch, 500);
+      //setTimeout(initializeCategorySearch, 1000);
+      //setTimeout(initializeCategorySearch, 2000);
+      //setTimeout(initializeCategorySearch, 3000);
+      //setTimeout(initializeCategorySearch, 5000);
+      // Replace ALL the setTimeout(initializeCategorySearch...) calls with:
+      document.addEventListener('DOMContentLoaded', async () => {
+      try {
+      await loadCategoryAndSearchBar();
+      } catch (e) {
+      console.warn('Category search fallback:', e);
+      injectSearchBar();
+      }
+      });
+
+      (function() {
+      const drugInput = document.getElementById('drug_name');
+      const amountInput = document.getElementById('amount_requested');
+      const labelCell = amountInput ? amountInput.closest('tr').querySelector('td:first-child') : null;
+      const form = document.getElementById('inventory-form');
+      if (!drugInput || !amountInput || !labelCell || !form) return;
+
+      // Helper function to show temporary alerts
+      function showTemporaryAlert(message, duration = 3000) {
+      try {
       const existing = document.getElementById('temp-alert');
       if (existing) existing.remove();
-      
+
       // Create new alert
       const div = document.createElement('div');
       div.id = 'temp-alert';
@@ -125,77 +677,77 @@
 
       // Auto-fade and remove
       setTimeout(() => {
-        div.style.opacity = '0';
-        setTimeout(() => { if (div && div.remove) div.remove(); }, 450);
+      div.style.opacity = '0';
+      setTimeout(() => { if (div && div.remove) div.remove(); }, 450);
       }, duration);
-    } catch (e) {
+      } catch (e) {
       console.error('showTemporaryAlert error', e);
       alert(message);
-    }
-  }
+      }
+      }
 
-  // core fetch function (exposed globally so clicks can call it)
-  function fetchAvailableFor(drugName) {
-    if (!drugName || drugName.trim() === "") {
+      // core fetch function (exposed globally so clicks can call it)
+      function fetchAvailableFor(drugName) {
+      if (!drugName || drugName.trim() === "") {
       amountInput.dataset.available = 0;
       amountInput.value = "";
       amountInput.removeAttribute('max');
       labelCell.textContent = "Amount Requested:";
       amountInput.setAttribute('helpText', 'Amount Requested');
       return;
-    }
+      }
 
-    labelCell.textContent = "Amount Requested (checking backstore...)";
-    amountInput.setAttribute('helpText', 'Checking backstore...');
+      labelCell.textContent = "Amount Requested (checking backstore...)";
+      amountInput.setAttribute('helpText', 'Checking backstore...');
 
-    fetch('/drug/available_quantity?drug_name=' + encodeURIComponent(drugName))
+      fetch('/drug/available_quantity?drug_name=' + encodeURIComponent(drugName))
       .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(data => {
-        const available = parseInt(data.available || 0, 10);
-        amountInput.dataset.available = available;
-        amountInput.removeAttribute('max');
+      const available = parseInt(data.available || 0, 10);
+      amountInput.dataset.available = available;
+      amountInput.removeAttribute('max');
 
-        const currentVal = parseInt(amountInput.value || 0, 10) || 0;
-        if (currentVal > available) amountInput.value = available;
+      const currentVal = parseInt(amountInput.value || 0, 10) || 0;
+      if (currentVal > available) amountInput.value = available;
 
-        labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${available} bottles </span> available in backstore)`;
-        amountInput.setAttribute('helpText', `Enter Amount Requested (${available} bottles available in backstore)`);
-        console.debug('available for', drugName, available);
+      labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${available} bottles </span> available in backstore)`;
+      amountInput.setAttribute('helpText', `Enter Amount Requested (${available} bottles available in backstore)`);
+      console.debug('available for', drugName, available);
       })
       .catch(err => {
-        console.error('Error fetching available_quantity:', err);
-        amountInput.dataset.available = 0;
-        amountInput.removeAttribute('max');
-        labelCell.textContent = "Amount Requested:";
-        amountInput.setAttribute('helpText', 'Amount Requested');
+      console.error('Error fetching available_quantity:', err);
+      amountInput.dataset.available = 0;
+      amountInput.removeAttribute('max');
+      labelCell.textContent = "Amount Requested:";
+      amountInput.setAttribute('helpText', 'Amount Requested');
       });
-  }
+      }
 
-  // expose globally so click handlers can call it if needed
-  window.fetchAvailableFor = fetchAvailableFor;
+      // expose globally so click handlers can call it if needed
+      window.fetchAvailableFor = fetchAvailableFor;
 
-  // Debounced handlers (typing/blur/change fallback)
-  let inputTimer = null;
-  function scheduleFetch() {
-    clearTimeout(inputTimer);
-    inputTimer = setTimeout(() => fetchAvailableFor(drugInput.value), 250);
-  }
-  drugInput.addEventListener('input', scheduleFetch);
-  drugInput.addEventListener('change', scheduleFetch);
-  drugInput.addEventListener('blur', scheduleFetch);
+      // Debounced handlers (typing/blur/change fallback)
+      let inputTimer = null;
+      function scheduleFetch() {
+      clearTimeout(inputTimer);
+      inputTimer = setTimeout(() => fetchAvailableFor(drugInput.value), 250);
+      }
+      drugInput.addEventListener('input', scheduleFetch);
+      drugInput.addEventListener('change', scheduleFetch);
+      drugInput.addEventListener('blur', scheduleFetch);
 
-  // Delegate clicks on suggestion <li>s anywhere in document:
-  document.addEventListener('click', function(e) {
-    const li = e.target.closest('li[value]');
-    if (!li) return;
+      // Delegate clicks on suggestion <li>s anywhere in document:
+      document.addEventListener('click', function(e) {
+      const li = e.target.closest('li[value]');
+      if (!li) return;
 
-    // put the chosen name into the input (mimic selection)
-    const chosen = li.getAttribute('value') || li.textContent;
-    drugInput.value = chosen;
+      // put the chosen name into the input (mimic selection)
+      const chosen = li.getAttribute('value') || li.textContent;
+      drugInput.value = chosen;
 
-    // If the <li> contains data-qty, use it (fast path)
-    const dataQty = li.dataset && li.dataset.qty ? parseInt(li.dataset.qty, 10) : null;
-    if (Number.isFinite(dataQty)) {
+      // If the <li> contains data-qty, use it (fast path)
+      const dataQty = li.dataset && li.dataset.qty ? parseInt(li.dataset.qty, 10) : null;
+      if (Number.isFinite(dataQty)) {
       amountInput.dataset.available = dataQty;
       amountInput.removeAttribute('max');
       labelCell.innerHTML = `Enter Amount Requested (<span style="color:red;">${dataQty} bottle(s) </span>  available in backstore)`;
@@ -203,61 +755,140 @@
       // clamp any value
       const cur = parseInt(amountInput.value || 0, 10) || 0;
       if (cur > dataQty) amountInput.value = dataQty;
-    } else {
+      } else {
       // fallback: call server to get quantity
       fetchAvailableFor(chosen);
-    }
+      }
 
-    drugInput.focus();
-  });
+      drugInput.focus();
+      });
 
-  // Clamp numeric typing into amountInput (no native max attr used)
-  amountInput.addEventListener('input', function() {
-    // remove any non-numeric characters as the user types
-    const cleaned = this.value.replace(/[^\d]/g, '');
-    if (this.value !== cleaned) this.value = cleaned;
-  });
+      // Clamp numeric typing into amountInput (no native max attr used)
+      amountInput.addEventListener('input', function() {
+      // remove any non-numeric characters as the user types
+      const cleaned = this.value.replace(/[^\d]/g, '');
+      if (this.value !== cleaned) this.value = cleaned;
+      });
 
-  // Show toast if user enters more than available on blur/change
-  function checkAmountExceeded() {
-    const max = parseInt(amountInput.dataset.available || 0, 10) || 0;
-    const val = parseInt(amountInput.value || 0, 10) || 0;
-    if (val > max) {
+      // Show toast if user enters more than available on blur/change
+      function checkAmountExceeded() {
+      const max = parseInt(amountInput.dataset.available || 0, 10) || 0;
+      const val = parseInt(amountInput.value || 0, 10) || 0;
+      if (val > max) {
       showTemporaryAlert(`You cannot request more than ${max} (available in backstore)`);
       amountInput.value = max;
-    }
-  }
+      }
+      }
 
-  amountInput.removeAttribute('max');
+      amountInput.removeAttribute('max');
 
-  // attach events
-  amountInput.addEventListener('change', checkAmountExceeded);
-  amountInput.addEventListener('blur', checkAmountExceeded);
+      // attach events
+      amountInput.addEventListener('change', checkAmountExceeded);
+      amountInput.addEventListener('blur', checkAmountExceeded);
 
-  // Form submission validation
-  form.addEventListener('submit', function(e) {
-    const max = parseInt(amountInput.dataset.available || 0, 10) || 0;
-    const val = parseInt(amountInput.value || 0, 10) || 0;
-    
-    if (val > max) {
+      // Form submission validation
+      form.addEventListener('submit', function(e) {
+      const max = parseInt(amountInput.dataset.available || 0, 10) || 0;
+      const val = parseInt(amountInput.value || 0, 10) || 0;
+
+      if (val > max) {
       showTemporaryAlert(`You cannot request more than ${max} (available in backstore)`);
       amountInput.value = max;
       amountInput.focus();
       e.preventDefault();
       return false;
-    }
-  });
+      }
+      });
 
-  // If input prefilled, initialize
-  if (drugInput.value && drugInput.value.trim() !== "") {
-    fetchAvailableFor(drugInput.value);
-  }
-})();
-</script>
+      // If input prefilled, initialize
+      if (drugInput.value && drugInput.value.trim() !== "") {
+      fetchAvailableFor(drugInput.value);
+      }
+      })();
 
-<script>
+  </script>
+
+  <script>
   if(document.getElementById("date")) {
     document.getElementById("date").setAttribute("maxdate", (new Date((new Date()).setDate((new Date()).getDate() + 1000))));
     document.getElementById("date").setAttribute("mindate", (new Date((new Date()).setDate((new Date()).getDate() - 1))));
+    }
+</script>
+
+<script>
+  //global handlers to detect back navigation and re-inject search bar + re-attach keypad
+  if (typeof injectSearchBar === 'function') {
+  window.injectSearchBar = injectSearchBar;
   }
+  if (typeof attachTouchKeypad === 'function') {
+  window.attachTouchKeypad = attachTouchKeypad;
+  }
+  if (typeof loadCategoryAndSearchBar === 'function') {
+  window.loadCategoryAndSearchBar = loadCategoryAndSearchBar;
+  }
+
+  let isReinitializing = false;
+
+  function handleBackNavigation() {
+  if (isReinitializing) {
+  return;
+  }
+
+  isReinitializing = true;
+
+  setTimeout(() => {
+  //TST page to fully load
+  const checkAndRestore = () => {
+  const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
+
+  categoryItems.forEach(item => {
+  item.style.display = '';
+  item.style.backgroundColor = '';
+  });
+
+  if (typeof searchState !== 'undefined') searchState = 0;
+  if (typeof manualState !== 'undefined') manualState = 0;
+
+  if (typeof window.loadCategoryAndSearchBar === 'function') {
+  window.loadCategoryAndSearchBar();
+  }
+  };
+
+  if (document.querySelector('li[source_id="drug_category"]')) {
+  checkAndRestore();
+  } else {
+
+  setTimeout(checkAndRestore, 100);
+  }
+
+  console.log('Back navigation: Category list restored BEFORE search bar');
+  }, 250);
+
+  setTimeout(() => {
+  isReinitializing = false;
+  }, 3000);
+  }
+
+  document.addEventListener('pointerdown', function unifiedBackHandler(e) {
+  const btn = e.target.closest('#backButton, .navButton, .button.blue, [class*="back"], #nextButton');
+  if (!btn) return;
+  handleBackNavigation();
+  }, true);
+
+  window.addEventListener('pageshow', function(e) {
+  if (e.persisted || document.visibilityState === 'visible') {
+  handleBackNavigation();
+  }
+  });
+
+  window.addEventListener('popstate', function() {
+  handleBackNavigation();
+  });
+
+  document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+  setTimeout(handleBackNavigation, 100);
+  }
+  });
+
 </script>
