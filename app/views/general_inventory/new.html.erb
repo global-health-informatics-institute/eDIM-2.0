@@ -118,6 +118,13 @@
         font-size: 20px !important;
         }
 
+        .touch-keypad .keyboardButton#clearKeyboardBtn {
+        flex: 0.8 !important;
+        min-width: 65px !important;
+        font-size: 18px !important;
+        background: #fac552 !important;
+        }
+
         .touch-keypad .keyboardButton.close {
         background: #ef4444 !important;
         color: white !important;
@@ -390,6 +397,7 @@
 
       const clear= document.createElement('button');
       clear.type = 'button';
+      clear.id = 'clearKeyboardBtn';
       clear.className = 'keyboardButton special';
       clear.textContent = 'Clear';
       clear.dataset.action = 'clear';
