@@ -113,8 +113,8 @@ def new
   @drug_to_category_map_json = @drug_to_category_map.to_json
   @category_to_drugs_map_json = @category_to_drugs_map.to_json
 
-  @category_to_name_map = DrugCategory.where(drug_category_id: @drug_to_category_map.values.uniq)  # ← drug_category_id
-                                   .pluck(:drug_category_id, :category)                          # ← drug_category_id
+  @category_to_name_map = DrugCategory.where(drug_category_id: @drug_to_category_map.values.uniq)  
+                                   .pluck(:drug_category_id, :category)                          
                                    .to_h
   @category_to_name_map_json = @category_to_name_map.to_json
 
