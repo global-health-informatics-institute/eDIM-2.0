@@ -8,20 +8,22 @@ skip_before_action :verify_authenticity_token, only: :create
     render :layout => "touch"
   end
   
-  def create
-    state = User.authenticate(params['login'],params['password'])
+def create
+  state = User.authenticate(params['login'],params['password'])
 
-    if state
-      user = User.find_by_username(params['login'])
-      session[:user_id] = user.id
-      User.current = user
-      flash[:errors] = nil
-      redirect_to '/sessions/add_location' and return
-    else
-      flash[:errors] = t("messages.invalid_credentials")
-      redirect_to "/sessions/new"
-    end
+  if state
+    user = User.find_by_username(params['login'])
+    session[:user_id] = user.id
+    session[:user] = user.username  
+    User.current = user
+    flash[:errors] = nil
+    redirect_to '/sessions/add_location' and return
+  else
+    flash[:errors] = t("messages.invalid_credentials")
+    redirect_to "/sessions/new"
   end
+end
+
 
   def add_location
     render :layout => 'touch'
