@@ -137,10 +137,19 @@ end
       drug_name = params[:general_inventory][:drug_name].to_s.strip
       category_name = params[:general_inventory][:drug_category].to_s.strip
 
-      # lookup to find drug
-      drug = Drug.joins(:drug_category)
-                .where("drugs.name = ? AND drug_categories.category = ?", drug_name, category_name)
-                .first
+      # lookup to find drug - normalize strings for lookup
+      # Check if category_name is numeric (ID) or text (name)
+      if category_name.match?(/^\d+$/)
+        # It's a category ID
+        drug = Drug.joins(:drug_category)
+                  .where("TRIM(drugs.name) = ? AND drug_categories.drug_category_id = ?", drug_name.strip, category_name.to_i)
+                  .first
+      else
+        # It's a category name
+        drug = Drug.joins(:drug_category)
+                  .where("TRIM(drugs.name) = ? AND TRIM(drug_categories.category) = ?", drug_name.strip, category_name.strip)
+                  .first
+      end
 
       if drug
         backstore_id = Location.find_by_name("Backstore")&.id || 5
@@ -162,13 +171,27 @@ end
     drug_name     = inventory_params[:drug_name].to_s.strip
     drug_category = inventory_params[:drug_category].to_s.strip
 
-    # Backstore additions
-    drug = Drug.joins(:drug_category)
-              .where(
-                name: drug_name,
-                drug_categories: { category: drug_category }
-              )
-              .first
+    # Backstore additions - normalize strings for lookup
+    # Check if drug_category is numeric (ID) or text (name)
+    if drug_category.match?(/^\d+$/)
+      # It's a category ID
+      drug = Drug.joins(:drug_category)
+                .where(
+                  "TRIM(drugs.name) = ? AND drug_categories.drug_category_id = ?",
+                  drug_name.strip,
+                  drug_category.to_i
+                )
+                .first
+    else
+      # It's a category name
+      drug = Drug.joins(:drug_category)
+                .where(
+                  "TRIM(drugs.name) = ? AND TRIM(drug_categories.category) = ?",
+                  drug_name.strip,
+                  drug_category.strip
+                )
+                .first
+    end
 
     if drug.nil?
       flash[:errors] = "The selected drug could not be found"
