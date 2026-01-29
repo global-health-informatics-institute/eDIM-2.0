@@ -393,17 +393,28 @@
       clear.className = 'keyboardButton special';
       clear.textContent = 'Clear';
       clear.dataset.action = 'clear';
-      clear.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      specialRow.appendChild(clear);
+      specialRow.addEventListener('click', (e) => {
+      const key = e.target.closest('.keyboardButton');
+      if (!key) return;
+
+      const action = key.dataset.action;
       const input = getSearchInput();
-      if (input) {
+      if (!input) return;
+
+      if (action === 'clear') {
+
       input.value = '';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.focus();
+      return;
+      }
+
+      if (!action) {
+      input.value += key.textContent;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
       }
       });
-      specialRow.appendChild(clear);
 
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
@@ -420,7 +431,8 @@
       const btn = e.target.closest('button');
       if (!btn) return;
       const action = btn.dataset.action;
-      if (action === 'close') return;
+
+      if (action === 'close' || action === 'clear') return;
 
       e.preventDefault();
       e.stopPropagation();
