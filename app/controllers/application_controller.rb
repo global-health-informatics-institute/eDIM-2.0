@@ -40,16 +40,25 @@ class ApplicationController < ActionController::Base
   end
   protected
 
-  def check_logged_in
-    if session[:user_id].blank?
-      respond_to do |format|
-        format.html { redirect_to "/sessions/new" }
-      end
-    elsif not session[:user_id].blank?
+def check_logged_in
+  if session[:user_id].blank?
+    flash[:error] = "Your session has expired. Please login again."  
+    respond_to do |format|
+      format.html { redirect_to "/sessions/new" }
+    end
+  elsif session[:user_id].present?  
+    begin
       User.current = User.find(session[:user_id])
       I18n.locale = User.current.language || I18n.default_locale
+    rescue ActiveRecord::RecordNotFound
+    
+      session[:user_id] = nil
+      flash[:error] = "Your session is no longer valid. Please login again."
+      redirect_to "/sessions/new" and return
     end
   end
+end
+
 
   def exempted_routes
     ['/sessions/new','/sessions/login','/sessions/logout','/main/time'].include?(request.env['PATH_INFO'])
