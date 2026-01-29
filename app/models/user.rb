@@ -50,7 +50,12 @@ class User < ActiveRecord::Base
   end
 
   def language
-
+    # Check if user has a language preference stored in user_properties
+    language_property = self.user_properties.find_by(property: 'defaultLocale')
+    return language_property.property_value if language_property&.property_value.present?
+    
+    # Default to English if no preference is set
+    'en'
   end
 
   def self.random_string(len)

@@ -1,0 +1,14 @@
+<script type="text/javascript" defer>
+    tt_cancel_destination = '/main/settings';
+</script>
+
+<%= form_for :user, method: 'PATCH', url: user_path do |f| %>
+    <p><label for="language_preference">Language Preference</label><br/>
+      <select name="language_preference" id="language_preference" style="font-size: 1.4rem; padding: 10px; width: 100%;">
+        <option value="en" <%= 'selected' if (User.current&.language != 'ESP') %>>English</option>
+        <option value="ESP" <%= 'selected' if (User.current&.language == 'ESP') %>>Español</option>
+      </select>
+    </p>
+    
+    <%= hidden_field_tag 'section', 'language_preference' %>
+<% end %>

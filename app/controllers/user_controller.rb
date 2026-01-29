@@ -65,10 +65,21 @@ class UserController < ApplicationController
         end
 
         if user.errors.blank?
-          flash[:success] = "User language preference successfully updated"
+          flash[:success] = "User details successfully updated"
         else
           raise user.errors.inspect
           flash[:errors] = "Failed to update user details"
+        end
+      when "language_preference"
+        # Handle language preference update
+        language_property = user.user_properties.find_or_initialize_by(property: 'defaultLocale')
+        language_property.property_value = params[:language_preference]
+        language_property.save
+        
+        if language_property.errors.blank?
+          flash[:success] = "User language preference successfully updated"
+        else
+          flash[:errors] = "Failed to update language preference"
         end
       when "password"
         user.update_attributes(password: params[:password], salt: nil)
