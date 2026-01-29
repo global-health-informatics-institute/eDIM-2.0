@@ -162,6 +162,9 @@
       return null;
       }
 
+      let searchState=0;
+      let manualState=0;
+
       function filterCategories() {
       console.log(`filterCategories called`);
       const searchInput = document.getElementById('category_search');
@@ -172,6 +175,35 @@
 
       const searchTerm = searchInput.value.toLowerCase().trim();
       console.log(`Processing search: "${searchTerm}"`);
+
+      // SHOW ALL CATEGORIES WHEN SERACHIS EMPTY
+      if (searchTerm === '') {
+      searchState = 0;
+      manualState = 0;
+      console.log('Empty search → showing ALL categories');
+
+      const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
+      categoryItems.forEach(item => {
+      const categoryTextDiv = item.querySelector('div[style*="table-cell"]:last-child');
+      if (!categoryTextDiv) return;
+
+      const originalCatText = categoryTextDiv.textContent.trim();
+      categoryTextDiv.innerHTML = originalCatText;
+      item.style.display = '';
+      item.style.backgroundColor = '';
+      });
+      console.log('Show all categories complete');
+      return;
+      }
+
+      searchState = 1;
+      manualState = 0;
+      const categorySelect = document.getElementById('drug_category');
+      if (categorySelect) {
+      categorySelect.value = '';
+      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      console.log("search states activated; searchstate=1, manualstate=0");
 
       const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
       console.log(`Found ${categoryItems.length} category items`);
@@ -209,11 +241,11 @@
 
       const originalCatText = categoryTextDiv.textContent.trim();
       const catTextLower = originalCatText.toLowerCase();
-
-      if (searchTerm === '' || catTextLower.includes(searchTerm)) {
+      if (catTextLower.includes(searchTerm)) {
       categoryTextDiv.innerHTML = originalCatText;
       item.style.display = '';
-      item.style.backgroundColor = '';
+      // Highlight matches
+      item.style.backgroundColor = '#e3f2fd';
       } else {
       categoryTextDiv.innerHTML = originalCatText;
       item.style.display = 'none';
@@ -233,7 +265,15 @@
       }
 
       console.log('CATEGORY CLICKED!');
+      manualState=1;
+      searchState=0;
+      console.log("manual state activated; manualstate=1, searchstate=0");
 
+      const searchInput = document.getElementById('category_search');
+      if (searchInput) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       const categorySelect = document.getElementById('drug_category');
       if (!categorySelect) {
       console.error('drug_category select not found');
@@ -615,7 +655,6 @@
       // Helper function to show temporary alerts
       function showTemporaryAlert(message, duration = 3000) {
       try {
-      // Remove any existing alerts
       const existing = document.getElementById('temp-alert');
       if (existing) existing.remove();
 
@@ -799,9 +838,31 @@
   isReinitializing = true;
 
   setTimeout(() => {
+  //TST page to fully load
+  const checkAndRestore = () => {
+  const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
+
+  categoryItems.forEach(item => {
+  item.style.display = '';
+  item.style.backgroundColor = '';
+  });
+
+  if (typeof searchState !== 'undefined') searchState = 0;
+  if (typeof manualState !== 'undefined') manualState = 0;
+
   if (typeof window.loadCategoryAndSearchBar === 'function') {
   window.loadCategoryAndSearchBar();
   }
+  };
+
+  if (document.querySelector('li[source_id="drug_category"]')) {
+  checkAndRestore();
+  } else {
+
+  setTimeout(checkAndRestore, 100);
+  }
+
+  console.log('Back navigation: Category list restored BEFORE search bar');
   }, 250);
 
   setTimeout(() => {
