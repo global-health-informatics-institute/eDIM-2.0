@@ -352,7 +352,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_20_071216) do
     t.datetime "date_dispensed"
     t.boolean "voided", default: false
     t.boolean "deleted", default: false
-    t.string "patient_id"
     t.index ["bottle_id"], name: "fk_rails_03e2d3a9d7"
     t.index ["label_identifier"], name: "index_prepack_labels_on_label_identifier", unique: true
     t.index ["prepack_id"], name: "index_prepack_labels_on_prepack_id"
@@ -383,7 +382,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_20_071216) do
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
     t.index ["voided"], name: "index_prepacks_on_voided"
-    t.check_constraint "json_valid(`times`)", name: "times"
   end
 
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
