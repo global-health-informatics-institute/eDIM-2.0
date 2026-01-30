@@ -470,7 +470,10 @@ class DispensationController < ApplicationController
       flash[:errors] = "Failed to void the dispensation"
     end
 
-    redirect_to dispensation.patient
+    #rails show route
+     redirect_to patient_path(dispensation.patient)  
+ 
+
   end
 
   private
