@@ -2,6 +2,8 @@
 /config/database.yml
 /config/secrets.yml
 /config/application.yml
+/config/database.yml
+
 
 # Example files
 !/config/database.yml.example
