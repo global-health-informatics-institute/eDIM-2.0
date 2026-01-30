@@ -4,6 +4,7 @@ class Drug < ActiveRecord::Base
   
   # Automatically trim whitespace from name
   before_save :normalize_name
+  
 #needed as api on the view side
   def ingredient
   temp = self.name.to_s.downcase
