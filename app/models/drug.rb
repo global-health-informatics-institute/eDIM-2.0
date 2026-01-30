@@ -4,14 +4,7 @@ class Drug < ActiveRecord::Base
   
   # Automatically trim whitespace from name
   before_save :normalize_name
-  
-  private
-  
-  def normalize_name
-    self.name = self.name.strip if self.name.present?
-  end
-
-def ingredient
+  def ingredient
   temp = self.name.to_s.downcase
 
   if self.dose_form.present?
@@ -28,5 +21,13 @@ end
   def category
     return self.drug_category.category
   end
+  
+  private
+  
+  def normalize_name
+    self.name = self.name.strip if self.name.present?
+  end
+
+
 
 end
