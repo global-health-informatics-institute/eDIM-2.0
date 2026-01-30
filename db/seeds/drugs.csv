@@ -1,9 +1,9 @@
 Drug Name,Strength,Dose Form,Par level,Category
 Simvastatin,20 Mg,Tablet,750,Cardiovascular
-Amlodopine ,5 Mg,Tablet,1200,Cardiovascular
-Amlodopine ,10 Mg,Tablet,,Cardiovascular
+Amlodopine,5 Mg,Tablet,1200,Cardiovascular
+Amlodopine,10 Mg,Tablet,,Cardiovascular
 Aspirin,81 Mg,Tablet,2190,Cardiovascular
-Atenolol ,50 Mg,Tablet,450,Cardiovascular
+Atenolol,50 Mg,Tablet,450,Cardiovascular
 Enalapril Maleate,10 Mg,Tablet,1500,Cardiovascular
 Furosemide,40 Mg,Tablet,100,Cardiovascular
 Hidrochlorothiazide,25 Mg,Tablet,580,Cardiovascular
@@ -14,31 +14,31 @@ Verapamil,80 Mg,Tablet,300,Cardiovascular
 Metformin,500 Mg,Tablet,500,Endocrine
 Metformin,800 Mg,Tablet,140,Endocrine
 Metformin,1000 Mg,Tablet,180,Endocrine
-Potassium Iodide ,1 g/ml,Suspension,6,Endocrine
-Glibenclamida ,5 Mg,Tablet,575,Endocrine
-Levothyroxine ,100 mcg,Tablet,120,Endocrine
-Docuinte Sodium,100 Mg ,Tablet,240,Gastrointestinal
+Potassium Iodide,1 g/ml,Suspension,6,Endocrine
+Glibenclamida,5 Mg,Tablet,575,Endocrine
+Levothyroxine,100 mcg,Tablet,120,Endocrine
+Docuinte Sodium,100 Mg,Tablet,240,Gastrointestinal
 Famotidine,20 Mg,Tablet,1700,Gastrointestinal
 Homatropine,1 Mg/ml,Suspension,,Gastrointestinal
 Homatropine (60 ml),1 Mg/ml,Suspension,,Gastrointestinal
-Loperamide ,2 Mg,Tablet,36,Gastrointestinal
+Loperamide,2 Mg,Tablet,36,Gastrointestinal
 Metoclopramide,5 Mg/5 ml,Suspension,,Gastrointestinal
 Metoclopramide (60 ml),5 Mg/5 ml,Suspension,1 gal,Gastrointestinal
 Omeprazole,20 Mg,Tablet,3500,Gastrointestinal
 Promethazine,25 Mg,Tablet,145,Gastrointestinal
 Ranitidine,150 Mg,Tablet,780,Gastrointestinal
 Tums,500 Mg,Tablet,100,Gastrointestinal
-Acetaminafen ,120 Mg/5 ml,Suspension,,Pain
+Acetaminafen,120 Mg/5 ml,Suspension,,Pain
 Acetaminafen (60 ml),120 Mg/5 ml,Suspension,1/2 gal,Pain
-Acetaminafen ,160 Mg/5 ml,Suspension,,Pain
+Acetaminafen,160 Mg/5 ml,Suspension,,Pain
 Acetaminafen (60 ml),160 Mg/5 ml,Suspension,6,Pain
 Acetaminafen,80 Mg,Tablet,2900,Pain
 Acetaminafen,325 Mg,Tablet,840,Pain
 Acetaminafen,500 Mg,Tablet,,Pain
 Cyclobenzaprine,10 Mg,Tablet,230,Pain
 Diclofenaco,50 Mg,Tablet,4800,Pain
-Iboprofeno ,200 Mg,Tablet,900,Pain
-Iboprofeno ,400 Mg,Tablet,1080,Pain
+Iboprofeno,200 Mg,Tablet,900,Pain
+Iboprofeno,400 Mg,Tablet,1080,Pain
 Paracetamol,500 Mg,Tablet,5500,Pain
 Acido Valproico,200 Mg/ml,Suspension,6,Neuro/Psych
 Amitriptilina,25 Mg,Tablet,1200,Neuro/Psych
@@ -48,16 +48,16 @@ Fluoxetine,20 Mg,Capsule,,Neuro/Psych
 Fluoxetine,20 Mg,Tablet,1100,Neuro/Psych
 Phenytoin Sodium,100 Mg,Tablet,1100,Neuro/Psych
 Albuterol cajas,2.5 Mg/3 ml,Bottle,12,Respiratory/Allergy
-Beclometasone ,50 mcg/dose ,Inhaler,,Respiratory/Allergy
-Beclometasone (200 doses) ,50 mcg/dose ,Inhaler,6,Respiratory/Allergy
+Beclometasone,50 mcg/dose,Inhaler,,Respiratory/Allergy
+Beclometasone (200 doses),50 mcg/dose,Inhaler,6,Respiratory/Allergy
 Cetirizine,10 Mg,Tablet,1050,Respiratory/Allergy
-Chlorpheniramine ,4 Mg,Tablet ,550,Respiratory/Allergy
-Chlorpheniramine ,2Mg/5ml ,Suspension,N/A,Respiratory/Allergy
+Chlorpheniramine,4 Mg,Tablet,550,Respiratory/Allergy
+Chlorpheniramine,2Mg/5ml,Suspension,N/A,Respiratory/Allergy
 Dexametasona,4 Mg/ml,Injection,,Respiratory/Allergy
 Dexametasona,10 Mg/ml,Injection,30,Respiratory/Allergy
 Difenhidramina,25 Mg,Tablet,N/A,Respiratory/Allergy
 Difenhidramina,12.5 Mg/5 ml,Suspension,1/2 gal,Respiratory/Allergy
-Guaifenesin,100 Mg/5ml ,Suspension,N/A,Respiratory/Allergy
+Guaifenesin,100 Mg/5ml,Suspension,N/A,Respiratory/Allergy
 Loratadina,10 Mg,Tablet,N/A,Respiratory/Allergy
 Loratadina,5 Mg/5 ml,Suspension,N/A,Respiratory/Allergy
 Prednisolona,5 Mg,Tablet,2800,Respiratory/Allergy
@@ -66,10 +66,10 @@ Prednisolone,15 Mg/5 ml,Suspension,,Respiratory/Allergy
 Prednisolone botella 480 ml,15 Mg/5 ml,Suspension,6,Respiratory/Allergy
 Salbutamol,2 Mg,Tablet,90,Respiratory/Allergy
 Salbutamol,4 Mg,Tablet,2000,Respiratory/Allergy
-Salbutamol ,100mcg/dose,Inhaler,,Respiratory/Allergy
+Salbutamol,100mcg/dose,Inhaler,,Respiratory/Allergy
 Salbutamol (200 doses),100mcg/dose,Inhaler,,Respiratory/Allergy
-Salbutamol ,0.50%,Bottle,2,Respiratory/Allergy
-Moxifloxacino ,0.50%,Bottle,16,Opthamology/Optic
+Salbutamol,0.50%,Bottle,2,Respiratory/Allergy
+Moxifloxacino,0.50%,Bottle,16,Opthamology/Optic
 Betaxolol,15 ml,Bottle,3,Opthamology/Optic
 Bimatoprost,7.5 ml,Bottle,6,Opthamology/Optic
 Brimonidine,5 ml,Bottle,6,Opthamology/Optic
@@ -80,19 +80,19 @@ Polyvinyl,5 ml,Suspension,63,Opthamology/Optic
 Benzoyl benzoate,25%,lotion,N/A,Infectious Disease
 Aciclovir,200 Mg,Tablet,446,Infectious Disease
 Albendazole,400 Mg,Tablet,N/A,Infectious Disease
-Amoxicilina ,250 Mg/5ml,Suspension,55,Infectious Disease
-Amoxicilina ,500 Mg ,Tablet,1188,Infectious Disease
-Amoxicilina ,250 Mg ,Tablet,552,Infectious Disease
+Amoxicilina,250 Mg/5ml,Suspension,55,Infectious Disease
+Amoxicilina,500 Mg,Tablet,1188,Infectious Disease
+Amoxicilina,250 Mg,Tablet,552,Infectious Disease
 Amoxicilina Clavulancia,625 Mg,Tablet,100,Infectious Disease
 Amoxicilina Clavulancia,200 Mg/5 ml,Suspension,N/A,Infectious Disease
 Amoxicilina Clavulancia,500 Mg,Tablet,,Infectious Disease
-Azithromycin,250 Mg ,Tablet,270,Infectious Disease
-Azithromycin ,200 Mg/5 ml,Suspension ,,Infectious Disease
-Azithromycin (15 ml),200 Mg/5 ml,Suspension ,24,Infectious Disease
+Azithromycin,250 Mg,Tablet,270,Infectious Disease
+Azithromycin,200 Mg/5 ml,Suspension,,Infectious Disease
+Azithromycin (15 ml),200 Mg/5 ml,Suspension,24,Infectious Disease
 Ceftriaxone,250 Mg,Injection,50,Infectious Disease
-Cephalexin ,250 Mg,Tablet,4800,Infectious Disease
-Cephalexin ,500 Mg,Tablet,460,Infectious Disease
-Chloroquine,100 Mg ,Tablet,N/A,Infectious Disease
+Cephalexin,250 Mg,Tablet,4800,Infectious Disease
+Cephalexin,500 Mg,Tablet,460,Infectious Disease
+Chloroquine,100 Mg,Tablet,N/A,Infectious Disease
 Chloroquine,150 Mg,Tablet,,Infectious Disease
 Ciprofloxacin,500 Mg,Tablet,240,Infectious Disease
 Ciprofloxacin HCL,0.30%,Bottle,2,Infectious Disease
@@ -103,14 +103,14 @@ Doxycycline,100 Mg,Tablet,420,Infectious Disease
 Fluconazale,150 Mg,Tablet,288,Infectious Disease
 Gentamicin Sulfate,0.30%,Bottle,12,Infectious Disease
 Ivermectin,6 Mg,Tablet,78,Infectious Disease
-ketoconazole ,200 Mg,Tablet,N/A,Infectious Disease
-Metronidazole ,250 Mg,Tablet,1250,Infectious Disease
+ketoconazole,200 Mg,Tablet,N/A,Infectious Disease
+Metronidazole,250 Mg,Tablet,1250,Infectious Disease
 Sulfamethoxazole / trimethoprim,200 - 40 Mg/5 ml,Suspension,,Infectious Disease
-Penicilina Benzatinica,1.2 UI,Suspension ,10,Infectious Disease
+Penicilina Benzatinica,1.2 UI,Suspension,10,Infectious Disease
 Acido Folico,5 Mg,Tablet,1000,Vitamins
 Acido Folico,800 mcg,Tablet,,Vitamins
-Ferrous Sulfate,325 Mg ,Tablet,2800,Vitamins
-Ferrous Sulfate ,220 Mg/5 ml,Suspension,,Vitamins
+Ferrous Sulfate,325 Mg,Tablet,2800,Vitamins
+Ferrous Sulfate,220 Mg/5 ml,Suspension,,Vitamins
 Ferrous Sulfate (60 ml),220 Mg/5 ml,Suspension,4,Vitamins
 Multivitamina - Adulto,,Tablet,8100,Vitamins
 Multivitamina - Niño,,Tablet,500,Vitamins
@@ -122,7 +122,7 @@ Bacitracin Sobres,0.90%,Cream,200,Dermatology
 Clotrimazole,1%,Cream,,Dermatology
 Clotrimazole (20 g),1%,Cream,100,Dermatology
 Hidrocortisona,100 Mg/ml,Injectables,10,Dermatology
-Hidrocortisone ,1%,Cream,350,Dermatology
+Hidrocortisone,1%,Cream,350,Dermatology
 Silver Sulfadiazine,1%,Cream,1,Dermatology
 Ethinylestradiol / Levonorgestrel,0.03 Mg/0.15 Mg,Tablet,,Contraceptive
 Depo-Provera,150 Mg/ ml,Injection,5,Contraceptive
