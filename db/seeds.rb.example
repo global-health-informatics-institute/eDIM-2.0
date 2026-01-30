@@ -53,15 +53,15 @@ person = Person.create!(
 PersonName.create!(
   person_name_id: 1,
   person_id: person.person_id,
-  given_name: "Shadreck",
-  family_name: "Khamba",
+  given_name: "John",
+  family_name: "Doe",
   preferred: true,
   voided: false,
   creator: 1,
   date_created: Time.now
 )
 
-# Create the user (with password encryption logic if applicable)
+# Create the user
 user = User.new(
   user_id: 1,
   username: "admin",
