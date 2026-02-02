@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  edim_patient: one
+  arrival_time: 2026-01-30 15:11:32
+  departure_time: 2026-01-30 15:11:32
+  visit_date: 2026-01-30
+
+two:
+  edim_patient: two
+  arrival_time: 2026-01-30 15:11:32
+  departure_time: 2026-01-30 15:11:32
+  visit_date: 2026-01-30

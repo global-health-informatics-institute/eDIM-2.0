@@ -3,20 +3,23 @@ class EdimPatientCache
     person = billing_patient.person
     return unless person
 
-    # Find existing patient or initialize a new one
-    patient = EdimPatient.find_or_initialize_by(patient_id: billing_patient.patient_id)
+    patient = EdimPatient.find_or_create_by!(
+      patient_id: billing_patient.patient_id
+    ) do |p|
+      p.given_name  = person.given_name || 'Unknown'
+      p.family_name = person.family_name || 'Unknown'
+      p.full_name   = billing_patient.full_name || 'Unknown Patient'
+      p.gender      = billing_patient.sex
+      p.birthdate   = person.birthdate
+      p.identifier  = scanned_identifier
+    end
 
-    # Assign attributes from the billing patient
-    patient.assign_attributes(
-      given_name:  person.given_name || 'Unknown',
-      family_name: person.family_name || 'Unknown',
-      full_name:   billing_patient.full_name || 'Unknown Patient',
-      gender:      billing_patient.sex,
-      birthdate:   person.birthdate,
-      identifier:  scanned_identifier
-    )
-
-    # Save the record
-    patient.save!
+    # One Visit per day
+    EdimVisit.find_or_create_by!(
+      edim_patient: patient,
+      visit_date: Date.current
+    ) do |visit|
+      visit.arrival_time = Time.current
+    end
   end
 end
