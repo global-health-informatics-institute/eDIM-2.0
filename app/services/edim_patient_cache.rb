@@ -14,12 +14,27 @@ class EdimPatientCache
       p.identifier  = scanned_identifier
     end
 
-    # One Visit per day
-    EdimVisit.find_or_create_by!(
-      edim_patient: patient,
-      visit_date: Date.current
-    ) do |visit|
-      visit.arrival_time = Time.current
+    # Always try to get the most recent order entry for today first
+    recent_order = BillingOrderEntry
+      .for_patient(billing_patient.patient_id)
+      .for_date(Date.current)
+      .recent_first
+      .first
+
+    # Determine arrival time based on whether there's an order entry for today
+    arrival_time = if recent_order
+      # Patient has an order entry for today - use that as arrival time
+      recent_order.order_date
+    else
+      # No order entry for today - use when they were originally created in OpenMRS
+      billing_patient.date_created
     end
+
+    # Always create a new visit record - no find_or_create, just create!
+    EdimVisit.create!(
+      edim_patient: patient,
+      visit_date: Date.current,
+      arrival_time: arrival_time
+    )
   end
 end

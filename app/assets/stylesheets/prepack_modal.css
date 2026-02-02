@@ -113,19 +113,64 @@ input.radio:checked ~ label {
   right: 60px;
   background-color: #056c4f;
   color: white;
-  font-size: 1.5em;
+  font-size: 32px; /* Increased from 1.5em */
   font-weight: bold;
-  padding: 18px 40px;
+  padding: 25px 50px; /* Increased from 18px 40px */
   border-radius: 10px;
   text-align: center;
   cursor: pointer;
   border: none;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   transition: background-color 0.2s ease-in-out;
+  display: inline-flex; /* Added for better centering */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  min-width: 200px; /* Fixed width to accommodate "Print Labels" text */
+  min-height: 70px; /* Added minimum height */
+  line-height: 1; /* Ensure proper line height for centering */
+  width: 200px; /* Fixed width to prevent expansion */
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflow if text is too long */
+  text-overflow: ellipsis; /* Add ellipsis if text is too long */
 }
 
 #nextBtn:hover {
   background-color: #078b65;
+}
+
+/* --- Clear Button Styling for Prepack Modal ONLY --- */
+/* Target only the clear button inside the dispenseForm2 modal */
+#dispenseForm2 #dispClear.nextButton {
+  background-color: #888 !important; /* Override inline style */
+  color: white !important;
+  font-size: 32px !important; /* Match nextBtn size */
+  font-weight: bold !important;
+  padding: 25px 50px !important; /* Match nextBtn padding */
+  border-radius: 10px !important; /* Match nextBtn border radius */
+  display: inline-flex !important; /* Enable flexbox centering */
+  align-items: center !important; /* Center vertically */
+  justify-content: center !important; /* Center horizontally */
+  min-width: 140px !important; /* Match nextBtn width */
+  min-height: 70px !important; /* Match nextBtn height */
+  line-height: 1 !important; /* Proper line height */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important; /* Match nextBtn shadow */
+  transition: background-color 0.2s ease-in-out !important;
+  /* Position it to the left of the Next button with proper spacing */
+  position: absolute !important;
+  bottom: 30px !important; /* Same as nextBtn */
+  right: 380px !important; /* Increased to account for wider Next button (60px + 200px + 20px gap + 100px clear button width) */
+  top: auto !important; /* Override the inline top positioning */
+  left: auto !important; /* Override the inline left positioning */
+}
+
+/* When clear button is hidden, respect the display:none - prepack modal only */
+#dispenseForm2 #dispClear.nextButton[style*="display: none"] {
+  display: none !important;
+}
+
+/* Hover effect for prepack modal clear button only */
+#dispenseForm2 #dispClear.nextButton:hover {
+  background-color: #666 !important; /* Darker gray on hover */
 }
 
 /* --- Footer buttons --- */

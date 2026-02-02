@@ -265,14 +265,16 @@ img[src*="/assets/"] {
 /* Header Cell */
 .header-cell{
   flex: 1;
-  padding: 15px;
+  padding: 20px; /* Increased from 15px */
   background: linear-gradient(135deg, #ffffff 0%, #fafcff 100%); 
   border-radius: 16px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); 
   border: 1px solid #e2e8f0; 
-  min-height: 155px;
+  min-height: 160px; /* Match the logo container height */
+  max-height: 160px; /* Match the logo container height */
   display: flex;
   flex-direction: column;
+  justify-content: center; /* Center content vertically */
   transition: all 0.3s ease;
   margin-right: 10px;
 }
@@ -280,12 +282,13 @@ img[src*="/assets/"] {
 /* scanner input */
 .scanner {
   flex: 1;
-  max-width: 300px;
-  height: 28px;
+  max-width: 400px; /* Increased from 300px */
+  min-width: 350px; /* Added minimum width */
+  height: 60px; /* Increased from 40px to make it more prominent */
   border: 2px solid #d1d5db;
   border-radius: 8px;
-  padding: 0 10px;
-  font-size: 1.3rem;
+  padding: 0 15px; /* Increased from 10px */
+  font-size: 1.8rem; /* Increased from 1.6rem */
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   background: #ffffff; 
@@ -317,20 +320,20 @@ img[src*="/assets/"] {
     <!-- HEADER -->
     <div style="display: table-row;">
       <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:10vh; border: 1px solid #d1d5db; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);" class="header-cell">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <strong style="font-size:1.5rem;">Scan Barcode</strong>
-          <img src="/assets/barcode.jpg" style="height:32px; vertical-align:middle;">
-          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:300px; height:28px;" autofocus>
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
+          <strong style="font-size:2rem; font-weight:bold;">Scan Barcode</strong>
+          <img src="/assets/barcode.jpg" style="height:40px; vertical-align:middle;">
+          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;" autofocus>
         </div>
 
-        <table style="width:40%; border-collapse:collapse; font-size:1.1em; margin-bottom:8px;">
+        <table style="width:50%; border-collapse:collapse; font-size:1.1em; margin-bottom:0;">
           <tr>
-            <td style="font-weight:bold; width:100px; font-size:1.5rem;">Facility</td>
-            <td style="padding-left:10px; font-size:1.5rem;"><%= facility_name rescue '—' %></td>
+            <td style="font-weight:bold; width:120px; font-size:1.8rem; padding-bottom:4px;">Facility</td>
+            <td style="padding-left:15px; font-size:1.8rem; padding-bottom:4px;"><%= facility_name rescue '—' %></td>
           </tr>
           <tr>
-            <td style="font-weight:bold; font-size:1.5rem;">Location</td>
-            <td style="padding-left:10px; font-size:1.5rem;"><%= current_location.name.titleize rescue '—' %></td>
+            <td style="font-weight:bold; font-size:1.8rem;">Location</td>
+            <td style="padding-left:15px; font-size:1.8rem;"><%= current_location.name.titleize rescue '—' %></td>
           </tr>
         </table>
       </div>
@@ -586,25 +589,25 @@ img[src*="/assets/"] {
       
       <table style="width: 100%; border: 2px solid black; border-width: 0px 0px 2px 0px;">
         <tr>
-          <td style="font-weight:bold; font-size: 1.3rem;">Item:</td>
-          <th id="item" style="text-align: left;width: 30%; font-size: 1.2rem; font-weight: normal;">&nbsp;</th>
-          <td style="text-align: left; font-size: 1.2rem; font-weight: bold;">Route:</td>
-          <th style="text-align: left;width: 30%; font-size: 1.2rem; font-weight: normal;" id="route_type">&nbsp;</th>
+          <td style="font-weight:bold; font-size: 1.8rem;">Item:</td>
+          <th id="item" style="text-align: left;width: 30%; font-size: 1.6rem; font-weight: normal;">&nbsp;</th>
+          <td style="text-align: left; font-size: 1.8rem; font-weight: bold;">Route:</td>
+          <th style="text-align: left;width: 30%; font-size: 1.6rem; font-weight: normal;" id="route_type">&nbsp;</th>
           <td style="width: 5%;" rowspan="3">
             <img style="padding-right: 2px;float: right;" src="/assets/delete.png" onmousedown="cancelDispense()">
           </td>
         </tr>
         <tr>
-          <td style="font-size: 1.2rem; font-weight: bold;">Bottle ID:</td>
-          <th id="bottle_id" style="text-align: left;width: 20%; font-size: 1.2rem; font-weight: normal; ">&nbsp;</th>
-          <td style="text-align: left; font-size: 1.2rem; font-weight: bold;">Directions:</td>
-          <th style="text-align: left; font-size: 1.2rem; font-weight: normal; word-wrap: break-word; max-width: 300px;" id="directionsDisp">&nbsp;</th>
+          <td style="font-size: 1.8rem; font-weight: bold;">Bottle ID:</td>
+          <th id="bottle_id" style="text-align: left;width: 20%; font-size: 1.6rem; font-weight: normal; ">&nbsp;</th>
+          <td style="text-align: left; font-size: 1.8rem; font-weight: bold;">Directions:</td>
+          <th style="text-align: left; font-size: 1.6rem; font-weight: normal; word-wrap: break-word; max-width: 300px;" id="directionsDisp">&nbsp;</th>
         </tr>
         <tr>
-          <td style="font-size: 1.2rem; font-weight: bold;">Current Qty:</td>
-          <th style="text-align: left; font-size: 1.2rem; font-weight: normal;" id="currQty" >&nbsp;</th>
-          <td style="font-size: 1.2rem; font-weight: bold;">Quantity:</td>
-          <th style="text-align: left; font-size: 1.4rem; font-weight: normal;" id="qtyDisp">&nbsp;</th>
+          <td style="font-size: 1.8rem; font-weight: bold;">Current Qty:</td>
+          <th style="text-align: left; font-size: 1.6rem; font-weight: normal;" id="currQty" >&nbsp;</th>
+          <td style="font-size: 1.8rem; font-weight: bold;">Quantity:</td>
+          <th style="text-align: left; font-size: 1.8rem; font-weight: normal;" id="qtyDisp">&nbsp;</th>
         </tr>
       </table>
 

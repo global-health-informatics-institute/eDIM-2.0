@@ -8,21 +8,39 @@ class ApplicationController < ActionController::Base
     @print_url = print_url
     @redirect_url = redirect_url
     @message = message
-    @show_next_button = show_next_button
 
     render html: <<-HTML.html_safe
       <!DOCTYPE html>
       <html>
       <head>
-        <titles style="font-size: 1.7rem;">Printing label ...</title>
+        <title>Printing label ...</title>
         <meta charset="UTF-8">
+        <style>
+          body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;      
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background: #fff;
+          }
+
+          .message {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+          }
+        </style>
       </head>
       <body>
-        <p>#{@message}</p>
+        <div class="message">#{@message}</div>
+
         <iframe src="#{@print_url}" style="display:none;"></iframe>
-        <script type="text/javascript">
+
+        <script>
           setTimeout(function() {
-            window.location = "#{@redirect_url}";
+            window.location.href = "#{@redirect_url}";
           }, 1000);
         </script>
       </body>

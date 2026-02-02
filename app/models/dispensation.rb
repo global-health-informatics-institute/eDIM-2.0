@@ -9,6 +9,9 @@ class Dispensation < ActiveRecord::Base
   belongs_to :user, foreign_key: 'dispensed_by'
   belongs_to :location
 
+  # Update departure time when dispensation is created
+  after_create :update_patient_departure_time
+
   def drug_name
     prescription&.drug_name || general_inventory&.drug_name || "Unknown drug"
   end
@@ -48,5 +51,22 @@ class Dispensation < ActiveRecord::Base
     end
 
     dispensation
+  end
+
+  private
+
+  def update_patient_departure_time
+    return unless patient_id && dispensation_date
+
+    # Find the most recent visit for this patient on the dispensation date
+    visit = EdimVisit.where(
+      edim_patient_id: patient_id,
+      visit_date: dispensation_date.to_date
+    ).order(arrival_time: :desc).first
+
+    if visit
+      # Update departure time to dispensation time
+      visit.update!(departure_time: dispensation_date)
+    end
   end
 end
