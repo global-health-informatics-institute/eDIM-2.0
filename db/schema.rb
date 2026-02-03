@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_02_02_141332) do
+ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
   create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
@@ -86,10 +86,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_02_141332) do
     t.string "identifier", limit: 50
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.datetime "arrival_time", precision: nil
-    t.datetime "departure_time", precision: nil
-    t.index ["arrival_time"], name: "index_edim_patients_on_arrival_time"
-    t.index ["departure_time"], name: "index_edim_patients_on_departure_time"
     t.index ["identifier"], name: "index_edim_patients_on_identifier", unique: true
   end
 
@@ -100,7 +96,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_02_141332) do
     t.date "visit_date", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "identifier", limit: 50
     t.index ["edim_patient_id", "visit_date"], name: "index_edim_visits_on_edim_patient_id_and_visit_date"
+    t.index ["identifier"], name: "index_edim_visits_on_identifier"
   end
 
   create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
@@ -366,6 +364,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_02_141332) do
     t.datetime "date_dispensed"
     t.boolean "voided", default: false
     t.boolean "deleted", default: false
+    t.string "patient_id"
     t.index ["bottle_id"], name: "fk_rails_03e2d3a9d7"
     t.index ["label_identifier"], name: "index_prepack_labels_on_label_identifier", unique: true
     t.index ["prepack_id"], name: "index_prepack_labels_on_prepack_id"
@@ -396,6 +395,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_02_141332) do
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
     t.index ["voided"], name: "index_prepacks_on_voided"
+    t.check_constraint "json_valid(`times`)", name: "times"
   end
 
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|

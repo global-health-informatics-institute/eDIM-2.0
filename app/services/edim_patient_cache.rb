@@ -34,7 +34,8 @@ class EdimPatientCache
     EdimVisit.create!(
       edim_patient: patient,
       visit_date: Date.current,
-      arrival_time: arrival_time
+      arrival_time: arrival_time,
+      identifier: scanned_identifier
     )
   end
 end

@@ -1,6 +1,11 @@
 class EdimVisit < ActiveRecord::Base
   belongs_to :edim_patient
 
+  # Validations
+  validates :arrival_time, presence: true
+  validates :visit_date, presence: true
+  validates :identifier, presence: true
+
   # Calculate visit duration in hours
   def duration_hours
     return nil unless departure_time
@@ -20,9 +25,22 @@ class EdimVisit < ActiveRecord::Base
   # Scope for visits on a specific date
   scope :on_date, ->(date) { where(visit_date: date) }
 
+  # Scope for visits by identifier
+  scope :by_identifier, ->(identifier) { where(identifier: identifier) }
+
   # Mark departure
   def mark_departure!
     update!(departure_time: Time.current)
+  end
+
+  # Get patient name through association
+  def patient_name
+    edim_patient&.full_name || 'Unknown Patient'
+  end
+
+  # Check if visit is completed (has departure time)
+  def completed?
+    departure_time.present?
   end
 
   # Class methods for reporting
