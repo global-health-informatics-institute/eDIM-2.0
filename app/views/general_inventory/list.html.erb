@@ -3,430 +3,417 @@
 <script type="text/javascript">
   // Styling the table with datatables library
   $(document).ready(function() {
-    $('#generalInventory').DataTable({
-      "bLengthChange": false,
-      "bDestroy": true,
-      "pageLength": 10,
-      "searching": false,
-      "ordering": true,
-      "info": true,
-      "paging": true,
-      "scrollX": false,
-      "scrollY": false,
-      "scrollCollapse": false,
-      "deferRender": false,
-      "dom": '<"top"f>rt<"bottom"ip><"clear">',
-      "language": {
-        "search": "",
-        "searchPlaceholder": "Search inventory items...",
-        "zeroRecords": I18n.t('forms.labels.nothing_found'),
-        "info": I18n.t('forms.labels.tbl_pages'),
-        "infoEmpty": "No records available",
-        "infoFiltered": I18n.t('forms.labels.filtered'),
-        "oPaginate": {
-          "sNext": I18n.t('forms.buttons.next'),
-          "sPrevious": I18n.t('forms.buttons.previous')
-        }
-      }
-    });
+  $('#generalInventory').DataTable({
+  "bLengthChange": false,
+  "bDestroy": true,
+  "pageLength": 10,
+  "searching": false,
+  "ordering": true,
+  "info": true,
+  "paging": true,
+  "scrollX": false,
+  "scrollY": false,
+  "scrollCollapse": false,
+  "deferRender": false,
+  "dom": '<"top"f>rt<"bottom"ip><"clear">',
+  "language": {
+  "search": "",
+  "searchPlaceholder": "Search inventory items...",
+  "zeroRecords": I18n.t('forms.labels.nothing_found'),
+  "info": I18n.t('forms.labels.tbl_pages'),
+  "infoEmpty": "No records available",
+  "infoFiltered": I18n.t('forms.labels.filtered'),
+  "oPaginate": {
+  "sNext": I18n.t('forms.buttons.next'),
+  "sPrevious": I18n.t('forms.buttons.previous')
+  }
+  }
+  });
 
-    // Style the search box
-    $('.dataTables_filter input').attr('placeholder', 'Search inventory items...');
-    $('.dataTables_filter input').attr('style', 'font-size: 20px; padding: 12px 16px;');
-    
-    // Remove the "Search:" label
-    $('.dataTables_filter label').contents().filter(function() {
-      return this.nodeType === 3 && this.textContent.trim() === 'Search:';
-    }).remove();
-    
-    // Setup keyboard
-    search_box = $('#generalInventory').dataTable();
-    search = document.getElementsByTagName("input")[0];
-    if (search) {
-      search.setAttribute("id","search");
-      document.getElementById('search').setAttribute("onclick","showKeyboard();");
-    }
-    
-    keyboard = document.getElementsByClassName("keypad")[0];
-    showAlphaKeypad();
-    
-    // Initialize listener with timeout
-    setTimeout(initializeListener, 3000);
+  // Style the search box
+  $('.dataTables_filter input').attr('placeholder', 'Search inventory items...');
+  $('.dataTables_filter input').attr('style', 'font-size: 20px; padding: 12px 16px;');
+
+  // Remove the "Search:" label
+  $('.dataTables_filter label').contents().filter(function() {
+  return this.nodeType === 3 && this.textContent.trim() === 'Search:';
+  }).remove();
+
+  // Setup keyboard
+  search_box = $('#generalInventory').dataTable();
+  search = document.getElementsByTagName("input")[0];
+  if (search) {
+  search.setAttribute("id","search");
+  document.getElementById('search').setAttribute("onclick","showKeyboard();");
+  }
+
+  keyboard = document.getElementsByClassName("keypad")[0];
+  showAlphaKeypad();
+
+  // Initialize listener with timeout
+  setTimeout(initializeListener, 3000);
   });
 
   function initializeListener() {
-    barcode = document.getElementById("search");
-    if (barcode) {
-      barcode.focus();
-      barcode.style.borderColor = "#4361ee";
-      barcode.style.boxShadow = "0 0 0 3px rgba(66, 153, 225, 0.15)";
-      
-      timerHand = setTimeout(function () {
-        if (barcode.value) {
-          barcode.value = barcode.value.trim().replace(/\$/, "").replace(/\-/,"");
-        }
-      }, 3000);
-    }
+  barcode = document.getElementById("search");
+  if (barcode) {
+  barcode.focus();
+  barcode.style.borderColor = "#4361ee";
+  barcode.style.boxShadow = "0 0 0 3px rgba(66, 153, 225, 0.15)";
+
+  timerHand = setTimeout(function () {
+  if (barcode.value) {
+  barcode.value = barcode.value.trim().replace(/\$/, "").replace(/\-/,"");
+  }
+  }, 3000);
+  }
   }
 
   function confirmAction(url, message) {
-    if (confirm(message)) {
-      window.location = url;
-    }
+  if (confirm(message)) {
+  window.location = url;
+  }
   }
 </script>
 
 <!-- Header -->
-<div class="page-header">
-  <h1><%= @drug.name.titleize %></h1>
-  <h2><%= "#{t('menu.terms.category')}: #{@drug.category.titleize}" %></h2>
-</div>
+<div class="page-header">  <h1><%= @drug.name.titleize %></h1>  <h2><%= "#{t('menu.terms.category')}: #{@drug.category.titleize}" %></h2></div>
 
 <!-- Table Container -->
 <div class="table-container">
   <table id="generalInventory" class="table" width="100%" cellspacing="0">
     <thead>
       <tr>
-        <th style="width: 5%; min-width: 60px; font-size: 30px;">Select</th>
-        <th style="width: 15%; text-align: left; padding-left: 100px; font-size: 48px;"><%= t('menu.terms.inventory_number') %></th>
-        <th style="width: 15%; font-size: 48px;"><%= t('menu.terms.current_quantity') %></th>
-        <th style="width: 15%; font-size: 48px;"><%= t('menu.terms.expiration_date') %></th>
-        <th style="width: 25%; font-size: 48px;"><%= t('menu.terms.actions') %></th>
-      </tr>
+        <th style="width: 5%; min-width: 60px; font-size: 30px;">Select</th>        <th style="width: 15%; text-align: left; padding-left: 100px; font-size: 48px;"><%= t('menu.terms.inventory_number') %></th>        <th style="width: 15%; font-size: 48px;"><%= t('menu.terms.current_quantity') %></th>        <th style="width: 15%; font-size: 48px;"><%= t('menu.terms.expiration_date') %></th>        <th style="width: 25%; font-size: 48px;"><%= t('menu.terms.actions') %></th>      </tr>
     </thead>
 
     <tbody>
-      <% (@inventory || []).each do |item| %>
-        <% 
-          expiration_class = ""
-          if item.expiration_date
+      <% (@inventory ||[]).each do| item | %>
+        <% expiration_class = ""
+            if item.expiration_date
             if item.expiration_date < Date.today
-              expiration_class = "expired"
+            expiration_class = "expired"
             elsif item.expiration_date < Date.today + 30.days
-              expiration_class = "expiring-soon"
+            expiration_class = "expiring-soon"
             end
-          end
-        %>
+            end %>
         <tr>
-          <td><input type="checkbox" class="custom-checkbox item" data-id="<%= item.gn_inventory_id %>"></td>
-          <td style="text-align: left; padding-left: 112px; font-size: 42px; font-weight: normal;"><%= Misc.dash_formatter(item.gn_identifier) %></td>
-          <td style="text-align: left; padding-left: 124px; font-size: 42px; font-weight: normal;"><%= number_with_delimiter(item.current_quantity) %></td>
-          <td class="<%= expiration_class %>" style="text-align: center; font-size: 42px;">
-            <%= l(item.expiration_date, format: '%b-%Y') rescue ""%>
-          </td>
-          <td style="text-align: center;">
-            <div style="display: table-cell;min-width: 8vw; vertical-align: middle;">
-              <img style="width: 56px; height: 56px; padding-top: 1px; cursor: pointer;" 
-                src="/assets/damage.png" 
-                title="Record Damage"
-                onmousedown="openStyledDamageModal(<%= item.gn_inventory_id %>, '<%= @drug.name.titleize %>', '<%= Misc.dash_formatter(item.gn_identifier) %>', <%= item.current_quantity %>)">
-            </div>
+          <td><input type="checkbox" class="custom-checkbox item" data-id="<%= item.gn_inventory_id %>          "></td>          <td style="text-align: left; padding-left: 112px; font-size: 42px; font-weight: normal;"><%= Misc.dash_formatter(item.gn_identifier) %></td>          <td style="text-align: left; padding-left: 124px; font-size: 42px; font-weight: normal;"><%= number_with_delimiter(item.current_quantity) %></td>          <td class="<%= expiration_class %>          " style="text-align: center; font-size: 42px;">
+          <%= l(item.expiration_date, format: '%b-%Y') rescue "" %>
+        </td>
+        <td style="text-align: center;">
+          <div style="display: table-cell;min-width: 8vw; vertical-align: middle;">
+            <img style="width: 56px; height: 56px; padding-top: 1px; cursor: pointer;"
+              src="/assets/damage.png"
+              title="Record Damage"
+              onmousedown="openStyledDamageModal(<%= item.gn_inventory_id %>, '<%= @drug.name.titleize %>', '<%= Misc.dash_formatter(item.gn_identifier) %>', <%= item.current_quantity %>)">
+          </div>
 
-            <div style="display: table-cell; min-width: 8vw;">
-              <img style="" src="/assets/view_icon.png" title="View Item"
-                  onmousedown="window.location='/general_inventory/<%= item.gn_identifier %>/<%= item.gn_sequence %>'">
-            </div>
-            <div style="display: table-cell; min-width: 8vw;">
-              <img style="" src="/assets/edit.png" title="Edit Item"
-                   onmousedown="window.location='/general_inventory/<%= item.gn_inventory_id %>/edit'">
-            </div>
-            <div style="display: table-cell; min-width: 8vw;">
-              <img style="" src="/assets/print.png" title="Print Barcode"
-                   onmousedown="window.location='/print_bottle_barcode/<%= item.gn_inventory_id %>'">
-            </div>
-            <div style="display: table-cell; min-width: 8vw;">
-              <img style="height: 62px; width: 62px;" src="/assets/delete.png" title="Void Item"
-                   onmousedown="confirmAction('/void_general_inventory/<%= item.gn_inventory_id %>', 'Are you sure you want to void item <%= Misc.dash_formatter(item.gn_identifier) %>?')">
-            </div>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+          <div style="display: table-cell; min-width: 8vw;">
+            <img style="" src="/assets/view_icon.png" title="View Item"
+              onmousedown="window.location='/general_inventory/<%= item.gn_identifier %>/<%= item.gn_sequence %>'">
+          </div>
+          <div style="display: table-cell; min-width: 8vw;">
+            <img style="" src="/assets/edit.png" title="Edit Item"
+              onmousedown="window.location='/general_inventory/<%= item.gn_inventory_id %>/edit'">
+          </div>
+          <div style="display: table-cell; min-width: 8vw;">
+            <img style="" src="/assets/print.png" title="Print Barcode"
+              onmousedown="window.location='/print_bottle_barcode/<%= item.gn_inventory_id %>'">
+          </div>
+          <div style="display: table-cell; min-width: 8vw;">
+            <img style="height: 62px; width: 62px;" src="/assets/delete.png" title="Void Item"
+              onmousedown="confirmAction('/void_general_inventory/<%= item.gn_inventory_id %>', 'Are you sure you want to void item <%= Misc.dash_formatter(item.gn_identifier) %>?')">
+          </div>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
 </div>
 
 <!-- Footer -->
 <div class="footer">
   <% if !current_location.name.match(/store/i) %>
     <button onmousedown="merge()" class="nav-bttn blue" style="margin-left: 1vw; font-size: 30px !important;">
-      Merge Items
+        Merge Items
     </button>
   <% else %>
     <button onmousedown="window.location = ''" class="nav-bttn blue" style="margin-right: 1vw; float: right; font-size: 30px !important;">
-      Stock Card
+        Stock Card
     </button>
   <% end %>
   <button onmousedown="window.location = '/general_inventory'" class="nav-bttn green" style="margin-right: 1vw; float: right; font-size: 30px !important;">
-    <%= t('forms.buttons.finish')%>
+    <%= t('forms.buttons.finish') %>
   </button>
 </div>
 
-  <!-- IMPROVED DAMAGE MODAL FOR TOUCHSCREENS -->
-  <div id="styledDamageModal" 
-      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
-              z-index:9999; align-items:center; justify-content:center;
-              opacity:0; transition:opacity 0.3s ease;">
-    
-    <div id="styledDamageModalContent"
-        style="width:650px; max-width:90vw; background:#fff; padding:32px; border-radius:16px;
-                box-shadow:0 20px 60px rgba(0,0,0,0.3); transform:scale(0.95);
-                transition:transform 0.3s ease; max-height:90vh; overflow-y:auto;">
-      
-      <!-- Header -->
-      <div style="text-align:center; margin-bottom:24px; padding-bottom:16px; 
-                  border-bottom:2px solid #e9ecef;">
-        <h2 style="margin:0; font-size:2.2rem; color:#d9534f; font-weight:700;">
+<!-- IMPROVED DAMAGE MODAL FOR TOUCHSCREENS -->
+<div id="styledDamageModal"
+  style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:9999; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 0.3s ease;">
+
+  <div id="styledDamageModalContent"
+    style="width:650px; max-width:90vw; background:#fff; padding:32px; border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3); transform:scale(0.95);
+    transition:transform 0.3s ease; max-height:90vh; overflow-y:auto;">
+
+    <!-- Header -->
+    <div style="text-align:center; margin-bottom:24px; padding-bottom:16px;
+      border-bottom:2px solid #e9ecef;">
+      <h2 style="margin:0; font-size:2.2rem; color:#d9534f; font-weight:700;">
           Record Damage
-        </h2>
-      </div>
-
-      <!-- Drug Info Card -->
-      <div style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
-                  border:2px solid #dee2e6; padding:20px; border-radius:12px; 
-                  margin-bottom:28px; text-align:center;">
-        <div style="font-size:1.8rem; font-weight:700; color:#495057; margin-bottom:8px;">
-          <span id="styledDamageDrugName" style="color:#006495;"></span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:12px;">
-          <div style="text-align:left;">
-            <div style="font-size:1.2rem; color:#6c757d;">Inventory #</div>
-            <div style="font-size:1.4rem; font-weight:600; color:#495057;">
-              <span id="styledDamageInventoryNumber"></span>
-            </div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:1.2rem; color:#6c757d;">Available</div>
-            <div style="font-size:1.4rem; font-weight:600; color:#28a745;">
-              <span id="styledDamageMaxQuantity"></span> units
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quantity Section -->
-      <div style="margin-bottom:28px;">
-        <div style="text-align:center; margin-bottom:16px;">
-          <label style="font-size:1.8rem; font-weight:700; color:#495057;">
-            Quantity Damaged
-          </label>
-        </div>
-        
-        <!-- Quantity Input with Large Controls -->
-        <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px;">
-          <button type="button" id="styledDamageDecreaseBtn"
-                  style="width:60px; height:60px; border:none; border-radius:12px;
-                        background:#dc3545; color:white; font-size:2.5rem; font-weight:700;
-                        cursor:pointer; display:flex; align-items:center; justify-content:center;
-                        box-shadow:0 4px 12px rgba(220,53,69,0.3); user-select:none;
-                        line-height:1; vertical-align:middle;">
-            −
-          </button>
-
-          <input type="number" 
-                id="styled_damage_qty" 
-                min="0" 
-                value="0"
-                style="width:120px; height:60px; padding:0; font-size:2.2rem; font-weight:700;
-                        border-radius:12px; border:3px solid #006495; outline:none; 
-                        text-align:center; box-sizing:border-box; color:#495057;
-                        -moz-appearance:textfield; appearance:textfield; line-height:54px;">
-
-          <button type="button" id="styledDamageIncreaseBtn"
-                  style="width:60px; height:60px; border:none; border-radius:12px;
-                        background:#28a745; color:white; font-size:2.5rem; font-weight:700;
-                        cursor:pointer; display:flex; align-items:center; justify-content:center;
-                        box-shadow:0 4px 12px rgba(40,167,69,0.3); user-select:none;
-                        line-height:1; vertical-align:middle;">
-            +
-          </button>
-        </div>
-
-        <!-- Quick Select Buttons -->
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:16px;">
-          <button type="button" class="styled-quick-select-btn" data-value="0" 
-                  onclick="setStyledQuickSelectValue(0)"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
-                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
-                        cursor:pointer; min-height:55px; user-select:none;
-                        display:flex; align-items:center; justify-content:center;
-                        line-height:1; vertical-align:middle;">
-            0
-          </button>
-          <button type="button" class="styled-quick-select-btn" data-value="10" 
-                  onclick="setStyledQuickSelectValue(10)"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
-                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
-                        cursor:pointer; min-height:55px; user-select:none;
-                        display:flex; align-items:center; justify-content:center;
-                        line-height:1; vertical-align:middle;">
-            10
-          </button>
-          <button type="button" class="styled-quick-select-btn" data-value="100" 
-                  onclick="setStyledQuickSelectValue(100)"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
-                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
-                        cursor:pointer; min-height:55px; user-select:none;
-                        display:flex; align-items:center; justify-content:center;
-                        line-height:1; vertical-align:middle;">
-            100
-          </button>
-          <button type="button" class="styled-quick-select-btn" data-value="1000" 
-                  onclick="setStyledQuickSelectValue(1000)"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
-                        background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
-                        cursor:pointer; min-height:55px; user-select:none;
-                        display:flex; align-items:center; justify-content:center;
-                        line-height:1; vertical-align:middle;">
-            1000
-          </button>
-        </div>
-
-        <!-- Clear Button -->
-        <div style="text-align:center;">
-          <button type="button" id="styledDamageClearBtn"
-                  style="padding:12px 24px; border:2px solid #6c757d; border-radius:10px;
-                        background:white; color:#6c757d; font-size:1.3rem; font-weight:600;
-                        cursor:pointer; user-select:none;
-                        display:inline-flex; align-items:center; justify-content:center;
-                        line-height:1; vertical-align:middle; min-height:48px;">
-            Clear
-          </button>
-        </div>
-      </div>
-
-      <!-- Reason Section -->
-      <div style="margin-bottom:32px;">
-        <label style="display:block; text-align:center; margin-bottom:12px; 
-                      font-size:1.8rem; font-weight:700; color:#495057;">
-          Reason for Damage
-        </label>
-        <select id="styled_damage_reason"
-                style="width:100%; padding:16px 60px 16px 16px; font-size:1.6rem; border-radius:12px;
-                      border:3px solid #006495; outline:none; background:white;
-                      color:#495057; font-weight:600; min-height:60px;
-                      background-image:linear-gradient(45deg, transparent 50%, #495057 50%), linear-gradient(135deg, #495057 50%, transparent 50%);
-                      background-position:calc(100% - 25px) calc(1em + 2px), calc(100% - 20px) calc(1em + 2px);
-                      background-size:5px 5px, 5px 5px;
-                      background-repeat:no-repeat;
-                      -webkit-appearance:none;
-                      -moz-appearance:none;
-                      appearance:none;">
-          <option value="broken">Broken / Dropped</option>
-          <option value="expired">Expired</option>
-          <option value="contaminated">Contaminated</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <!-- Action Buttons -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-        <button onclick="submitStyledDamage()"
-                style="padding:18px 24px; border:none; border-radius:12px;
-                      background:#d9534f; color:white; font-size:1.6rem; font-weight:700;
-                      cursor:pointer; min-height:65px; user-select:none;
-                      box-shadow:0 6px 20px rgba(217,83,79,0.3);
-                      display:flex; align-items:center; justify-content:center;
-                      line-height:1; vertical-align:middle;">
-          Log Damage
-        </button>
-
-        <button onclick="closeStyledDamageModal()"
-                style="padding:18px 24px; border:2px solid #6c757d; border-radius:12px;
-                      background:white; color:#6c757d; font-size:1.6rem; font-weight:700;
-                      cursor:pointer; min-height:65px; user-select:none;
-                      display:flex; align-items:center; justify-content:center;
-                      line-height:1; vertical-align:middle;">
-          Cancel
-        </button>
-      </div>
-
+      </h2>
     </div>
+
+    <!-- Drug Info Card -->
+    <div style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border:2px solid #dee2e6; padding:20px; border-radius:12px;
+      margin-bottom:28px; text-align:center;">
+      <div style="font-size:1.8rem; font-weight:700; color:#495057; margin-bottom:8px;">
+        <span id="styledDamageDrugName" style="color:#006495;"></span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:12px;">
+        <div style="text-align:left;">
+          <div style="font-size:1.2rem; color:#6c757d;">Inventory #</div>
+          <div style="font-size:1.4rem; font-weight:600; color:#495057;">
+            <span id="styledDamageInventoryNumber"></span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.2rem; color:#6c757d;">Available</div>
+          <div style="font-size:1.4rem; font-weight:600; color:#28a745;">
+            <span id="styledDamageMaxQuantity"></span> units
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quantity Section -->
+    <div style="margin-bottom:28px;">
+      <div style="text-align:center; margin-bottom:16px;">
+        <label style="font-size:1.8rem; font-weight:700; color:#495057;">
+            Quantity Damaged
+        </label>
+      </div>
+
+      <!-- Quantity Input with Large Controls -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px;">
+        <button type="button" id="styledDamageDecreaseBtn"
+          style="width:60px; height:60px; border:none; border-radius:12px;
+          background:#dc3545; color:white; font-size:2.5rem; font-weight:700;
+          cursor:pointer; display:flex; align-items:center; justify-content:center;
+          box-shadow:0 4px 12px rgba(220,53,69,0.3); user-select:none;
+          line-height:1; vertical-align:middle;">
+            −
+        </button>
+
+        <input type="number"
+          id="styled_damage_qty"
+          min="0"
+          value="0"
+          style="width:120px; height:60px; padding:0; font-size:2.2rem; font-weight:700;
+          border-radius:12px; border:3px solid #006495; outline:none;
+          text-align:center; box-sizing:border-box; color:#495057;
+          -moz-appearance:textfield; appearance:textfield; line-height:54px;">
+
+        <button type="button" id="styledDamageIncreaseBtn"
+          style="width:60px; height:60px; border:none; border-radius:12px;
+          background:#28a745; color:white; font-size:2.5rem; font-weight:700;
+          cursor:pointer; display:flex; align-items:center; justify-content:center;
+          box-shadow:0 4px 12px rgba(40,167,69,0.3); user-select:none;
+          line-height:1; vertical-align:middle;">
+            +
+        </button>
+      </div>
+
+      <!-- Quick Select Buttons -->
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:16px;">
+        <button type="button" class="styled-quick-select-btn" data-value="0"
+          onclick="setStyledQuickSelectValue(0)"
+          style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+          background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+          cursor:pointer; min-height:55px; user-select:none;
+          display:flex; align-items:center; justify-content:center;
+          line-height:1; vertical-align:middle;">
+            0
+        </button>
+        <button type="button" class="styled-quick-select-btn" data-value="10"
+          onclick="setStyledQuickSelectValue(10)"
+          style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+          background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+          cursor:pointer; min-height:55px; user-select:none;
+          display:flex; align-items:center; justify-content:center;
+          line-height:1; vertical-align:middle;">
+            10
+        </button>
+        <button type="button" class="styled-quick-select-btn" data-value="100"
+          onclick="setStyledQuickSelectValue(100)"
+          style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+          background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+          cursor:pointer; min-height:55px; user-select:none;
+          display:flex; align-items:center; justify-content:center;
+          line-height:1; vertical-align:middle;">
+            100
+        </button>
+        <button type="button" class="styled-quick-select-btn" data-value="1000"
+          onclick="setStyledQuickSelectValue(1000)"
+          style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px;
+          background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600;
+          cursor:pointer; min-height:55px; user-select:none;
+          display:flex; align-items:center; justify-content:center;
+          line-height:1; vertical-align:middle;">
+            1000
+        </button>
+      </div>
+
+      <!-- Clear Button -->
+      <div style="text-align:center;">
+        <button type="button" id="styledDamageClearBtn"
+          style="padding:12px 24px; border:2px solid #6c757d; border-radius:10px;
+          background:white; color:#6c757d; font-size:1.3rem; font-weight:600;
+          cursor:pointer; user-select:none;
+          display:inline-flex; align-items:center; justify-content:center;
+          line-height:1; vertical-align:middle; min-height:48px;">
+            Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Reason Section -->
+    <div style="margin-bottom:32px;">
+      <label style="display:block; text-align:center; margin-bottom:12px;
+        font-size:1.8rem; font-weight:700; color:#495057;">
+          Reason for Damage
+      </label>
+      <select id="styled_damage_reason"
+        style="width:100%; padding:16px 60px 16px 16px; font-size:1.6rem; border-radius:12px;
+        border:3px solid #006495; outline:none; background:white;
+        color:#495057; font-weight:600; min-height:60px;
+        background-image:linear-gradient(45deg, transparent 50%, #495057 50%), linear-gradient(135deg, #495057 50%, transparent 50%);
+        background-position:calc(100% - 25px) calc(1em + 2px), calc(100% - 20px) calc(1em + 2px);
+        background-size:5px 5px, 5px 5px;
+        background-repeat:no-repeat;
+        -webkit-appearance:none;
+        -moz-appearance:none;
+        appearance:none;">
+        <option value="broken">Broken / Dropped</option>
+        <option value="expired">Expired</option>
+        <option value="contaminated">Contaminated</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <button onclick="submitStyledDamage()"
+        style="padding:18px 24px; border:none; border-radius:12px;
+        background:#d9534f; color:white; font-size:1.6rem; font-weight:700;
+        cursor:pointer; min-height:65px; user-select:none;
+        box-shadow:0 6px 20px rgba(217,83,79,0.3);
+        display:flex; align-items:center; justify-content:center;
+        line-height:1; vertical-align:middle;">
+          Log Damage
+      </button>
+
+      <button onclick="closeStyledDamageModal()"
+        style="padding:18px 24px; border:2px solid #6c757d; border-radius:12px;
+        background:white; color:#6c757d; font-size:1.6rem; font-weight:700;
+        cursor:pointer; min-height:65px; user-select:none;
+        display:flex; align-items:center; justify-content:center;
+        line-height:1; vertical-align:middle;">
+          Cancel
+      </button>
+    </div>
+
   </div>
-  <div id="damageModal" 
-       style="display:none; position:fixed; top:20vh; left:25vw; width:50vw; 
-              background:white; border:3px solid #000; padding:2vw; z-index:9999;">
-    <h2>Record Damage</h2>
-    <label>Quantity:</label><br>
-    <input type="number" id="damage_qty" min="1" style="width: 15vw;"><br><br>
-    <label>Reason:</label><br>
-    <input type="text" id="damage_reason" style="width: 30vw;"><br><br>
-    <button class="nav-bttn green" onmousedown="submitDamage()">Save</button>
-    <button class="nav-bttn red" onmousedown="closeDamageModal()">Cancel</button>
-    <input type="hidden" id="damage_item_id">
-  </div>
+</div>
+<div id="damageModal"
+  style="display:none; position:fixed; top:20vh; left:25vw; width:50vw;
+  background:white; border:3px solid #000; padding:2vw; z-index:9999;">
+  <h2>Record Damage</h2>
+  <label>Quantity:</label><br>
+  <input type="number" id="damage_qty" min="1" style="width: 15vw;"><br><br>
+  <label>Reason:</label><br>
+  <input type="text" id="damage_reason" style="width: 30vw;"><br><br>
+  <button class="nav-bttn green" onmousedown="submitDamage()">Save</button>
+  <button class="nav-bttn red" onmousedown="closeDamageModal()">Cancel</button>
+  <input type="hidden" id="damage_item_id">
+</div>
 
 </div>
 
-<%= form_for :general_inventory, :url => "/general_inventory/merge"  do |f| %>
-    <input type="hidden" name="bottle_ids" id="bottle_ids" value=""/>
+<%= form_for :general_inventory, :url => "/general_inventory/merge" do |f| %>
+  <input type="hidden" name="bottle_ids" id="bottle_ids" value=""/>
 <% end %>
 
 <script type="text/javascript">
   function merge()
   {
-    var choices = [];
-    var transactions = document.getElementsByClassName('custom-checkbox item');
+  var choices = [];
+  var transactions = document.getElementsByClassName('custom-checkbox item');
 
-    for(var o = 0; o < transactions.length; o++){
-      if(transactions[o].checked == true){
-          choices.push(transactions[o].getAttribute('data-id'));
-      }
-    }
-    if(choices.length > 1)
-    {
-      document.getElementById("bottle_ids").value = choices.join(',');
-      confirmForAction('submitMerge()', 'Are you sure you want to merge these items?')
-    }
+  for(var o = 0; o < transactions.length; o++){
+  if(transactions[o].checked == true){
+  choices.push(transactions[o].getAttribute('data-id'));
+  }
+  }
+  if(choices.length > 1)
+  {
+  document.getElementById("bottle_ids").value = choices.join(',');
+  confirmForAction('submitMerge()', 'Are you sure you want to merge these items?')
+  }
 
-    return choices;
+  return choices;
   }
 
   function submitMerge()
   {
-    document.forms[0].submit();
+  document.forms[0].submit();
   }
 
   // DAMAGE MODAL FUNCTIONS
   function openStyledDamageModal(itemId, drugName, inventoryNumber, maxQuantity) {
-    // Set modal data
-    document.getElementById("styledDamageDrugName").textContent = drugName || '';
-    document.getElementById("styledDamageInventoryNumber").textContent = inventoryNumber || '';
-    document.getElementById("styledDamageMaxQuantity").textContent = maxQuantity || 'N/A';
-    
-    // Set max quantity if provided
-    const qtyInput = document.getElementById('styled_damage_qty');
-    if (maxQuantity) {
-      qtyInput.max = maxQuantity;
-      qtyInput.setAttribute('max', maxQuantity);
-    }
-    
-    // Store item ID in a data attribute
-    qtyInput.setAttribute('data-item-id', itemId);
-    
-    // Show modal with animation
-    const modal = document.getElementById('styledDamageModal');
-    const content = document.getElementById('styledDamageModalContent');
-    
-    modal.style.display = 'flex';
-    setTimeout(() => {
-      modal.style.opacity = '1';
-      content.style.transform = 'scale(1)';
-    }, 10);
-    
-    // Setup quantity controls
-    setupStyledDamageModalQuantityControls();
-    
-    // Initialize quick select buttons
-    updateStyledQuickSelectButtons();
-    
-    // Focus on quantity input
-    setTimeout(() => {
-      qtyInput.focus();
-      qtyInput.select();
-    }, 100);
-}
+  // Set modal data
+  document.getElementById("styledDamageDrugName").textContent = drugName || '';
+  document.getElementById("styledDamageInventoryNumber").textContent = inventoryNumber || '';
+  document.getElementById("styledDamageMaxQuantity").textContent = maxQuantity || 'N/A';
 
-function submitStyledDamage() {
+  // Set max quantity if provided
+  const qtyInput = document.getElementById('styled_damage_qty');
+  if (maxQuantity) {
+  qtyInput.max = maxQuantity;
+  qtyInput.setAttribute('max', maxQuantity);
+  }
+
+  // Store item ID in a data attribute
+  qtyInput.setAttribute('data-item-id', itemId);
+
+  // Show modal with animation
+  const modal = document.getElementById('styledDamageModal');
+  const content = document.getElementById('styledDamageModalContent');
+
+  modal.style.display = 'flex';
+  setTimeout(() => {
+  modal.style.opacity = '1';
+  content.style.transform = 'scale(1)';
+  }, 10);
+
+  // Setup quantity controls
+  setupStyledDamageModalQuantityControls();
+
+  // Initialize quick select buttons
+  updateStyledQuickSelectButtons();
+
+  // Focus on quantity input
+  setTimeout(() => {
+  qtyInput.focus();
+  qtyInput.select();
+  }, 100);
+  }
+
+  function submitStyledDamage() {
   const qtyInput = document.getElementById('styled_damage_qty');
   const itemId = qtyInput.getAttribute('data-item-id');
   const qty = qtyInput.value;
@@ -434,44 +421,44 @@ function submitStyledDamage() {
   const drugName = document.getElementById('styledDamageDrugName').textContent;
 
   if (!itemId) {
-    alert("Error: Item ID not found");
-    return;
+  alert("Error: Item ID not found");
+  return;
   }
 
   if (qty === "" || qty < 0) { // Changed from qty <= 0
-    alert("Please enter a valid quantity (0 or greater)");
-    return;
+  alert("Please enter a valid quantity (0 or greater)");
+  return;
   }
 
   if (parseInt(qty) === 0) { // Added check for 0
-    if (!confirm("You're reporting 0 damages. Are you sure you want to continue?")) {
-      return;
-    }
+  if (!confirm("You're reporting 0 damages. Are you sure you want to continue?")) {
+  return;
+  }
   }
 
   if (!reason) {
-    alert("Please select a reason for the damage");
-    return;
+  alert("Please select a reason for the damage");
+  return;
   }
 
   // Check if quantity exceeds max
   const maxQty = parseInt(qtyInput.max, 10);
   if (!isNaN(maxQty) && parseInt(qty, 10) > maxQty) {
-    alert(`Quantity cannot exceed maximum available: ${maxQty}`);
-    return;
+  alert(`Quantity cannot exceed maximum available: ${maxQty}`);
+  return;
   }
 
   // Close the damage modal first, then show confirmation
   closeStyledDamageModal();
-  
+
   // Small delay to ensure modal is closed, then show confirmation
   setTimeout(() => {
-    showConfirmationModal(qty, drugName, reason, itemId);
+  showConfirmationModal(qty, drugName, reason, itemId);
   }, 300);
-}
+  }
 
-// Quick select buttons for damage modal
-function updateStyledQuickSelectButtons() {
+  // Quick select buttons for damage modal
+  function updateStyledQuickSelectButtons() {
   const buttons = document.querySelectorAll('.styled-quick-select-btn');
   const input = document.getElementById('styled_damage_qty');
   if (!buttons.length || !input) return;
@@ -480,63 +467,63 @@ function updateStyledQuickSelectButtons() {
   const currentValue = parseInt(input.value, 10) || 0;
 
   buttons.forEach(btn => {
-    const value = parseInt(btn.dataset.value, 10);
+  const value = parseInt(btn.dataset.value, 10);
 
-    // Check if button value exceeds current max
-    if (value > maxAllowed) {
-      disableStyledQuickButton(btn);
-    } else {
-      enableStyledQuickButton(btn);
-      
-      // Highlight if this button matches current input value
-      if (value === currentValue) {
-        btn.style.background = '#006495';
-        btn.style.borderColor = '#006495';
-        btn.style.color = 'white';
-        btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
-        btn.style.transform = 'translateY(-2px)';
-      } else {
-        btn.style.background = '#f8f9fa';
-        btn.style.borderColor = '#dee2e6';
-        btn.style.color = '#495057';
-        btn.style.boxShadow = 'none';
-        btn.style.transform = 'translateY(0)';
-      }
-    }
+  // Check if button value exceeds current max
+  if (value > maxAllowed) {
+  disableStyledQuickButton(btn);
+  } else {
+  enableStyledQuickButton(btn);
+
+  // Highlight if this button matches current input value
+  if (value === currentValue) {
+  btn.style.background = '#006495';
+  btn.style.borderColor = '#006495';
+  btn.style.color = 'white';
+  btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
+  btn.style.transform = 'translateY(-2px)';
+  } else {
+  btn.style.background = '#f8f9fa';
+  btn.style.borderColor = '#dee2e6';
+  btn.style.color = '#495057';
+  btn.style.boxShadow = 'none';
+  btn.style.transform = 'translateY(0)';
+  }
+  }
   });
-}
+  }
 
-function setStyledQuickSelectValue(value) {
+  function setStyledQuickSelectValue(value) {
   const input = document.getElementById('styled_damage_qty');
   if (!input) return;
 
   const max = parseInt(input.max, 10) || Infinity;
   const currentValue = parseInt(input.value, 10) || 0;
-  
+
   // If clicking the same button that's currently selected, add to the value
   // Otherwise, set the value directly
   let newValue;
   if (currentValue > 0 && currentValue % value === 0) {
-    // Current value is a multiple of the button value, so add to it
-    newValue = currentValue + value;
+  // Current value is a multiple of the button value, so add to it
+  newValue = currentValue + value;
   } else {
-    // Set to the button value directly
-    newValue = value;
+  // Set to the button value directly
+  newValue = value;
   }
-  
+
   // Respect the maximum limit
   if (newValue <= max) {
-    input.value = newValue;
+  input.value = newValue;
   } else {
-    // If adding would exceed max, set to max
-    input.value = max;
+  // If adding would exceed max, set to max
+  input.value = max;
   }
-  
+
   // Update button highlights
   updateStyledQuickSelectButtons();
-}
+  }
 
-function disableStyledQuickButton(btn) {
+  function disableStyledQuickButton(btn) {
   btn.disabled = true;
   btn.style.opacity = '0.3';
   btn.style.cursor = 'not-allowed';
@@ -544,168 +531,168 @@ function disableStyledQuickButton(btn) {
   btn.style.background = '#e9ecef';
   btn.style.borderColor = '#dee2e6';
   btn.style.color = '#6c757d';
-}
+  }
 
-function enableStyledQuickButton(btn) {
+  function enableStyledQuickButton(btn) {
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.style.cursor = 'pointer';
   btn.style.pointerEvents = 'auto';
-}
+  }
 
-// Function to update button highlights based on current value
-function updateStyledQuickSelectButtonHighlight(selectedValue) {
+  // Function to update button highlights based on current value
+  function updateStyledQuickSelectButtonHighlight(selectedValue) {
   const buttons = document.querySelectorAll('.styled-quick-select-btn');
   const input = document.getElementById('styled_damage_qty');
   if (!buttons.length || !input) return;
-  
-  const currentValue = parseInt(input.value, 10) || 0;
-  
-  buttons.forEach(btn => {
-    const buttonValue = parseInt(btn.dataset.value, 10);
-    
-    // Skip if button is disabled
-    if (btn.disabled) return;
-    
-    // Highlight if this button matches the current input value
-    if (buttonValue === currentValue) {
-      btn.style.background = '#006495';
-      btn.style.borderColor = '#006495';
-      btn.style.color = 'white';
-      btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
-      btn.style.transform = 'translateY(-2px)';
-    } else {
-      btn.style.background = '#f8f9fa';
-      btn.style.borderColor = '#dee2e6';
-      btn.style.color = '#495057';
-      btn.style.boxShadow = 'none';
-      btn.style.transform = 'translateY(0)';
-    }
-  });
-}
 
-// Show confirmation modal before submitting
-function showConfirmationModal(quantity, drugName, reason, itemId) {
+  const currentValue = parseInt(input.value, 10) || 0;
+
+  buttons.forEach(btn => {
+  const buttonValue = parseInt(btn.dataset.value, 10);
+
+  // Skip if button is disabled
+  if (btn.disabled) return;
+
+  // Highlight if this button matches the current input value
+  if (buttonValue === currentValue) {
+  btn.style.background = '#006495';
+  btn.style.borderColor = '#006495';
+  btn.style.color = 'white';
+  btn.style.boxShadow = '0 4px 12px rgba(0, 100, 149, 0.4)';
+  btn.style.transform = 'translateY(-2px)';
+  } else {
+  btn.style.background = '#f8f9fa';
+  btn.style.borderColor = '#dee2e6';
+  btn.style.color = '#495057';
+  btn.style.boxShadow = 'none';
+  btn.style.transform = 'translateY(0)';
+  }
+  });
+  }
+
+  // Show confirmation modal before submitting
+  function showConfirmationModal(quantity, drugName, reason, itemId) {
   // Create confirmation modal
   const confirmationModal = document.createElement('div');
   confirmationModal.id = 'confirmationModal';
   confirmationModal.style.cssText = `
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 10001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.25s ease;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
   `;
 
   confirmationModal.innerHTML = `
-    <div id="confirmationModalContent"
-         style="
-      width: 500px;
-      background: #fff;
-      padding: 28px;
-      border-radius: 14px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-      transform: scale(0.92);
-      transition: transform 0.25s ease;
+<div id="confirmationModalContent"
+  style="
+  width: 500px;
+  background: #fff;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  transform: scale(0.92);
+  transition: transform 0.25s ease;
+  ">
+  <!-- Header -->
+  <div style="display:flex; justify-content:center; align-items:center; margin-bottom:20px;">
+    <h2 style="margin:0; font-size:1.8rem; color:#d9534f; font-weight:700; text-align:center;">
+        Confirm Damage Report
+    </h2>
+  </div>
+
+  <!-- Message -->
+  <div style="
+    background: #f1f3f5;
+    border: 1px solid #d7dde3;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 28px;
+    text-align: center;
+    font-size: 1.4rem;
+    line-height: 1.5;
     ">
-      <!-- Header -->
-      <div style="display:flex; justify-content:center; align-items:center; margin-bottom:20px;">
-        <h2 style="margin:0; font-size:1.8rem; color:#d9534f; font-weight:700; text-align:center;">
-          Confirm Damage Report
-        </h2>
-      </div>
+    <p style="margin:0; font-weight:600;">
+        Report <span style="color:#d9534f; font-size:1.6rem;">${quantity}</span> units of
+    </p>
+    <p style="margin:10px 0 0 0; color:#006495; font-size:1.5rem; font-weight:600;">
+        ${drugName}
+    </p>
+  </div>
 
-      <!-- Message -->
-      <div style="
-        background: #f1f3f5;
-        border: 1px solid #d7dde3;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 28px;
-        text-align: center;
-        font-size: 1.4rem;
-        line-height: 1.5;
-      ">
-        <p style="margin:0; font-weight:600;">
-          Report <span style="color:#d9534f; font-size:1.6rem;">${quantity}</span> units of
-        </p>
-        <p style="margin:10px 0 0 0; color:#006495; font-size:1.5rem; font-weight:600;">
-          ${drugName}
-        </p>
-      </div>
+  <!-- Buttons -->
+  <div style="display:flex; justify-content:center; gap:16px;">
+    <button onclick="processDamageSubmission(${itemId}, ${quantity}, '${reason}')"
+      style="
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      background: #28a745;
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 140px;
+      height: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      "
+      onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#218838'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.background='#28a745'">
+        OKAY
+    </button>
 
-      <!-- Buttons -->
-      <div style="display:flex; justify-content:center; gap:16px;">
-        <button onclick="processDamageSubmission(${itemId}, ${quantity}, '${reason}')"
-                style="
-                  padding: 14px 28px;
-                  border: none;
-                  border-radius: 8px;
-                  background: #28a745;
-                  color: #fff;
-                  font-size: 1.3rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  min-width: 140px;
-                  height: 55px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  line-height: 1;
-                "
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#218838'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#28a745'">
-          OKAY
-        </button>
-        
-        <button onclick="closeConfirmationModalAndReopenDamageModal()"
-                style="
-                  padding: 14px 28px;
-                  border: none;
-                  border-radius: 8px;
-                  background: #6c757d;
-                  color: #fff;
-                  font-size: 1.3rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  min-width: 140px;
-                  height: 55px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  line-height: 1;
-                "
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
-          CANCEL
-        </button>
-      </div>
-      </div>
-    </div>
+    <button onclick="closeConfirmationModalAndReopenDamageModal()"
+      style="
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      background: #6c757d;
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 140px;
+      height: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      "
+      onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#5a6268'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
+        CANCEL
+    </button>
+  </div>
+</div>
+</div>
   `;
 
   // Add to page
   document.body.appendChild(confirmationModal);
-  
+
   // Animate in
   setTimeout(() => {
-    confirmationModal.style.opacity = '1';
-    const modalContent = document.getElementById('confirmationModalContent');
-    modalContent.style.transform = 'scale(1)';
+  confirmationModal.style.opacity = '1';
+  const modalContent = document.getElementById('confirmationModalContent');
+  modalContent.style.transform = 'scale(1)';
   }, 10);
-}
+  }
 
-function reopenStyledDamageModal() {
+  function reopenStyledDamageModal() {
   // We need to preserve the original values
   const qtyInput = document.getElementById('styled_damage_qty');
   const reasonSelect = document.getElementById('styled_damage_reason');
-  
+
   // Store current values before reopening
   const currentQty = qtyInput.value;
   const currentReason = reasonSelect.value;
@@ -713,40 +700,40 @@ function reopenStyledDamageModal() {
   const drugName = document.getElementById('styledDamageDrugName').textContent;
   const inventoryNumber = document.getElementById('styledDamageInventoryNumber').textContent;
   const maxQuantity = document.getElementById('styledDamageMaxQuantity').textContent;
-  
+
   // Reopen modal with preserved values
   const modal = document.getElementById('styledDamageModal');
   const content = document.getElementById('styledDamageModalContent');
-  
+
   modal.style.display = 'flex';
   setTimeout(() => {
-    modal.style.opacity = '1';
-    content.style.transform = 'scale(1)';
+  modal.style.opacity = '1';
+  content.style.transform = 'scale(1)';
   }, 10);
-  
+
   // Restore values
   qtyInput.value = currentQty;
   reasonSelect.value = currentReason;
-  
+
   // Setup quantity controls
   setupStyledDamageModalQuantityControls();
-  
+
   // Initialize quick select buttons
   updateStyledQuickSelectButtons();
-  
+
   // Focus on quantity input
   setTimeout(() => {
-    qtyInput.focus();
-    qtyInput.select();
+  qtyInput.focus();
+  qtyInput.select();
   }, 100);
-}
+  }
 
-// Reopen the damage modal with preserved values
-function reopenStyledDamageModal() {
+  // Reopen the damage modal with preserved values
+  function reopenStyledDamageModal() {
   // We need to preserve the original values
   const qtyInput = document.getElementById('styled_damage_qty');
   const reasonSelect = document.getElementById('styled_damage_reason');
-  
+
   // Store current values before reopening
   const currentQty = qtyInput.value;
   const currentReason = reasonSelect.value;
@@ -754,353 +741,353 @@ function reopenStyledDamageModal() {
   const drugName = document.getElementById('styledDamageDrugName').textContent;
   const inventoryNumber = document.getElementById('styledDamageInventoryNumber').textContent;
   const maxQuantity = document.getElementById('styledDamageMaxQuantity').textContent;
-  
+
   // Reopen modal with preserved values
   const modal = document.getElementById('styledDamageModal');
   const content = document.getElementById('styledDamageModalContent');
-  
+
   modal.style.display = 'flex';
   setTimeout(() => {
-    modal.style.opacity = '1';
-    content.style.transform = 'scale(1)';
+  modal.style.opacity = '1';
+  content.style.transform = 'scale(1)';
   }, 10);
-  
+
   // Restore values
   qtyInput.value = currentQty;
   reasonSelect.value = currentReason;
-  
+
   // Setup quantity controls
   setupStyledDamageModalQuantityControls();
-  
+
   // Focus on quantity input
   setTimeout(() => {
-    qtyInput.focus();
-    qtyInput.select();
+  qtyInput.focus();
+  qtyInput.select();
   }, 100);
-}
+  }
 
-// Close confirmation modal
-function closeConfirmationModal() {
+  // Close confirmation modal
+  function closeConfirmationModal() {
   const confirmationModal = document.getElementById('confirmationModal');
   if (confirmationModal) {
-    confirmationModal.style.opacity = '0';
-    const modalContent = document.getElementById('confirmationModalContent');
-    if (modalContent) {
-      modalContent.style.transform = 'scale(0.9)';
-    }
-    
-    setTimeout(() => {
-      if (confirmationModal.parentNode) {
-        confirmationModal.parentNode.removeChild(confirmationModal);
-      }
-    }, 300);
+  confirmationModal.style.opacity = '0';
+  const modalContent = document.getElementById('confirmationModalContent');
+  if (modalContent) {
+  modalContent.style.transform = 'scale(0.9)';
   }
-}
 
-// Process the actual damage submission after confirmation
-function processDamageSubmission(itemId, quantity, reason) {
+  setTimeout(() => {
+  if (confirmationModal.parentNode) {
+  confirmationModal.parentNode.removeChild(confirmationModal);
+  }
+  }, 300);
+  }
+  }
+
+  // Process the actual damage submission after confirmation
+  function processDamageSubmission(itemId, quantity, reason) {
   // Close confirmation modal
   closeConfirmationModal();
-  
+
   // Prepare data
-  var postData = { 
-    quantity: quantity, 
-    reason: reason,
-    damage_type: 'bottle' 
+  var postData = {
+  quantity: quantity,
+  reason: reason,
+  damage_type: 'bottle'
   };
 
   // Show "processing" notification
   showProcessingNotification();
 
-  $.post(`/general_inventory/${itemId}/damage_item`, 
-    postData, 
-    function(resp) {
-      // Remove processing notification
-      removeProcessingNotification();
-      
-      if (resp.success) {
-        // Show success message
-        showSuccessNotification("Damage Recorded Successfully!");
-        
-        // Reload after delay
-        setTimeout(() => {
-          location.reload();
-        }, 2500);
-      } else {
-        alert(resp.message || "An error occurred");
-      }
-    }
-  ).fail(function(xhr, status, error) {
-    // Remove processing notification
-    removeProcessingNotification();
-    
-    alert("An error occurred while submitting the damage.");
-    console.error("Damage submission error:", error);
-  });
-}
+  $.post(`/general_inventory/${itemId}/damage_item`,
+  postData,
+  function(resp) {
+  // Remove processing notification
+  removeProcessingNotification();
 
-// Show processing notification
-function showProcessingNotification() {
+  if (resp.success) {
+  // Show success message
+  showSuccessNotification("Damage Recorded Successfully!");
+
+  // Reload after delay
+  setTimeout(() => {
+  location.reload();
+  }, 2500);
+  } else {
+  alert(resp.message || "An error occurred");
+  }
+  }
+  ).fail(function(xhr, status, error) {
+  // Remove processing notification
+  removeProcessingNotification();
+
+  alert("An error occurred while submitting the damage.");
+  console.error("Damage submission error:", error);
+  });
+  }
+
+  // Show processing notification
+  function showProcessingNotification() {
   const processingNotification = document.createElement('div');
   processingNotification.id = 'processing-notification';
   processingNotification.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px 40px;
-    border-radius: 10px;
-    z-index: 10002;
-    font-size: 1.8rem;
-    font-weight: 600;
-    text-align: center;
-    animation: fadeIn 0.3s ease-out;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 10px;
+  z-index: 10002;
+  font-size: 1.8rem;
+  font-weight: 600;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
   `;
   processingNotification.innerHTML = `
-    <div style="margin-bottom: 10px; font-size: 2.5rem;">⏳</div>
-    Processing...
+<div style="margin-bottom: 10px; font-size: 2.5rem;">⏳</div>
+  Processing...
   `;
-  
-  document.body.appendChild(processingNotification);
-}
 
-// Remove processing notification
-function removeProcessingNotification() {
+  document.body.appendChild(processingNotification);
+  }
+
+  // Remove processing notification
+  function removeProcessingNotification() {
   const processingNotification = document.getElementById('processing-notification');
   if (processingNotification && processingNotification.parentNode) {
-    processingNotification.parentNode.removeChild(processingNotification);
+  processingNotification.parentNode.removeChild(processingNotification);
   }
-}
+  }
 
-// Helper function to show success notification without blocking
-function showSuccessNotification(message) {
+  // Helper function to show success notification without blocking
+  function showSuccessNotification(message) {
   // Remove any existing notification
   const existingNotification = document.getElementById('success-notification');
   if (existingNotification) {
-    existingNotification.parentNode.removeChild(existingNotification);
+  existingNotification.parentNode.removeChild(existingNotification);
   }
 
   // Create a notification div
   const notification = document.createElement('div');
   notification.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #28a745;
-    color: white;
-    padding: 30px 50px;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    z-index: 10003;
-    font-size: 2rem;
-    font-weight: 700;
-    text-align: center;
-    min-width: 400px;
-    max-width: 600px;
-    border: 4px solid rgba(255,255,255,0.3);
-    animation: fadeIn 0.3s ease-out;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #28a745;
+  color: white;
+  padding: 30px 50px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  z-index: 10003;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  min-width: 400px;
+  max-width: 600px;
+  border: 4px solid rgba(255,255,255,0.3);
+  animation: fadeIn 0.3s ease-out;
   `;
   notification.textContent = message;
   notification.id = 'success-notification';
-  
+
   // Checkmark
   const checkmark = document.createElement('div');
   checkmark.style.cssText = `
-    font-size: 3.5rem;
-    margin-bottom: 15px;
+  font-size: 3.5rem;
+  margin-bottom: 15px;
   `;
   checkmark.textContent = '✓';
   notification.insertBefore(checkmark, notification.firstChild);
-  
+
   // Add to page
   document.body.appendChild(notification);
-  
+
   // Auto-remove
   setTimeout(() => {
-    if (notification.parentNode) {
-      notification.style.opacity = '0';
-      notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
-      notification.style.transition = 'all 0.3s ease-out';
-      
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 300);
-    }
+  if (notification.parentNode) {
+  notification.style.opacity = '0';
+  notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+  notification.style.transition = 'all 0.3s ease-out';
+
+  setTimeout(() => {
+  if (notification.parentNode) {
+  notification.parentNode.removeChild(notification);
+  }
+  }, 300);
+  }
   }, 2300);
-}
+  }
 
   function closeStyledDamageModal() {
-    const modal = document.getElementById('styledDamageModal');
-    const content = document.getElementById('styledDamageModalContent');
-    
-    // Animate out
-    modal.style.opacity = '0';
-    content.style.transform = 'scale(0.9)';
-    
-    // Remove after animation
-    setTimeout(() => {
-      modal.style.display = 'none';
-      // Reset form
-      document.getElementById('styled_damage_qty').value = '0';
-      document.getElementById('styled_damage_reason').value = 'broken';
-    }, 300);
+  const modal = document.getElementById('styledDamageModal');
+  const content = document.getElementById('styledDamageModalContent');
+
+  // Animate out
+  modal.style.opacity = '0';
+  content.style.transform = 'scale(0.9)';
+
+  // Remove after animation
+  setTimeout(() => {
+  modal.style.display = 'none';
+  // Reset form
+  document.getElementById('styled_damage_qty').value = '0';
+  document.getElementById('styled_damage_reason').value = 'broken';
+  }, 300);
   }
 
   // Quantity controls for the modal
   function setupStyledDamageModalQuantityControls() {
-    const input = document.getElementById('styled_damage_qty');
-    const increaseBtn = document.getElementById('styledDamageIncreaseBtn');
-    const decreaseBtn = document.getElementById('styledDamageDecreaseBtn');
-    const clearBtn = document.getElementById('styledDamageClearBtn');
+  const input = document.getElementById('styled_damage_qty');
+  const increaseBtn = document.getElementById('styledDamageIncreaseBtn');
+  const decreaseBtn = document.getElementById('styledDamageDecreaseBtn');
+  const clearBtn = document.getElementById('styledDamageClearBtn');
 
-    if (!input || !increaseBtn || !decreaseBtn || !clearBtn) return;
+  if (!input || !increaseBtn || !decreaseBtn || !clearBtn) return;
 
-    let holdTimeout = null;
-    let repeatTimeout = null;
-    let isHolding = false;
-    let holdDirection = 0;
+  let holdTimeout = null;
+  let repeatTimeout = null;
+  let isHolding = false;
+  let holdDirection = 0;
 
-    // Function to adjust quantity with bounds checking
-    function adjustStyledDamageQuantity(amount) {
-      if (!input) return;
+  // Function to adjust quantity with bounds checking
+  function adjustStyledDamageQuantity(amount) {
+  if (!input) return;
 
-      let current = parseInt(input.value, 10);
-      if (isNaN(current)) current = 0;
+  let current = parseInt(input.value, 10);
+  if (isNaN(current)) current = 0;
 
-      let max = parseInt(input.max, 10);
-      if (isNaN(max)) max = Infinity;
+  let max = parseInt(input.max, 10);
+  if (isNaN(max)) max = Infinity;
 
-      let min = 0; // Changed from 1 to 0
+  let min = 0; // Changed from 1 to 0
 
-      let newValue = current + amount;
+  let newValue = current + amount;
 
-      if (newValue < min) newValue = min;
-      if (newValue > max) newValue = max;
+  if (newValue < min) newValue = min;
+  if (newValue > max) newValue = max;
 
-      input.value = newValue;
-      
-      // Update button highlights
-      updateStyledQuickSelectButtonHighlight(newValue);
-    }
+  input.value = newValue;
 
-    // Hold functionality
-    function startPress(direction) {
-      holdDirection = direction;
-      holdTimeout = setTimeout(() => {
-        isHolding = true;
-        repeatHold();
-      }, 180);
-    }
+  // Update button highlights
+  updateStyledQuickSelectButtonHighlight(newValue);
+  }
 
-    function repeatHold() {
-      if (!isHolding) return;
-      adjustStyledDamageQuantity(holdDirection);
-      repeatTimeout = setTimeout(repeatHold, 80);
-    }
+  // Hold functionality
+  function startPress(direction) {
+  holdDirection = direction;
+  holdTimeout = setTimeout(() => {
+  isHolding = true;
+  repeatHold();
+  }, 180);
+  }
 
-    function endPress() {
-      clearTimeout(holdTimeout);
-      clearTimeout(repeatTimeout);
-      const wasHold = isHolding;
-      isHolding = false;
-      return wasHold;
-    }
+  function repeatHold() {
+  if (!isHolding) return;
+  adjustStyledDamageQuantity(holdDirection);
+  repeatTimeout = setTimeout(repeatHold, 80);
+  }
 
-    function bindButton(btn, delta) {
-      btn.addEventListener('mousedown', () => startPress(delta));
-      btn.addEventListener('mouseup', () => {
-        const held = endPress();
-        if (!held) adjustStyledDamageQuantity(delta);
-      });
-      btn.addEventListener('mouseleave', endPress);
-      btn.addEventListener('touchstart', e => {
-        e.preventDefault();
-        startPress(delta);
-      });
-      btn.addEventListener('touchend', () => {
-        const held = endPress();
-        if (!held) adjustStyledDamageQuantity(delta);
-      });
-    }
+  function endPress() {
+  clearTimeout(holdTimeout);
+  clearTimeout(repeatTimeout);
+  const wasHold = isHolding;
+  isHolding = false;
+  return wasHold;
+  }
 
-    bindButton(increaseBtn, +1);
-    bindButton(decreaseBtn, -1);
+  function bindButton(btn, delta) {
+  btn.addEventListener('mousedown', () => startPress(delta));
+  btn.addEventListener('mouseup', () => {
+  const held = endPress();
+  if (!held) adjustStyledDamageQuantity(delta);
+  });
+  btn.addEventListener('mouseleave', endPress);
+  btn.addEventListener('touchstart', e => {
+  e.preventDefault();
+  startPress(delta);
+  });
+  btn.addEventListener('touchend', () => {
+  const held = endPress();
+  if (!held) adjustStyledDamageQuantity(delta);
+  });
+  }
 
-    clearBtn.addEventListener('click', () => {
-      input.value = 0;
-      updateStyledQuickSelectButtonHighlight(0);
-    });
+  bindButton(increaseBtn, +1);
+  bindButton(decreaseBtn, -1);
 
-    // Add event listener to input field to update highlights when typing
-    input.addEventListener('input', function() {
-      const value = parseInt(this.value, 10);
-      if (!isNaN(value)) {
-        updateStyledQuickSelectButtonHighlight(value);
-      }
-    });
-    
-    // Initialize quick select buttons
-    updateStyledQuickSelectButtons();
+  clearBtn.addEventListener('click', () => {
+  input.value = 0;
+  updateStyledQuickSelectButtonHighlight(0);
+  });
+
+  // Add event listener to input field to update highlights when typing
+  input.addEventListener('input', function() {
+  const value = parseInt(this.value, 10);
+  if (!isNaN(value)) {
+  updateStyledQuickSelectButtonHighlight(value);
+  }
+  });
+
+  // Initialize quick select buttons
+  updateStyledQuickSelectButtons();
   }
 
   // Close modal on escape key
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeStyledDamageModal();
-    }
+  if (e.key === 'Escape') {
+  closeStyledDamageModal();
+  }
   });
 
   // Damage modal functions
   function openDamageModal(id) {
-    document.getElementById("damage_item_id").value = id;
-    document.getElementById("damageModal").style.display = 'block';
+  document.getElementById("damage_item_id").value = id;
+  document.getElementById("damageModal").style.display = 'block';
   }
 
   function closeDamageModal() {
-    document.getElementById("damageModal").style.display = 'none';
+  document.getElementById("damageModal").style.display = 'none';
   }
 
   function submitDamage() {
-    var id = document.getElementById("damage_item_id").value;
-    var qty = document.getElementById("damage_qty").value;
-    var reason = document.getElementById("damage_reason").value;
+  var id = document.getElementById("damage_item_id").value;
+  var qty = document.getElementById("damage_qty").value;
+  var reason = document.getElementById("damage_reason").value;
 
-    $.post(`/general_inventory/${id}/damage_item`, 
-      { quantity: qty, reason: reason }, 
-      function(resp) {
-        if (resp.success) {
-          alert("Damage recorded successfully");
-          location.reload();
-        } else {
-          alert(resp.message);
-        }
-      }
-    );
+  $.post(`/general_inventory/${id}/damage_item`,
+  { quantity: qty, reason: reason },
+  function(resp) {
+  if (resp.success) {
+  alert("Damage recorded successfully");
+  location.reload();
+  } else {
+  alert(resp.message);
+  }
+  }
+  );
   }
 </script>
 
 <style type="text/css">
-  /* Reset and base styles */
-  * {
+    /* Reset and base styles */
+    * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
+    }
 
-  body {
+    body {
     font-family: Arial, sans-serif;
     background: #f5f7fa;
     margin: 0;
     padding: 0;
-  }
+    }
 
-  /* Header styling */
-  .page-header {
+    /* Header styling */
+    .page-header {
     background: linear-gradient(to right, #4361ee, #3a56d4);
     color: white;
     padding: 20px;
@@ -1108,27 +1095,27 @@ function showSuccessNotification(message) {
     margin-bottom: 15px;
     border: none;
     height: auto;
-  }
+    }
 
-  .page-header h1 {
+    .page-header h1 {
     margin: 0;
     font-size: 48px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
     margin-bottom: 8px;
     margin-left: 0;
-  }
+    }
 
-  .page-header h2 {
+    .page-header h2 {
     margin: 0;
     font-size: 42px !important;
     font-weight: 600;
     opacity: 0.9;
     margin-left: 0;
-  }
+    }
 
-  /* Table container  */
-  .table-container {
+    /* Table container  */
+    .table-container {
     height: 74vh;
     overflow: auto;
     width: 98vw;
@@ -1136,25 +1123,25 @@ function showSuccessNotification(message) {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
+    }
 
-  /* Main table */
-  #generalInventory {
+    /* Main table */
+    #generalInventory {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-  }
+    }
 
-  /* Table header */
-  #generalInventory thead {
+    /* Table header */
+    #generalInventory thead {
     background: linear-gradient(to right, #4361ee, #3a56d4);
     color: white;
     position: sticky;
     top: 0;
     z-index: 10;
-  }
+    }
 
-  #generalInventory thead th {
+    #generalInventory thead th {
     font-size: 20px;
     font-weight: 700;
     padding: 18px 12px;
@@ -1164,107 +1151,106 @@ function showSuccessNotification(message) {
     white-space: nowrap;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-  }
+    }
 
-  /* Table body */
-  #generalInventory tbody tr {
+    /* Table body */
+    #generalInventory tbody tr {
     border-bottom: 1px solid #e2e8f0;
-  }
+    }
 
-  #generalInventory tbody tr:nth-child(even) {
+    #generalInventory tbody tr:nth-child(even) {
     background-color: #f8fafc;
-  }
+    }
 
-
-  #generalInventory tbody td {
+    #generalInventory tbody td {
     font-size: 22px;
     padding: 16px 12px;
     color: #4a5568;
     vertical-align: middle;
     border: none;
-  }
+    }
 
-  /* Checkbox column */
-  #generalInventory tbody td:first-child {
+    /* Checkbox column */
+    #generalInventory tbody td:first-child {
     text-align: center;
     padding: 16px 8px;
-  }
+    }
 
-  .custom-checkbox {
+    .custom-checkbox {
     width: 28px;
     height: 28px;
     cursor: pointer;
     accent-color: #4361ee;
     display: block;
     margin: 0 auto;
-  }
+    }
 
-  /* Inventory number column */
-  #generalInventory tbody td:nth-child(2) {
+    /* Inventory number column */
+    #generalInventory tbody td:nth-child(2) {
     font-weight: 600;
     color: #2d3748;
     font-family: 'Courier New', monospace;
     font-size: 20px;
-  }
+    }
 
-  /* Quantity column */
-  #generalInventory tbody td:nth-child(3) {
+    /* Quantity column */
+    #generalInventory tbody td:nth-child(3) {
     text-align: right;
     font-weight: bold;
     font-family: 'Courier New', monospace;
     color: #2d3748;
     padding-right: 24px;
-  }
+    }
 
-  /* Expiration date column */
-  #generalInventory tbody td:nth-child(4) {
+    /* Expiration date column */
+    #generalInventory tbody td:nth-child(4) {
     text-align: center;
     font-weight: 500;
     color: #2d3748;
-  }
+    }
 
-  /* Expiration warnings */
-  .expired {
+    /* Expiration warnings */
+    .expired {
     color: #e53e3e !important;
     font-weight: bold !important;
     background-color: rgba(229, 62, 62, 0.05) !important;
-  }
+    }
 
-  .expiring-soon {
+    .expiring-soon {
     color: #d69e2e !important;
     font-weight: bold !important;
-  }
+    }
 
-  /* Action icons styling */
-  #generalInventory tbody td:last-child {
+    /* Action icons styling */
+    #generalInventory tbody td:last-child {
     padding: 14px 10px;
     text-align: center;
-  }
+    }
 
-#generalInventory tbody td:last-child div[style*="display: table-cell"] {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 70px !important;
-  min-height: 70px !important;
-  background: white !important;
-  border-radius: 8px !important;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid #e0e0e0 !important;
-  margin: 0 6px !important;
-  vertical-align: middle !important;
-}
+    #generalInventory tbody td:last-child div[style*="display: table-cell"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 70px !important;
+    min-height: 70px !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e0e0e0 !important;
+    margin: 0 6px !important;
+    vertical-align: middle !important;
+    }
 
-  #generalInventory tbody td:l ast-child div[style*="display: table-cell"] img {
-    width: 48px !important; 
+    #generalInventory tbody td:l ast-child div[style*="display: table-cell"] img {
+    width: 48px !important;
     height: 48px !important;
     object-fit: contain !important;
     display: block !important;
     margin: 0 auto !important;
-  }
+    }
 
-  /* Search input styling */
-  .dataTables_filter input {
+    /* Search input styling */
+    .dataTables_filter input {
     font-size: 20px;
     padding: 12px 16px;
     border: 2px solid #cbd5e0;
@@ -1272,16 +1258,16 @@ function showSuccessNotification(message) {
     width: 300px;
     max-width: 100%;
     margin-top: 10px;
-  }
+    }
 
-  .dataTables_filter input:focus {
+    .dataTables_filter input:focus {
     outline: none;
     border-color: #4361ee;
     box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-  }
+    }
 
-  /* Pagination styling */
-  .dataTables_paginate .paginate_button {
+    /* Pagination styling */
+    .dataTables_paginate .paginate_button {
     padding: 10px 15px;
     margin: 0 5px;
     border: 1px solid #cbd5e0;
@@ -1290,25 +1276,25 @@ function showSuccessNotification(message) {
     color: #4a5568;
     background: white;
     cursor: pointer;
-  }
-  .dataTables_paginate .paginate_button.current {
+    }
+    .dataTables_paginate .paginate_button.current {
     background: #4361ee;
     color: white;
     border-color: #4361ee;
     font-weight: 700;
-  }
+    }
 
-  /* Info text */
-  .dataTables_info {
+    /* Info text */
+    .dataTables_info {
     font-size: 24px !important;
     color: #718096;
     padding: 24px 0 !important;
     mmargin-left: 12px !important;
     font-weight: 500;
-  }
+    }
 
-  /* Footer styling */
-  .footer {
+    /* Footer styling */
+    .footer {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1321,9 +1307,9 @@ function showSuccessNotification(message) {
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     z-index: 100;
     margin: 0;
-  }
+    }
 
-  .nav-bttn {
+    .nav-bttn {
     padding: 14px 28px;
     border: none;
     border-radius: 8px;
@@ -1332,128 +1318,128 @@ function showSuccessNotification(message) {
     cursor: pointer;
     min-height: 60px;
     min-width: 180px;
-  }
+    }
 
-  .nav-bttn.blue {
+    .nav-bttn.blue {
     background: linear-gradient(to right, #4361ee, #3a56d4);
     color: white;
     margin-left: 20px;
-  }
+    }
 
-  .nav-bttn.green {
+    .nav-bttn.green {
     background: linear-gradient(to right, #38a169, #2f855a);
     color: white;
     margin-right: 20px;
-  }
+    }
 
-  /* Scrollbar styling */
-  .table-container::-webkit-scrollbar {
+    /* Scrollbar styling */
+    .table-container::-webkit-scrollbar {
     width: 10px;
-  }
+    }
 
-  .table-container::-webkit-scrollbar-track {
+    .table-container::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
-  }
+    }
 
-  .table-container::-webkit-scrollbar-thumb {
+    .table-container::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
-  }
+    }
 
-  /* Simple responsive adjustments */
-  @media (max-width: 768px) {
+    /* Simple responsive adjustments */
+    @media (max-width: 768px) {
     .page-header {
-      padding: 15px;
+    padding: 15px;
     }
-    
+
     .page-header h1 {
-      font-size: 26px;
+    font-size: 26px;
     }
-    
+
     .page-header h2 {
-      font-size: 20px;
+    font-size: 20px;
     }
-    
+
     .table-container {
-      width: 100vw;
-      margin: 5px 0;
-      height: 70vh;
+    width: 100vw;
+    margin: 5px 0;
+    height: 70vh;
     }
-    
+
     .footer {
-      flex-direction: column;
-      gap: 15px;
-      padding: 15px;
-      position: relative;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    position: relative;
     }
-    
+
     .nav-bttn {
-      width: 100%;
-      min-width: 100%;
-      font-size: 22px;
-      padding: 12px 20px;
+    width: 100%;
+    min-width: 100%;
+    font-size: 22px;
+    padding: 12px 20px;
     }
-    
+
     .nav-bttn.blue,
     .nav-bttn.green {
-      margin: 0;
+    margin: 0;
     }
-    
+
     #generalInventory thead th {
-      font-size: 18px;
-      padding: 14px 8px;
+    font-size: 18px;
+    padding: 14px 8px;
     }
-    
+
     #generalInventory tbody td {
-      font-size: 18px;
-      padding: 12px 8px;
+    font-size: 18px;
+    padding: 12px 8px;
     }
-    
+
     .dataTables_filter input {
-      width: 100%;
-      font-size: 18px;
+    width: 100%;
+    font-size: 18px;
     }
-    
+
     .dataTables_paginate .paginate_button {
-      font-size: 16px;
-      padding: 8px 12px;
-      margin: 0 3px;
+    font-size: 16px;
+    padding: 8px 12px;
+    margin: 0 3px;
     }
-  }
+    }
 
-/* Damage modal button overrides */
-#styledDamageDecreaseBtn,
-#styledDamageIncreaseBtn,
-#styledDamageClearBtn {
-  width: 110px !important;
-  height: 50px !important;
-  min-width: 110px !important;
-  max-width: 110px !important;
-  font-size: 1.6rem !important;
-  border-radius: 6px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  flex: 0 0 auto !important;
-}
+    /* Damage modal button overrides */
+    #styledDamageDecreaseBtn,
+    #styledDamageIncreaseBtn,
+    #styledDamageClearBtn {
+    width: 110px !important;
+    height: 50px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+    font-size: 1.6rem !important;
+    border-radius: 6px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex: 0 0 auto !important;
+    }
 
-#styledDamageDecreaseBtn {
-  background: #f8f9fa !important;
-  color: #dc3545 !important;
-}
+    #styledDamageDecreaseBtn {
+    background: #f8f9fa !important;
+    color: #dc3545 !important;
+    }
 
-#styledDamageIncreaseBtn {
-  background: #f8f9fa !important;
-  color: #28a745 !important;
-}
+    #styledDamageIncreaseBtn {
+    background: #f8f9fa !important;
+    color: #28a745 !important;
+    }
 
-#styledDamageClearBtn {
-  width: 120px !important;
-  height: 50px !important;
-  min-width: 120px !important;
-  max-width: 120px !important;
-  font-size: 1rem !important;
-  background: #f8f9fa !important;
-  color: #6c757d !important;
-}
+    #styledDamageClearBtn {
+    width: 120px !important;
+    height: 50px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    font-size: 1rem !important;
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    }
 </style>
