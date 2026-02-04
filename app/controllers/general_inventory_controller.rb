@@ -63,7 +63,6 @@ class GeneralInventoryController < ApplicationController
     end
   end
 
-#modified here
 def new
   dispensary_loc = Location.find_by_name("Dispensary")&.id
   @is_dispensary = session[:location] == dispensary_loc
@@ -130,7 +129,7 @@ def new
   render layout: "touch"
 end
 
-  def create
+def create
 
     if params[:general_inventory] && params[:general_inventory][:amount_requested].present?
       requested = params[:general_inventory][:amount_requested].to_i

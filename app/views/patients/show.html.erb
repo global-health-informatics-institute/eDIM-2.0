@@ -86,10 +86,10 @@
             </div>
             <div style="display: table-cell;border: 2px solid black;border-width: 0px 0px 0px 2px;height: 70vh; justify-content: flex-end">
               <%= form_for :prescription,method: 'POST',:url => dispensation_index_path, :html => { :id => 'dispenseFormElement' }  do |f| %>
-              <div style="position: absolute;left: 72vw;top: 80vh;" onmousedown="showDispenseDiv('doseDiv')" class="nextButton" id="dispNext">
+              <div style="position: absolute;left: 75vw;top: 80vh;" onmousedown="showDispenseDiv('doseDiv')" class="nextButton" id="dispNext">
                 <%= t('forms.buttons.next')%>
               </div>
-              <div style="position: absolute; left: 62vw; top: 80vh; background-color: #053a54; color: white; justify-content: flex-end" 
+              <div style="position: absolute; left: 60vw; top: 80vh; background-color: #053a54; color: white; justify-content: flex-end" 
                   class="nextButton" id="dispClear" 
                   style="display:none;">
                 <%= t('forms.buttons.clear') %>

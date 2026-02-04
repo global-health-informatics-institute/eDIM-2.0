@@ -742,8 +742,15 @@
       if (!li) return;
 
       // put the chosen name into the input (mimic selection)
-      const chosen = li.getAttribute('value') || li.textContent;
-      drugInput.value = chosen;
+      const drugId   = li.getAttribute('value');
+      const drugName = li.textContent.trim();
+
+      drugInput.value = drugName;
+
+      const drugIdInput = document.getElementById('drug_id');
+      if (drugIdInput) {
+        drugIdInput.value = drugId;
+      }
 
       // If the <li> contains data-qty, use it (fast path)
       const dataQty = li.dataset && li.dataset.qty ? parseInt(li.dataset.qty, 10) : null;
@@ -847,7 +854,19 @@
 
   // sets input value to empty to avoid confusion
   const drugInput = document.getElementById('drug_name');
-  if (drugInput) drugInput.value = '';
+  const form = document.getElementById('inventory-form');
+
+  // Only clear when NOT submitting the form
+  if (drugInput && !form?.dataset?.submitting) {
+    drugInput.value = '';
+  }
+
+  const form = document.getElementById('inventory-form');
+  if (form) {
+    form.addEventListener('submit', () => {
+      form.dataset.submitting = 'true';
+    });
+  }
 
   if (typeof searchState !== 'undefined') searchState = 0;
   if (typeof manualState !== 'undefined') manualState = 0;

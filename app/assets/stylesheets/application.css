@@ -305,18 +305,18 @@ input.radio:focus ~ label:before {
     float: right;
     margin-right: 10px;
     margin-top: 10px;
-    padding: 25px 50px; /* Increased from 15px 32px */
+    padding: 18px 35px; /* Reduced from 25px 50px */
     text-align: center;
     text-decoration: none;
     display: inline-flex; /* Changed for better centering */
     align-items: center; /* Center vertically */
     justify-content: center; /* Center horizontally */
-    font-size: 32px; /* Increased for better readability */
+    font-size: 28px; /* Reduced from 32px */
     font-weight: bold; /* Added for better visibility */
     border-radius: 8px; /* Added for better appearance */
     cursor: pointer; /* Added for better UX */
-    min-width: 140px; /* Increased minimum width */
-    min-height: 70px; /* Increased minimum height */
+    min-width: 120px; /* Reduced from 140px */
+    min-height: 55px; /* Reduced from 70px */
     line-height: 1; /* Ensure proper line height for centering */
 }
 
