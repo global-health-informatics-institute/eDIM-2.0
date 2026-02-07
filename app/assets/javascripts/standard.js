@@ -1843,6 +1843,13 @@ function showBestKeyboard(aPageNum) {
         }
         return;
     }
+    // Hide keyboard for all SELECT elements
+    if (inputElement.tagName == "SELECT") {
+        __$("keyboard").innerHTML = "";
+        __$("keyboard").style.display = "none";
+        return;
+    }
+
     var optionCount = __$('options').getElementsByTagName("li").length;
     if ((optionCount > 0 && optionCount < 6 && inputElement.tagName == "SELECT") || (inputElement.getAttribute("multiple") == "multiple")) {
         __$("keyboard").innerHTML = "";
