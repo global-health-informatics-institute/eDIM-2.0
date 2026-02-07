@@ -182,14 +182,42 @@ form{
     position:absolute;
     display: block;
     z-index: 10;
-    bottom: 10.5vh;
+    bottom: 10vh;
     margin-left:1vw;
     border: 1px solid #333;
     border-radius: 15px;
-    padding: 5px;
+    padding: 2px;
     background-color: rgba(255,255,255,0.8);
-    width: 97vw;
+    width: 97.5vw;
+    height: 59vh !important;
 }
+
+#divMenu{
+    height:60vh !important;
+    font-size: 36px !important;
+}
+
+.keyboard table.keyBoardTable {
+    border-collapse: collapse !important;
+}
+
+.keyboard table.keyBoardTable tr {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    height: auto !important;
+}
+
+.keyboard table.keyBoardTable td,
+.keyboard table.keyBoardTable th {
+    height: 93sspx !important;
+    vertical-align: middle !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 2px !important;
+    line-height: 1 !important;
+}
+
 
 .buttonLine{
     display: block;
