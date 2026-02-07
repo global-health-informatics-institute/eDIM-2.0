@@ -98,7 +98,7 @@
             end
             end %>
         <tr>
-          <td><input type="checkbox" class="custom-checkbox item" data-id="<%= item.gn_inventory_id %>          "></td>          <td style="text-align: left; padding-left: 112px; font-size: 42px; font-weight: normal;"><%= Misc.dash_formatter(item.gn_identifier) %></td>          <td style="text-align: left; padding-left: 124px; font-size: 42px; font-weight: normal;"><%= number_with_delimiter(item.current_quantity) %></td>          <td class="<%= expiration_class %>          " style="text-align: center; font-size: 42px;">
+          <td><input type="checkbox" class="custom-checkbox item" data-id="<%= item.gn_inventory_id %>          "></td>          <td style="text-align: left; padding-left: 112px; font-size: 42px; font-weight:800;"><%= Misc.dash_formatter(item.gn_identifier) %></td>          <td style="text-align: left; padding-left: 124px; font-size: 42px; font-weight:800; color:#38a169 "><%= number_with_delimiter(item.current_quantity) %></td>          <td class="<%= expiration_class %>          " style="text-align: center; font-size: 42px; font-weight:500; color:#4361ee;">
           <%= l(item.expiration_date, format: '%b-%Y') rescue "" %>
         </td>
         <td style="text-align: center;">
