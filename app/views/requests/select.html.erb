@@ -38,3 +38,74 @@
 
   <%= submit_tag t('forms.buttons.generate_report'), class: "nav-bttn green" %>
 <% end %>
+
+<script>
+  (function() {
+    function parseDate(val) {
+      var parts = (val || '').split('-');
+      if (parts.length !== 3) return null;
+      var y = parseInt(parts[0], 10);
+      var m = parseInt(parts[1], 10);
+      var d = parseInt(parts[2], 10);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d);
+    }
+
+    function formatDate(dt) {
+      var y = dt.getFullYear();
+      var m = String(dt.getMonth() + 1).padStart(2, '0');
+      var d = String(dt.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + d;
+    }
+
+    function clampToToday(dt) {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (dt > today) return today;
+      return dt;
+    }
+
+    function computeEndDate(duration, startDate) {
+      if (!startDate) return null;
+      var end = new Date(startDate.getTime());
+      if (duration === "<%= t('forms.options.weekly') %>") {
+        end.setDate(end.getDate() + 6);
+      } else if (duration === "<%= t('forms.options.monthly') %>") {
+        var y = startDate.getFullYear();
+        var m = startDate.getMonth();
+        var d = startDate.getDate();
+        var lastDayNextMonth = new Date(y, m + 2, 0).getDate();
+        var day = Math.min(d, lastDayNextMonth);
+        var sameDayNextMonth = new Date(y, m + 1, day);
+        end = new Date(sameDayNextMonth.getFullYear(), sameDayNextMonth.getMonth(), sameDayNextMonth.getDate() - 1);
+      } else if (duration === "<%= t('forms.options.daily') %>") {
+        end = startDate;
+      } else {
+        return null;
+      }
+      return clampToToday(end);
+    }
+
+    function syncEndDate() {
+      var durationEl = document.getElementById('reportDuration');
+      var startEl = document.getElementById('startDate');
+      var endEl = document.getElementById('endDate');
+      if (!durationEl || !startEl || !endEl) return;
+
+      var duration = durationEl.value;
+      var startDate = parseDate(startEl.value);
+      var endDate = computeEndDate(duration, startDate);
+      if (endDate) {
+        endEl.value = formatDate(endDate);
+      }
+    }
+
+    document.addEventListener('change', function(e) {
+      if (e.target && (e.target.id === 'reportDuration' || e.target.id === 'startDate')) {
+        syncEndDate();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', syncEndDate);
+  })();
+</script>
