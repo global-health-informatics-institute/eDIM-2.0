@@ -183,6 +183,15 @@
       let searchState=0;
       let manualState=0;
 
+      function getPageIndexForFieldId(fieldId) {
+      if (!window.tstFormElements) return null;
+      for (let i = 0; i < window.tstFormElements.length; i++) {
+        const el = window.tstFormElements[i];
+        if (el && el.id === fieldId) return i;
+      }
+      return null;
+      }
+
       function showAllCategories() {
       const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
       categoryItems.forEach(item => {
@@ -372,6 +381,9 @@
       searchInput.setAttribute('field_type', 'alpha');
       searchInput.setAttribute('tt_pageStyleClass', 'Alpha');
       searchInput.setAttribute('helptext', 'Tap letters to search categories');
+      searchInput.removeAttribute('ajaxURL');
+      searchInput.autocomplete = 'off';
+      searchInput.value = '';
 
       searchInput.addEventListener('focus', function() {
       this.style.borderColor = '#007bff';
@@ -379,7 +391,6 @@
       try {
       window.tstCurrentPage = window.tstCurrentPage || 0;
       window['touchscreenInput' + tstCurrentPage] = this;
-      if (typeof listSuggestions === 'function') listSuggestions(tstCurrentPage);
       } catch (e) {
       console.log('TST attach failed:', e);
       }
@@ -894,11 +905,18 @@
   const checkAndRestore = () => {
   showAllCategories();
 
-  // Reset search input on back so list doesn't clear on focus
+  // Hard reset search input on back so it can't cache prior drug name
   const searchInput = document.getElementById('category_search');
   if (searchInput) {
   searchInput.value = '';
-  filterCategories();
+  searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  searchInput.dispatchEvent(new Event('keyup', { bubbles: true }));
+  }
+
+  // Clear ALL TouchScreenToolkit inputs to prevent stale values
+  if (typeof window.tstCurrentPage !== 'undefined') {
+    const ti = window['touchscreenInput' + window.tstCurrentPage];
+    if (ti) ti.value = '';
   }
 
   // sets input value to empty to avoid confusion
@@ -908,6 +926,50 @@
   // Only clear when NOT submitting the form
   if (drugInput && !form?.dataset?.submitting) {
     drugInput.value = '';
+  }
+
+  // If we're back on the drug list page, refresh suggestions to show full list
+  if (!form?.dataset?.submitting) {
+    if (typeof window.tstCurrentPage !== 'undefined') {
+      const ti = window['touchscreenInput' + window.tstCurrentPage];
+      if (ti && ti.id === 'drug_name') {
+        ti.value = '';
+        if (typeof listSuggestions === 'function') listSuggestions(window.tstCurrentPage);
+      }
+    }
+  }
+
+  // If drug list page is visible, force reload suggestions from category
+  if (!form?.dataset?.submitting && document.querySelector('#tt_page_drug_name')) {
+    const categorySelect = document.getElementById('drug_category');
+    const catVal = (categorySelect && categorySelect.value) ? categorySelect.value.trim() : '';
+    const drugInputEl = document.getElementById('drug_name');
+    const options = document.getElementById('options');
+    const pageIndex = getPageIndexForFieldId('drug_name');
+
+    function refreshDrugList() {
+      if (!catVal || !drugInputEl || !options || pageIndex === null) return;
+      const url = '/drug/search?filter_value=' + encodeURIComponent(catVal) + '&search_string=';
+      drugInputEl.setAttribute('ajaxURL', url);
+      drugInputEl.value = '';
+      window.tstCurrentPage = pageIndex;
+      window['touchscreenInput' + pageIndex] = drugInputEl;
+      if (typeof window.tstInputTarget !== 'undefined') {
+        window.tstInputTarget = drugInputEl;
+      }
+      options.innerHTML = '';
+      if (typeof ajaxRequest === 'function') {
+        ajaxRequest(options, url);
+      } else if (typeof listSuggestions === 'function') {
+        listSuggestions(pageIndex);
+      }
+    }
+
+    // Try immediately and a few times after to catch TST rebuilds
+    refreshDrugList();
+    setTimeout(refreshDrugList, 80);
+    setTimeout(refreshDrugList, 200);
+    setTimeout(refreshDrugList, 400);
   }
 
   if (form) {
@@ -941,6 +1003,35 @@
   document.addEventListener('pointerdown', function unifiedBackHandler(e) {
   const btn = e.target.closest('#backButton, .button.blue, [class*="back"]');
   if (!btn) return;
+  
+  // If on drug list, simulate Clear to reset suggestions
+  if (document.querySelector('#tt_page_drug_name')) {
+    // Ensure clearInput runs on the drug_name page
+    const pageIndex = getPageIndexForFieldId('drug_name');
+    const drugInputEl = document.getElementById('drug_name');
+    if (pageIndex !== null && drugInputEl) {
+      // Clear the input value immediately to prevent stale searches
+      drugInputEl.value = '';
+      window.tstCurrentPage = pageIndex;
+      window['touchscreenInput' + pageIndex] = drugInputEl;
+      if (typeof window.tstInputTarget !== 'undefined') {
+        window.tstInputTarget = drugInputEl;
+      }
+    }
+    
+    // Trigger the clear button to reset the UI
+    const clearBtn = document.getElementById('clearButton');
+    if (clearBtn) {
+      setTimeout(() => {
+        clearBtn.dispatchEvent(new Event('mousedown', { bubbles: true }));
+      }, 120);
+    } else if (typeof clearInput === 'function') {
+      setTimeout(() => {
+        clearInput();
+      }, 120);
+    }
+    // Don't make additional AJAX requests here - let handleBackNavigation do it
+  }
   handleBackNavigation();
   }, true);
 
