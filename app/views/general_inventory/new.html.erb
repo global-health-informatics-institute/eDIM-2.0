@@ -58,6 +58,24 @@
 
     <style>
 
+        /* Single scrollbar: keep frame static, scroll the options list */
+        #tt_page_drug_category .inputFrameClass {
+        overflow: hidden;
+        }
+
+        #tt_page_drug_category .options {
+        height: calc(100% - 110px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        }
+
+        /* Keep the search bar visible while scrolling the list */
+        #tt_page_drug_category #search_container {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        }
+
         .touch-keypad.hidden {
         display: none !important;
         }
@@ -141,20 +159,21 @@
     <script>
 
       // normalizedDrugToCategory
-      function findCategoryIdForTyped(input) {
+      function findCategoryIdsForTyped(input) {
       console.log(`findCategoryIdForTyped: "${input}"`);
       const k = String(input || '').trim().toLowerCase();
       if (!k) return null;
 
       if (normalizedDrugToCategory[k]) {
       console.log(`EXACT match: "${k}" → ${normalizedDrugToCategory[k]}`);
-      return normalizedDrugToCategory[k];
+      return [normalizedDrugToCategory[k]];
       }
 
-      const found = Object.keys(normalizedDrugToCategory).find(x => x.startsWith(k));
-      if (found) {
-      console.log(`PARTIAL match: "${k}" → "${found}" → ${normalizedDrugToCategory[found]}`);
-      return normalizedDrugToCategory[found];
+      const matches = Object.keys(normalizedDrugToCategory).filter(x => x.startsWith(k));
+      if (matches.length) {
+      const ids = Array.from(new Set(matches.map(x => normalizedDrugToCategory[x])));
+      console.log(`PARTIAL matches: "${k}" → ${matches.length} drugs → ${ids.join(',')}`);
+      return ids;
       }
 
       console.log(`No match for "${k}"`);
@@ -163,6 +182,18 @@
 
       let searchState=0;
       let manualState=0;
+
+      function showAllCategories() {
+      const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
+      categoryItems.forEach(item => {
+      const categoryTextDiv = item.querySelector('div[style*="table-cell"]:last-child');
+      if (!categoryTextDiv) return;
+      const originalCatText = categoryTextDiv.textContent.trim();
+      categoryTextDiv.innerHTML = originalCatText;
+      item.style.display = '';
+      item.style.backgroundColor = '';
+      });
+      }
 
       function filterCategories() {
       console.log(`filterCategories called`);
@@ -179,38 +210,19 @@
       if (searchTerm === '') {
       searchState = 0;
       manualState = 0;
-      console.log('Empty search → showing ALL categories');
-
-      const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
-      categoryItems.forEach(item => {
-      const categoryTextDiv = item.querySelector('div[style*="table-cell"]:last-child');
-      if (!categoryTextDiv) return;
-
-      const originalCatText = categoryTextDiv.textContent.trim();
-      categoryTextDiv.innerHTML = originalCatText;
-      item.style.display = '';
-      item.style.backgroundColor = '';
-      });
+      showAllCategories();
       console.log('Show all categories complete');
       return;
       }
 
       searchState = 1;
       manualState = 0;
-      const categorySelect = document.getElementById('drug_category');
-      if (categorySelect) {
-      categorySelect.value = '';
-      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      console.log("search states activated; searchstate=1, manualstate=0");
 
       const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
-      console.log(`Found ${categoryItems.length} category items`);
 
-      const drugCatId = findCategoryIdForTyped(searchTerm);
-      if (drugCatId) {
-      const catName = getCategoryNameById(drugCatId);
-      console.log(`DRUG MATCH FOUND: "${searchTerm}" → ${drugCatId} → "${catName}"`);
+      const drugCatIds = findCategoryIdsForTyped(searchTerm);
+      if (drugCatIds && drugCatIds.length) {
+      const catNames = drugCatIds.map(getCategoryNameById);
 
       categoryItems.forEach(item => {
       item.style.display = 'none';
@@ -221,16 +233,17 @@
       if (!categoryTextDiv) return;
 
       const originalCatText = categoryTextDiv.textContent.trim();
-      if (originalCatText.toLowerCase().includes(catName.toLowerCase()) ||
-      catName.toLowerCase().includes(originalCatText.toLowerCase())) {
+      const match = catNames.some(catName =>
+        originalCatText.toLowerCase().includes(catName.toLowerCase()) ||
+        catName.toLowerCase().includes(originalCatText.toLowerCase())
+      );
+      if (match) {
       categoryTextDiv.innerHTML = originalCatText;
       item.style.display = '';
       item.style.backgroundColor = '#e3f2fd';
-      console.log(`SHOWING ONLY: "${originalCatText}" (has ${searchTerm})`);
       return;
       }
       });
-      console.log(' Drug match filtering complete');
       return;
       }
 
@@ -309,7 +322,7 @@
       });
 
       document.addEventListener('click', function(e) {
-      if (e.target.matches('#backButton, .navButton, .button.blue, [class*="back"]')) {
+      if (e.target.matches('#backButton, .button.blue, [class*="back"]')) {
 
       injectSearchBar();
       }
@@ -318,14 +331,18 @@
       window.injectSearchBar = injectSearchBar;
       // Function to inject search bar into touch interface
       function injectSearchBar() {
-      document.querySelectorAll('#category_search, #search_container').forEach(el => el.remove());
-
       const touchPage = document.querySelector('#tt_page_drug_category .inputPage2');
       const inputFrame = document.querySelector('#inputFrame0');
 
       if (!touchPage || !inputFrame) {
       return;
       }
+      const existingContainer = document.getElementById('search_container');
+      if (existingContainer && inputFrame.contains(existingContainer)) {
+      return;
+      }
+
+      document.querySelectorAll('#category_search, #search_container').forEach(el => el.remove());
       const searchContainer = document.createElement('div');
       searchContainer.id = 'search_container';
       searchContainer.style.cssText = `
@@ -366,6 +383,12 @@
       } catch (e) {
       console.log('TST attach failed:', e);
       }
+      // Ensure list stays visible when focus happens after back navigation
+      setTimeout(() => {
+        if (!this.value || this.value.trim() === '') {
+          showAllCategories();
+        }
+      }, 0);
       });
 
       searchInput.addEventListener('blur', function() {
@@ -578,10 +601,13 @@
       document.addEventListener('touchstart', document._keypadOutside, true);
       }
 
-      //asnyc function to allow drugcategory select option list and inject search bar load at the same time to reduce delay
+      // fast path: inject immediately if page exists, otherwise wait
       async function loadCategoryAndSearchBar() {
-      //error  handling for debugging
       try {
+      if (document.querySelector('#tt_page_drug_category .inputPage2')) {
+        injectSearchBar();
+        return;
+      }
       await waitForTSTPage('#tt_page_drug_category');
       injectSearchBar();
       console.log('Category select options loaded and search bar injected');
@@ -614,6 +640,25 @@
       });
       }
 
+      // observe DOM for fast reinjection on back
+      function startSearchBarObserver() {
+      if (window.__categorySearchObserver) return;
+      let pending = false;
+      const observer = new MutationObserver(() => {
+        if (pending) return;
+        pending = true;
+        setTimeout(() => {
+          pending = false;
+          if (!document.getElementById('category_search') &&
+              document.querySelector('#tt_page_drug_category .inputPage2')) {
+            injectSearchBar();
+          }
+        }, 30);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      window.__categorySearchObserver = observer;
+      }
+
       function initializeCategorySearch() {
       injectSearchBar();
 
@@ -638,6 +683,7 @@
       document.addEventListener('DOMContentLoaded', async () => {
       try {
       await loadCategoryAndSearchBar();
+      startSearchBarObserver();
       } catch (e) {
       console.warn('Category search fallback:', e);
       injectSearchBar();
@@ -846,11 +892,14 @@
   setTimeout(() => {
   //TST page to fully load
   const checkAndRestore = () => {
-  const categoryItems = document.querySelectorAll('li[source_id="drug_category"]');
-  categoryItems.forEach(item => {
-  item.style.display = '';
-  item.style.backgroundColor = '';
-  });
+  showAllCategories();
+
+  // Reset search input on back so list doesn't clear on focus
+  const searchInput = document.getElementById('category_search');
+  if (searchInput) {
+  searchInput.value = '';
+  filterCategories();
+  }
 
   // sets input value to empty to avoid confusion
   const drugInput = document.getElementById('drug_name');
@@ -861,7 +910,6 @@
     drugInput.value = '';
   }
 
-  const form = document.getElementById('inventory-form');
   if (form) {
     form.addEventListener('submit', () => {
       form.dataset.submitting = 'true';
@@ -891,7 +939,7 @@
   }
 
   document.addEventListener('pointerdown', function unifiedBackHandler(e) {
-  const btn = e.target.closest('#backButton, .navButton, .button.blue, [class*="back"], #nextButton');
+  const btn = e.target.closest('#backButton, .button.blue, [class*="back"]');
   if (!btn) return;
   handleBackNavigation();
   }, true);
@@ -900,6 +948,14 @@
   if (e.persisted || document.visibilityState === 'visible') {
   handleBackNavigation();
   }
+  });
+
+  document.addEventListener('turbolinks:load', function() {
+  handleBackNavigation();
+  });
+
+  document.addEventListener('turbolinks:render', function() {
+  handleBackNavigation();
   });
 
   window.addEventListener('popstate', function() {
