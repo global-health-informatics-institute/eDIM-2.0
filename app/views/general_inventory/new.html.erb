@@ -322,7 +322,7 @@
       });
 
       document.addEventListener('click', function(e) {
-      if (e.target.matches('#backButton, .navButton, .button.blue, [class*="back"]')) {
+      if (e.target.matches('#backButton, .button.blue, [class*="back"]')) {
 
       injectSearchBar();
       }
@@ -939,7 +939,7 @@
   }
 
   document.addEventListener('pointerdown', function unifiedBackHandler(e) {
-  const btn = e.target.closest('#backButton, .navButton, .button.blue, [class*="back"], #nextButton');
+  const btn = e.target.closest('#backButton, .button.blue, [class*="back"]');
   if (!btn) return;
   handleBackNavigation();
   }, true);
