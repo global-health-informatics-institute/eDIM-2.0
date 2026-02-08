@@ -54,6 +54,10 @@ class PrepackLabelsController < ApplicationController
     end
   end
 
+  def edit
+    redirect_to "/general_inventory/prepack_labels", notice: "Editing prepack batches is not available yet."
+  end
+
   def list
     # Try to get filters from session, use default if not found
     filters = session[:prepack_report_filter] || {}

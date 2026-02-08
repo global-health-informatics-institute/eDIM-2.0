@@ -99,6 +99,8 @@ Rails.application.routes.draw do
     end
   end
 
+  get 'prepack_labels/:id/edit', to: 'prepack_labels#edit'
+
   get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
 
   resources :requests do
