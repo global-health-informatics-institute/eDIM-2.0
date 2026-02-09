@@ -18,15 +18,15 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
-# Ignore application configuration (but keep examples)
+# Ignore application configuration
 /config/application.yml
 !/config/application.yml.example
 
-# Ignore database configuration (but keep examples)  
+# Ignore database configuration
 /config/database.yml
 !/config/database.yml.example
 
-# Ignore secrets (but keep examples)
+# Ignore secrets
 /config/secrets.yml
 !/config/secrets.yml.example
 
@@ -73,8 +73,3 @@ capybara-*.html
 
 # Ignore Python scripts
 insert_records.py
-
-# Keep important files that were previously ignored:
-# - Translation files (config/locales/*.yml) - SHOULD BE COMMITTED
-# - Asset files - SHOULD BE COMMITTED  
-# - .ruby-version - SHOULD BE COMMITTED for consistency
