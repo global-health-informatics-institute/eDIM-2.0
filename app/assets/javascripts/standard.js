@@ -5216,10 +5216,12 @@ function createSingleSelectControl() {
         __$("inputFrame" + tstCurrentPage).style.height = "82vh"
     }
 
+
     if (__$("viewport")) {
         __$("viewport").style.display = "none";
         __$("viewport").innerHTML = "";
     }
+    
 
     if (__$("touchscreenInput" + tstCurrentPage)) {
         __$("touchscreenInput" + tstCurrentPage).style.display = "none";
