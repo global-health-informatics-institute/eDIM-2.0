@@ -182,40 +182,54 @@ form{
     position:absolute;
     display: block;
     z-index: 10;
-    bottom: 10vh;
+    bottom: 10.5vh;
     margin-left:1vw;
     border: 1px solid #333;
     border-radius: 15px;
-    padding: 2px;
+    padding: 5px;
     background-color: rgba(255,255,255,0.8);
-    width: 97.5vw;
-    height: 59vh !important;
+    width: 97vw;
 }
 
 #divMenu{
-    height:60vh !important;
-    font-size: 36px !important;
+    font-size: 36px;
+    text-align: center;
 }
 
 .keyboard table.keyBoardTable {
-    border-collapse: collapse !important;
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
 }
 
 .keyboard table.keyBoardTable tr {
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    height: auto !important;
+    margin: 0;
+    padding: 0;
+    border: none;
+    height: auto;
 }
 
 .keyboard table.keyBoardTable td,
 .keyboard table.keyBoardTable th {
-    height: 93sspx !important;
-    vertical-align: middle !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 2px !important;
-    line-height: 1 !important;
+    height: 68px;
+    vertical-align: middle;      
+    border: none;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    text-align: center;           
+}
+
+
+.keyboard table.keyBoardTable td *,
+.keyboard table.keyBoardTable th * {
+    display: flex;                
+    align-items: center;          
+    justify-content: center;      
+    width: 80%;                  
+    height: 100%;                 
+    font-size: 30px;
+    font-weight: 600;
 }
 
 
