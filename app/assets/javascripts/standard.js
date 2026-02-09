@@ -1844,7 +1844,7 @@ function showBestKeyboard(aPageNum) {
         return;
     }
     // Hide keyboard for all SELECT elements
-    
+
     if (inputElement.tagName == "SELECT") {
         __$("keyboard").innerHTML = "";
         __$("keyboard").style.display = "none";
@@ -5213,7 +5213,7 @@ function createMultipleSelectControl() {
 function createSingleSelectControl() {
     if (__$("keyboard")) {
         setTimeout("__$('keyboard').style.display = 'none'", 10);
-        __$("inputFrame" + tstCurrentPage).style.height = "75vh"
+        __$("inputFrame" + tstCurrentPage).style.height = "82vh"
     }
 
     if (__$("viewport")) {
