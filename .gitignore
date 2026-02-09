@@ -35,6 +35,8 @@
 
 # Ignore IDE files
 .idea/*
+.vscode/
+.kiro/hook
 *.rbc
 .byebug_history
 
