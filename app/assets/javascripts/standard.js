@@ -1844,6 +1844,7 @@ function showBestKeyboard(aPageNum) {
         return;
     }
     // Hide keyboard for all SELECT elements
+    
     if (inputElement.tagName == "SELECT") {
         __$("keyboard").innerHTML = "";
         __$("keyboard").style.display = "none";
