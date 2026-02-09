@@ -54,9 +54,29 @@ class PrepackLabelsController < ApplicationController
     end
   end
 
-  def edit
-    redirect_to "/general_inventory/prepack_labels", notice: "Editing prepack batches is not available yet."
+  #add edit  prepack method to return json data for prepack edit form
+
+   def edit
+    @prepack = Prepack.find(params[:id])
+    respond_to do |format|
+      format.html
+      format.json do
+        render json: {
+          id: @prepack.id,
+          bottle_id: @prepack.bottle_id,
+          gn_identifier: @prepack.gn_identifier,
+          directions: @prepack.directions,
+          total_quantity: @prepack.total_quantity,
+          num_packs: @prepack.num_packs,
+          quantity_per_pack: @prepack.quantity_per_pack,
+          current_num_packs: @prepack.current_num_packs,
+          times: @prepack.times,         
+          status: @prepack.status
+        }
+      end
+    end
   end
+
 
   def list
     # Try to get filters from session, use default if not found
