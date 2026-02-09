@@ -55,7 +55,6 @@ class PrepackLabelsController < ApplicationController
   end
 
   #add edit  prepack method to return json data for prepack edit form
-
   def edit
   @prepack = Prepack.find(params[:id])
   respond_to do |format|
