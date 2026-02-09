@@ -1843,6 +1843,14 @@ function showBestKeyboard(aPageNum) {
         }
         return;
     }
+    // Hide keyboard for all SELECT elements
+
+    if (inputElement.tagName == "SELECT") {
+        __$("keyboard").innerHTML = "";
+        __$("keyboard").style.display = "none";
+        return;
+    }
+
     var optionCount = __$('options').getElementsByTagName("li").length;
     if ((optionCount > 0 && optionCount < 6 && inputElement.tagName == "SELECT") || (inputElement.getAttribute("multiple") == "multiple")) {
         __$("keyboard").innerHTML = "";
@@ -5205,13 +5213,15 @@ function createMultipleSelectControl() {
 function createSingleSelectControl() {
     if (__$("keyboard")) {
         setTimeout("__$('keyboard').style.display = 'none'", 10);
-        __$("inputFrame" + tstCurrentPage).style.height = "75vh"
+        __$("inputFrame" + tstCurrentPage).style.height = "82vh"
     }
+
 
     if (__$("viewport")) {
         __$("viewport").style.display = "none";
         __$("viewport").innerHTML = "";
     }
+    
 
     if (__$("touchscreenInput" + tstCurrentPage)) {
         __$("touchscreenInput" + tstCurrentPage).style.display = "none";

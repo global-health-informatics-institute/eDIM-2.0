@@ -191,6 +191,48 @@ form{
     width: 97vw;
 }
 
+#divMenu{
+    font-size: 36px;
+    text-align: center;
+}
+
+.keyboard table.keyBoardTable {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.keyboard table.keyBoardTable tr {
+    margin: 0;
+    padding: 0;
+    border: none;
+    height: auto;
+}
+
+.keyboard table.keyBoardTable td,
+.keyboard table.keyBoardTable th {
+    height: 68px;
+    vertical-align: middle;      
+    border: none;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    text-align: center;           
+}
+
+
+.keyboard table.keyBoardTable td *,
+.keyboard table.keyBoardTable th * {
+    display: flex;                
+    align-items: center;          
+    justify-content: center;      
+    width: 80%;                  
+    height: 100%;                 
+    font-size: 30px;
+    font-weight: 600;
+}
+
+
 .buttonLine{
     display: block;
     /*  height: 3.2em;*/

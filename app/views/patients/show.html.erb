@@ -325,7 +325,7 @@
     </div>
     <div style="display: table; width: 99vw;margin-top: 1vh;margin-left: auto;margin-right: auto">
       <div style="display: table-row;">
-        <div style="width: 77.5vw;float: left;height: 10vh;" class="header-cell">
+        <div style="width: 77.5vw;float: left;height: 12vh;padding:10px; outline:none; border-radius:8px; margin-top:8px; border:none; box-shadow: 8px 8px 8px 8px rgba(0, 0, 0, 0.21);margin-bottom:12px;  background-color: #fff;" class="header-cell ">
           <table style="width: 100%;font-size: 1.2em">
             <tr>
               <td rowspan="2">
@@ -335,29 +335,29 @@
 
                   </div>
               </td>
-              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.name') %></th>
+              <th style="text-align: left; font-size: 1.5rem;"><%= t('menu.terms.name') %></th>
               <th>:</th>
-              <td style="font-size: 1.5em;"><%= @patient.full_name %></td>
-              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.age') %></th>
+              <td style="font-size: 1.5rem;"><%= @patient.full_name %></td>
+              <th style="text-align: left; font-size: 1.5rem;"><%= t('menu.terms.age') %></th>
               <th>:</th>
-              <td style="font-size: 1.5em;"><%= @patient.age %></td>
+              <td style="font-size: 1.5rem;"><%= @patient.age %></td>
             </tr>
             <tr>
-              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.national_id') %></th>
+              <th style="text-align: left; font-size: 1.5rem;"><%= t('menu.terms.national_id') %></th>
               <th>:</th>
-              <td style="font-size: 1.5em;"><%= @patient.formatted_pnid %></td>
-              <th style="text-align: left; font-size: 1.5em;"><%= t('menu.terms.current_address') %></th>
+              <td style="font-size: 1.5rem;"><%= @patient.formatted_pnid %></td>
+              <th style="text-align: left; font-size: 1.5rem;"><%= t('menu.terms.current_address') %></th>
               <th>:</th>
-              <td style="font-size: 1.5em;"><%= @patient.current_address %></td>
+              <td style="font-size: 1.5rem;"> <%= @patient.current_address %></td>
             </tr>
           </table>
           </div>
-          <div class="header-cell" style="float: right; width: 20vw; margin-right: 4px; height: 10vh;">
+          <div class="header-cell" style="float: right; width: 20vw; margin-right: 4px; height: 13.9vh; outline:none; border:none; border-radius:8px; box-shadow: 8px 8px 8px  8px rgba(0, 0, 0, 0.21);margin-top:8px;  background-color: #fff;">
 
             <!-- Title -->
-            <div style="text-align: center; margin-bottom: 6px;">
-              <strong style="font-size: 1.5em;">
-               <span style="font-size: 1.3rem; padding-top: 4px;"><%= t('menu.terms.scan_label_barcode') %></span>
+            <div style="text-align: center; margin-bottom: 6px;padding-top:12px;">
+              <strong style="font-size: 1.5rem;">
+               <span style="font-size: 1.5rem; padding-top: 14px;"><%= t('menu.terms.scan_label_barcode') %></span>
               </strong>
             </div>
 
@@ -374,7 +374,7 @@
           </div>
       </div>
       <div style="display: table-row;">
-        <div style="border: 1px solid blue;margin-top: 10px;">
+     <div style="border: 4px solid #070738 !important; margin-top:10px; outline:none; border-radius:12px;">
             <% if has_prescribe %>
               <%= render '/patients/prescribe_view' %>
             <% else %>
