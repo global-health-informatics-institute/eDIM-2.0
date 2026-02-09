@@ -313,7 +313,6 @@ img[src*="/assets/"] {
 }
 
 </style>
-
 </head>
 <body style="margin:0; padding:0; display: flex; flex-direction: column; min-height: 100vh;">
   <div id="shadowLayer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.35); z-index:10000;"></div>
@@ -444,21 +443,24 @@ img[src*="/assets/"] {
                               <!-- Tray "handle" indicator -->
                               <div class="tray-handle" style="width: 4px; height: 60px; background: #e5e7eb; border-radius: 2px; margin-right: 16px; opacity: 0; align-self: center;"></div>
                               
-                              <!-- Edit Button -->
-                              <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.1s;">
-                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
-                                          opacity: 0; transform: scale(0.8) translateX(10px); 
-                                          padding: 6px; border-radius: 10px;" 
-                                    src="/assets/edit.png" 
-                                    title="Edit Prepack"
-                                    onmousedown="event.stopPropagation(); window.location='/prepack_labels/<%= prepack[:id] %>/edit'"
-                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
-                                    onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
-                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
-                                      white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.2s;">
-                                  Edit
-                                </div>
-                              </div>
+                           <!-- Edit Button -->
+<div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.1s;">
+  <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
+            opacity: 0; transform: scale(0.8) translateX(10px); 
+            padding: 6px; border-radius: 10px;" 
+       src="/assets/edit.png" 
+       title="Edit Prepack"
+       data-prepack-id="<%= prepack[:id] %>"
+       onmousedown="event.stopPropagation(); editPrepackInline(this.dataset.prepackId)"
+       onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+       onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
+  <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+        white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.2s;">
+    Edit
+  </div>
+</div>
+
+
 
                               <!-- Log Damages Button -->
                               <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.2s;">
@@ -671,6 +673,7 @@ img[src*="/assets/"] {
               </div>
              </div> 
             </div>
+<input type="hidden" name="prepack_id" id="prepack_id" value="">
 
             <!-- DOSE DIV -->
             <div class="mobi-div" id="doseDiv" style="display:none;">
@@ -3337,6 +3340,34 @@ document.addEventListener('keydown', function(e) {
   transform: scale(1.3);
 }
 </style>
+<script>
+function editPrepackInline(id) {
+  // FIXED URL - matches your routes
+  fetch('/prepack_labels/' + id + '/edit.json')
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('item').textContent = d.gn_identifier || 'Paracetamol';
+      document.getElementById('bottle_id').textContent = d.gn_identifier || '';
+      document.getElementById('currQty').textContent = d.current_num_packs || d.total_quantity || '';
+      document.getElementById('directionsDisp').textContent = d.directions || '';
+      document.getElementById('btl_field').value = d.bottle_id;
+      document.getElementById('prepack_id').value = d.id;
+      document.getElementById('numPacks').value = d.num_packs || d.current_num_packs || '';
+      if(d.times){
+        let t = JSON.parse(d.times.replace(/\\\\"/g, '"'));
+        document.querySelectorAll("input[name='times[]']").forEach(cb=>cb.checked=false);
+        t.forEach(time=>{
+          let cb = document.querySelector(`input[name='times[]'][value='${time}']`);
+          if(cb) cb.checked = true;
+        });
+        if(typeof setDirections === 'function') setDirections();
+      }
+      document.getElementById('dispenseForm2').style.display = 'block';
+      if(typeof showDispenseDiv === 'function') showDispenseDiv('labelsDiv');
+    })
+    .catch(e=>alert('Could not load prepack data'));
+}
+</script>
 
 </body>
 </html>
