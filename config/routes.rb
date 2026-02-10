@@ -131,7 +131,7 @@ Rails.application.routes.draw do
   resources :mobile_visit_product
   resources :drug_threshold
   resources :patient_identifiers
-  resources :prepack_labels
+
 
   resources :patients do
     collection do
