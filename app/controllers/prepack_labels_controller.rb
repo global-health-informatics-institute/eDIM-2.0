@@ -55,6 +55,7 @@ class PrepackLabelsController < ApplicationController
   end
 
   #add edit  prepack method to return json data for prepack edit form
+
 def edit
   @prepack = Prepack.find(params[:id])
   respond_to do |format|
@@ -66,32 +67,32 @@ def edit
         directions: @prepack.directions,
         total_quantity: @prepack.total_quantity,
         current_num_packs: @prepack.current_num_packs,
-        num_packs: @prepack.num_packs,
-        quantity_per_pack: @prepack.quantity_per_pack,  
-        times: @prepack.times                             
+        num_packs: @prepack.num_packs,              
+        quantity_per_pack: @prepack.quantity_per_pack,    
+        times: @prepack.times                      
       }
     }
   end
 rescue => e
   render json: { error: e.message }, status: 500
+  console.error("Error in PrepackLabelsController#edit: #{e.message}")
 end
-
 
 #method to update prepacks after editing
 def update
-  @prepack = Prepack.find(params[:prepack_id])
-  @prepack.update!(
+  @prepack = Prepack.find(params[:id])  # Use params[:id], not prepack_id
+  if @prepack.update(
     num_packs: params[:numPacks],
     quantity_per_pack: params[:dose],
-    duration: params[:duration],
-    times: params[:times]&.to_json,
-    directions: params[:directions] || @prepack.directions
+    times: params[:times]&.to_json
   )
-  
-  render json: { success: true, prepack: @prepack }
-rescue => e
-  render json: { success: false, error: e.message }, status: :unprocessable_entity
+    render json: { success: true }
+  else
+    render json: { success: false, error: @prepack.errors.full_messages }, 
+           status: :unprocessable_entity
+  end
 end
+
 
   def list
     # Try to get filters from session, use default if not found
