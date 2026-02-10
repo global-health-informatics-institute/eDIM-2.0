@@ -3342,30 +3342,72 @@ document.addEventListener('keydown', function(e) {
 </style>
 <script>
 function editPrepackInline(id) {
-  // FIXED URL - matches your routes
   fetch('/prepack_labels/' + id + '/edit.json')
-    .then(r=>r.json())
-    .then(d=>{
+    .then(r => r.json())
+    .then(d => {
+      // 1. Header fields
       document.getElementById('item').textContent = d.gn_identifier || 'Paracetamol';
       document.getElementById('bottle_id').textContent = d.gn_identifier || '';
       document.getElementById('currQty').textContent = d.current_num_packs || d.total_quantity || '';
       document.getElementById('directionsDisp').textContent = d.directions || '';
+
+      // 2. Hidden fields
       document.getElementById('btl_field').value = d.bottle_id;
       document.getElementById('prepack_id').value = d.id;
-      document.getElementById('numPacks').value = d.num_packs || d.current_num_packs || '';
-      if(d.times){
-        let t = JSON.parse(d.times.replace(/\\\\"/g, '"'));
-        document.querySelectorAll("input[name='times[]']").forEach(cb=>cb.checked=false);
-        t.forEach(time=>{
-          let cb = document.querySelector(`input[name='times[]'][value='${time}']`);
-          if(cb) cb.checked = true;
-        });
-        if(typeof setDirections === 'function') setDirections();
+
+      // 3. ROUTE - select radio button
+      if (d.route) {
+        let routeRadio = document.querySelector('input[value="' + d.route + '"]');
+        if (routeRadio) routeRadio.checked = true;
+        if (typeof setRoute === 'function') setRoute(d.route);
       }
+
+      // 4. DOSE field
+      document.getElementById('dose').value = d.quantity_per_pack || '';
+
+      // 5. DURATION field
+      document.getElementById('qty').value = d.duration || '';
+
+      // 6. LABELS - numPacks
+      document.getElementById('numPacks').value = d.num_packs || '';
+
+      // 7. Times checkboxes
+      if (d.times) {
+        let times = JSON.parse(d.times.replace(/\\"/g, '"'));
+        document.querySelectorAll("input[name='times[]']").forEach(cb => cb.checked = false);
+        times.forEach(time => {
+          let checkbox = document.querySelector("input[name='times[]'][value='" + time + "']");
+          if (checkbox) checkbox.checked = true;
+        });
+      }
+
+      // 8. Frequency from directions
+      if (d.directions) {
+        let freqMatch = d.directions.match(/(Once|Two|Three|Four|Every|Night|Week)/i);
+        if (freqMatch) {
+          let freqText = freqMatch[0].toUpperCase();
+          let freqCode = '';
+          if (freqText.includes('TWO')) freqCode = 'BD';
+          else if (freqText.includes('THREE')) freqCode = 'TDS';
+          else if (freqText.includes('FOUR')) freqCode = 'QID';
+          else if (freqText.includes('ONCE')) freqCode = 'OD';
+          else if (freqText.includes('NIGHT')) freqCode = 'QN';
+          
+          if (freqCode) {
+            let freqRadio = document.getElementById(freqCode);
+            if (freqRadio) freqRadio.checked = true;
+          }
+        }
+      }
+
+      // 9. Show modal on Labels tab
       document.getElementById('dispenseForm2').style.display = 'block';
-      if(typeof showDispenseDiv === 'function') showDispenseDiv('labelsDiv');
+      showDispenseDiv('labelsDiv');
+
+      // 10. Trigger updates
+      setDirections(); updateQuantity();
     })
-    .catch(e=>alert('Could not load prepack data'));
+    .catch(e => alert('Could not load prepack data,please try again'));
 }
 </script>
 
