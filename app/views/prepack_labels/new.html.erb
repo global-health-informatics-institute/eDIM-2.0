@@ -3346,52 +3346,86 @@ function editPrepackInline(id) {
   fetch('/prepack_labels/' + id + '/edit.json')
     .then(r => r.json())
     .then(d => {
-      document.getElementById('item').textContent = d.gn_identifier || 'Paracetamol';
-      document.getElementById('bottle_id').textContent = d.gn_identifier || '';
-      document.getElementById('currQty').textContent = d.current_num_packs || d.total_quantity || '';
-      document.getElementById('directionsDisp').textContent = d.directions || '';
+      // Show modal first
+      document.getElementById('dispenseForm2').style.display = 'block';
       
+      // Populate display fields
+      document.getElementById('item').textContent = d.gn_identifier;
+      document.getElementById('bottle_id').textContent = d.bottle_id;
+      document.getElementById('currQty').textContent = d.current_num_packs;
+      document.getElementById('directionsDisp').textContent = d.directions.trim();
+      document.getElementById('qtyDisp').textContent = d.quantity_per_pack + ' per pack';
+      
+      // Form fields
       document.getElementById('btl_field').value = d.bottle_id;
       document.getElementById('prepack_id').value = d.id;
-      document.getElementById('dose').value = d.quantity_per_pack || '';      // DOSE ✅
-      document.getElementById('numPacks').value = d.num_packs || '';          // LABELS ✅
+      document.getElementById('dose').value = d.quantity_per_pack;
+      document.getElementById('numPacks').value = d.num_packs;
       
-      // Times checkboxes ✅
-      if (d.times) {
-        let times = JSON.parse(d.times.replace(/\\"/g, '"'));
-        document.querySelectorAll("input[name='times[]']").forEach(cb => cb.checked = false);
-        times.forEach(time => {
-          let checkbox = document.querySelector("input[name='times[]'][value='" + time + "']");
-          if (checkbox) checkbox.checked = true;
-        });
-      }
+      // 🔥 NEW: Parse & auto-fill Route, Frequency, Times, Duration
+      parsePrepackDirections(d.directions.trim(), d.times);
       
-      // Frequency from directions ✅
-      if (d.directions) {
-        let freqMatch = d.directions.match(/(Once|Two|Three|Four|Every|Night|Week)/i);
-        if (freqMatch) {
-          let freqText = freqMatch[0].toUpperCase();
-          let freqCode = '';
-          if (freqText.includes('TWO')) freqCode = 'BD';
-          else if (freqText.includes('THREE')) freqCode = 'TDS';
-          else if (freqText.includes('FOUR')) freqCode = 'QID';
-          else if (freqText.includes('ONCE')) freqCode = 'OD';
-          else if (freqText.includes('NIGHT')) freqCode = 'QN';
-          
-          if (freqCode) {
-            let freqRadio = document.getElementById(freqCode);
-            if (freqRadio) freqRadio.checked = true;
-          }
-        }
-      }
-      
-      document.getElementById('dispenseForm2').style.display = 'block';
+      // Switch to labels tab
       showDispenseDiv('labelsDiv');
-      setDirections(); 
-      updateQuantity();
     })
-    .catch(e => alert('Could not load prepack data'));
+    .catch(e => alert('Error: ' + e));
 }
+
+// Parse existing prepack directions
+function parsePrepackDirections(directions, timesJson) {
+  // 1. ROUTE - Extract from directions
+  const routeMap = {
+    'Take': 'oral', 'Apply': 'topical', 'Inject': 'injection', 'Inhale': 'respiratory'
+  };
+  let route = 'oral'; // default
+  for (let [key, value] of Object.entries(routeMap)) {
+    if (directions.includes(key)) {
+      route = value;
+      break;
+    }
+  }
+  // Set route radio button
+  document.getElementById('route-' + route).checked = true;
+  setRoute(route);
+  
+  // 2. DOSE - Already set from d.quantity_per_pack
+  
+  // 3. FREQUENCY - Parse "Two Times A Day" → BD
+  const freqMap = {
+    'Once A Day': 'OD', 'Two Times A Day': 'BD', 'Three Times A Day': 'TDS', 
+    'Four Times A Day': 'QID'
+  };
+  let frequency = 'BD'; // default
+  for (let [key, value] of Object.entries(freqMap)) {
+    if (directions.includes(key)) {
+      frequency = value;
+      break;
+    }
+  }
+  document.getElementById(frequency).checked = true;
+  
+  // 4. TIMES - Parse JSON times
+  if (timesJson) {
+    try {
+      let times = JSON.parse(timesJson.replace(/\\\\/g, '\\').replace(/\\"/g, '"'));
+      document.querySelectorAll("input[name='times[]']").forEach(cb => cb.checked = false);
+      times.forEach(time => {
+        let checkbox = document.querySelector(`input[name='times[]'][value='${time}']`);
+        if (checkbox) checkbox.checked = true;
+      });
+    } catch(e) {
+      console.log('Times parse error:', e);
+    }
+  }
+  
+  // 5. QUANTITY/DURATION - Set to 30 days default or parse if available
+  document.getElementById('qty').value = '30';
+  
+  // Trigger updates
+  setDirections();
+  updateQuantity();
+}
+
   function handleNextButton() {
   let prepackId = document.getElementById('prepack_id').value;
   if (!prepackId) return alert('No prepack selected');
