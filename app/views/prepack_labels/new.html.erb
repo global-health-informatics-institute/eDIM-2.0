@@ -3339,39 +3339,24 @@ document.addEventListener('keydown', function(e) {
 .timeBox input {
   transform: scale(1.3);
 }
+
 </style>
 <script>
 function editPrepackInline(id) {
   fetch('/prepack_labels/' + id + '/edit.json')
     .then(r => r.json())
     .then(d => {
-      // 1. Header fields
       document.getElementById('item').textContent = d.gn_identifier || 'Paracetamol';
       document.getElementById('bottle_id').textContent = d.gn_identifier || '';
       document.getElementById('currQty').textContent = d.current_num_packs || d.total_quantity || '';
       document.getElementById('directionsDisp').textContent = d.directions || '';
-
-      // 2. Hidden fields
+      
       document.getElementById('btl_field').value = d.bottle_id;
       document.getElementById('prepack_id').value = d.id;
-
-      // 3. ROUTE - select radio button
-      if (d.route) {
-        let routeRadio = document.querySelector('input[value="' + d.route + '"]');
-        if (routeRadio) routeRadio.checked = true;
-        if (typeof setRoute === 'function') setRoute(d.route);
-      }
-
-      // 4. DOSE field
-      document.getElementById('dose').value = d.quantity_per_pack || '';
-
-      // 5. DURATION field
-      document.getElementById('qty').value = d.duration || '';
-
-      // 6. LABELS - numPacks
-      document.getElementById('numPacks').value = d.num_packs || '';
-
-      // 7. Times checkboxes
+      document.getElementById('dose').value = d.quantity_per_pack || '';      // DOSE ✅
+      document.getElementById('numPacks').value = d.num_packs || '';          // LABELS ✅
+      
+      // Times checkboxes ✅
       if (d.times) {
         let times = JSON.parse(d.times.replace(/\\"/g, '"'));
         document.querySelectorAll("input[name='times[]']").forEach(cb => cb.checked = false);
@@ -3380,8 +3365,8 @@ function editPrepackInline(id) {
           if (checkbox) checkbox.checked = true;
         });
       }
-
-      // 8. Frequency from directions
+      
+      // Frequency from directions ✅
       if (d.directions) {
         let freqMatch = d.directions.match(/(Once|Two|Three|Four|Every|Night|Week)/i);
         if (freqMatch) {
@@ -3399,15 +3384,41 @@ function editPrepackInline(id) {
           }
         }
       }
-
-      // 9. Show modal on Labels tab
+      
       document.getElementById('dispenseForm2').style.display = 'block';
       showDispenseDiv('labelsDiv');
-
-      // 10. Trigger updates
-      setDirections(); updateQuantity();
+      setDirections(); 
+      updateQuantity();
     })
-    .catch(e => alert('Could not load prepack data,please try again'));
+    .catch(e => alert('Could not load prepack data'));
+}
+  function handleNextButton() {
+  let prepackId = document.getElementById('prepack_id').value;
+  if (!prepackId) return alert('No prepack selected');
+  
+  let formData = new FormData();
+  formData.append('prepack_id', prepackId);
+  formData.append('numPacks', document.getElementById('numPacks').value);
+  formData.append('dose', document.getElementById('dose').value);
+  formData.append('duration', document.getElementById('qty').value);
+  formData.append('times[]', Array.from(document.querySelectorAll("input[name='times[]']:checked")).map(cb => cb.value));
+  
+  fetch('/prepack_labels/' + prepackId, {
+    method: 'PATCH',
+    body: formData,
+    headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      alert('Prepack updated successfully');
+      document.getElementById('dispenseForm2').style.display = 'none';
+      // Reload page or update row
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  });
 }
 </script>
 
