@@ -39,7 +39,7 @@
   </style>
 </head>
 
-<body id="container">  <div id="content">    <div id="description" style="color:#777;position:absolute;margin-top:-70px;">      </div><% unless flash[:notice].blank? %><p id="flash_notice" style="color: green"><%= flash[:notice] %></p><% end %><% unless flash[:errors].blank? %><p id="flash_error" style="color: red"><%= flash[:errors] %></p><% end %><% unless flash[:error].nil? %><p id="flash_alert" style="color: green"><%= flash[:alert] %></p><% end %><%= yield %>
+<body id="container">  <div id="content">    <div id="description" style="color:#777;position:absolute;margin-top:-70px;">      </div><% unless flash[:notice].blank? %><p id="flash_notice" style="color: green"><%= flash[:notice] %></p><% end %><% unless flash[:errors].blank? %><p id="flash_error" style="color: red"><%= flash[:errors] %></p><% end %><% unless flash[:error].blank? %><p id="flash_alert" style="color: red"><%= flash[:error] %></p><% end %><%= yield %>
 <div id="footer">
 </div>
 </div>

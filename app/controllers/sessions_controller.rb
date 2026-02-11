@@ -2,9 +2,16 @@ class SessionsController < ApplicationController
 skip_before_action :verify_authenticity_token, only: :create
 
   def new
+    preserved_flash = flash.to_hash.symbolize_keys
+
     reset_session
     session[:user_id] = nil
     User.current = nil
+
+    preserved_flash.each do |key, value|
+      flash[key] = value
+    end
+
     render :layout => "touch"
   end
   
@@ -19,7 +26,7 @@ def create
     flash[:errors] = nil
     redirect_to '/sessions/add_location' and return
   else
-    flash[:errors] = t("messages.invalid_credentials")
+    flash[:error] = t("messages.invalid_credentials")
     redirect_to "/sessions/new"
   end
 end
