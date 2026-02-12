@@ -451,7 +451,7 @@ img[src*="/assets/"] {
        src="/assets/edit.png" 
        title="Edit Prepack"
        data-prepack-id="<%= prepack[:id] %>"
-       onmousedown="event.stopPropagation(); editPrepackInline(this.dataset.prepackId)"
+       onmousedown="event.stopPropagation();editPrepackInline(this.dataset.prepackId)"
        onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
        onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
   <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
@@ -599,7 +599,9 @@ img[src*="/assets/"] {
 
   <!-- DISPENSE FORM MODAL -->
   <div id="dispenseForm2" style="display:none; position:absolute; top:5vh; left:5vw; width:90vw; height:90vh; background-color:#eeeeff; border:3px outset black; overflow:auto; z-index:1000;">
-      
+      <input type="hidden" name="prepack_id" id="prepack_id" value="">
+              <input type="hidden" id="quantity_per_pack" name="quantity_per_pack" value="">
+
       <!-- Warning Message Overlay - Completely Outside Normal Flow -->
       <div style="position: absolute; top: 15px; right: 70px; z-index: 1001; pointer-events: none; max-width: 400px;">
         <span id="dispensationWarning" 
@@ -673,8 +675,7 @@ img[src*="/assets/"] {
               </div>
              </div> 
             </div>
-<input type="hidden" name="prepack_id" id="prepack_id" value="">
-
+              
             <!-- DOSE DIV -->
             <div class="mobi-div" id="doseDiv" style="display:none;">
               <div class="section-wrapper">
@@ -810,6 +811,7 @@ img[src*="/assets/"] {
 
             <!-- DOSE TYPE DIV -->
             <div class="mobi-div" id="labelsDiv" style="display:none;">
+              <input type="hidden" id="quantity_Per_pack" name="quantity_Per_pack">
               <div class="section-wrapper">
                 <label for="numPacks" id="numPacksLabel"><span style="font-weight:bold; font-size:1.5rem;">Enter number of packs</span></label>
                 <input type="text" id="numPacks" name="numPacks" required style="width:200px; max-width:50%; height: 25px; padding:5px 8px; font-size:1.2rem;">
@@ -1121,7 +1123,7 @@ prepackCheckboxes.forEach(cb => {
 });
 
 // Override the handleNextButton function to include validation
-const originalHandleNextButton = handleNextButton;
+//const originalHandleNextButton = handleNextButton;
 handleNextButton = function() {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   
@@ -3346,96 +3348,63 @@ function editPrepackInline(id) {
   fetch('/prepack_labels/' + id + '/edit.json')
     .then(r => r.json())
     .then(d => {
-      // Show modal first
-      document.getElementById('dispenseForm2').style.display = 'block';
-      
-      // Populate display fields
       document.getElementById('item').textContent = d.gn_identifier;
       document.getElementById('bottle_id').textContent = d.bottle_id;
       document.getElementById('currQty').textContent = d.current_num_packs;
-      document.getElementById('directionsDisp').textContent = d.directions.trim();
+      document.getElementById('directionsDisp').textContent = d.directions;
+      
+      document.getElementById('prepack_id').value = d.id;
+      document.getElementById('btl_field').value = d.bottle_id;
+      document.getElementById('quantity_per_pack').value = d.quantity_per_pack;
+      document.getElementById('numPacks').value = d.num_packs;
       document.getElementById('qtyDisp').textContent = d.quantity_per_pack + ' per pack';
       
-      // Form fields
-      document.getElementById('btl_field').value = d.bottle_id;
-      document.getElementById('prepack_id').value = d.id;
-      document.getElementById('dose').value = d.quantity_per_pack;
-      document.getElementById('numPacks').value = d.num_packs;
-      
-      // 🔥 NEW: Parse & auto-fill Route, Frequency, Times, Duration
-      parsePrepackDirections(d.directions.trim(), d.times);
-      
-      // Switch to labels tab
+      // FIXED CALL - passes 3rd parameter
+      parseDirectionsForDisplay(d.directions, d.times, d.quantity_per_pack);
       showDispenseDiv('labelsDiv');
-    })
-    .catch(e => alert('Error: ' + e));
+    });
 }
 
-// Parse existing prepack directions
-function parsePrepackDirections(directions, timesJson) {
-  // 1. ROUTE - Extract from directions
-  const routeMap = {
-    'Take': 'oral', 'Apply': 'topical', 'Inject': 'injection', 'Inhale': 'respiratory'
-  };
-  let route = 'oral'; // default
-  for (let [key, value] of Object.entries(routeMap)) {
-    if (directions.includes(key)) {
-      route = value;
-      break;
-    }
-  }
-  // Set route radio button
-  document.getElementById('route-' + route).checked = true;
-  setRoute(route);
+function parseDirectionsForDisplay(directions, times, quantity_per_pack) {
+  const doseMatch = directions.match(/(?:Take|Apply|Inject|Inhale)\s+(\d+)/i);
+  document.getElementById('dose').value = doseMatch ? doseMatch[1] : '1';
   
-  // 2. DOSE - Already set from d.quantity_per_pack
+  const freqMatch = directions.match(/(Once|Two|Three|Four)\s+Times\s+A\s+Day/i);
+  const freqCode = freqMatch ? {'Once':'OD','Two':'BD','Three':'TDS','Four':'QID'}[freqMatch[1]] : 'BD';
   
-  // 3. FREQUENCY - Parse "Two Times A Day" → BD
-  const freqMap = {
-    'Once A Day': 'OD', 'Two Times A Day': 'BD', 'Three Times A Day': 'TDS', 
-    'Four Times A Day': 'QID'
-  };
-  let frequency = 'BD'; // default
-  for (let [key, value] of Object.entries(freqMap)) {
-    if (directions.includes(key)) {
-      frequency = value;
-      break;
-    }
-  }
-  document.getElementById(frequency).checked = true;
+  const freqElement = document.querySelector(`input[name='frequency'][id='${freqCode}']`);
+  if (freqElement) freqElement.checked = true;
   
-  // 4. TIMES - Parse JSON times
-  if (timesJson) {
-    try {
-      let times = JSON.parse(timesJson.replace(/\\\\/g, '\\').replace(/\\"/g, '"'));
-      document.querySelectorAll("input[name='times[]']").forEach(cb => cb.checked = false);
-      times.forEach(time => {
-        let checkbox = document.querySelector(`input[name='times[]'][value='${time}']`);
-        if (checkbox) checkbox.checked = true;
-      });
-    } catch(e) {
-      console.log('Times parse error:', e);
-    }
-  }
-  
-  // 5. QUANTITY/DURATION - Set to 30 days default or parse if available
-  document.getElementById('qty').value = '30';
-  
-  // Trigger updates
-  setDirections();
-  updateQuantity();
+  const doseNum = parseInt(document.getElementById('dose').value) || 1;
+  const perDay = {"OD":1,"BD":2,"TDS":3,"QID":4}[freqCode] || 2;
+  const durationDays = Math.ceil(quantity_per_pack / (doseNum * perDay));
+  document.getElementById('qty').value = durationDays;
+}
+function showDispenseDiv(divId) {
+  // Hide all dispense divs
+  document.querySelectorAll('.mobi-div').forEach(div => {
+    div.style.display = 'none';
+  });
+  // Show target div
+  document.getElementById(divId).style.display = 'block';
+  document.getElementById('dispenseForm2').style.display = 'block';
 }
 
-  function handleNextButton() {
+function handleNextButton() {
+  // YOUR VALIDATION HERE
+  let numPacks = document.getElementById('numPacks').value;
+  if (!numPacks || numPacks <= 0) {
+    return alert('Please enter valid number of packs');
+  }
+  
+  // ORIGINAL FUNCTION LOGIC
   let prepackId = document.getElementById('prepack_id').value;
   if (!prepackId) return alert('No prepack selected');
   
   let formData = new FormData();
   formData.append('prepack_id', prepackId);
-  formData.append('numPacks', document.getElementById('numPacks').value);
-  formData.append('dose', document.getElementById('dose').value);
-  formData.append('duration', document.getElementById('qty').value);
-  formData.append('times[]', Array.from(document.querySelectorAll("input[name='times[]']:checked")).map(cb => cb.value));
+  formData.append('num_packs', numPacks);
+  formData.append('quantity_per_pack', document.getElementById('quantity_per_pack').value);
   
   fetch('/prepack_labels/' + prepackId, {
     method: 'PATCH',
@@ -3447,14 +3416,13 @@ function parsePrepackDirections(directions, timesJson) {
     if (data.success) {
       alert('Prepack updated successfully');
       document.getElementById('dispenseForm2').style.display = 'none';
-      // Reload page or update row
       location.reload();
     } else {
       alert('Error: ' + data.error);
     }
   });
 }
-</script>
 
+</script>
 </body>
 </html>
