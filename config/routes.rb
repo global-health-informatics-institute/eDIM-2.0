@@ -72,6 +72,9 @@ Rails.application.routes.draw do
   get '/prepack_labels/delete/:id', to: 'prepack_labels#delete', as: 'delete_prepack_label'
 
   ###################### Resources #####################################
+  patch '/prepack_labels/:id', to: 'prepack_labels#update', as: :update_prepack_label
+  get '/prepack_labels/:id/edit', to: 'prepack_labels#edit', as: :edit_prepack_label
+
 
   resources :general_inventory do
     member do
