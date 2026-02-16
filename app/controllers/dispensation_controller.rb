@@ -425,12 +425,13 @@ class DispensationController < ApplicationController
       @report_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
 
     when t('forms.options.monthly')
-      start_date = params[:start_date].to_date.beginning_of_month.beginning_of_day
-      end_date   = params[:start_date].to_date.end_of_month.end_of_day
+      selected_date = params[:start_date].to_date
+      start_date = selected_date.beginning_of_day
+      end_date   = (selected_date + 1.month - 1.day).end_of_day
       end_date   = [end_date, Time.zone.now.end_of_day].min
 
-      @report_type = "Dispensation Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
-      port_type = "Dispensation Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
+      @report_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
+      port_type = "Dispensation Report from #{l(start_date, format: '%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date, format: '%d %B, %Y')}"
 
     when t('forms.options.range')
       start_date = params[:start_date].to_date.beginning_of_day

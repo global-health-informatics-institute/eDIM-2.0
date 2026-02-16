@@ -33,7 +33,7 @@
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">#</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Drug</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Quantity</th>
-          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Patient</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Patient ID</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed By</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Date</th>
         </tr>
@@ -64,7 +64,7 @@
               
               <!-- Patient Column -->
               <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f8fafc; border-right: 1px solid #e5e7eb;">
-                <%= d.patient&.full_name || 'Unknown' %>
+                <%= d.patient&.identifier || 'Unknown' %>
               </td>
               
               <!-- Dispensed By Column -->
