@@ -274,8 +274,8 @@ class PrepackLabelsController < ApplicationController
 
     when 'Monthly'
       selected_date = params[:start_date].to_date
-      month_end = selected_date.end_of_month
-      final_end = [month_end, Date.today].min
+      calculated_end = selected_date + 1.month - 1.day
+      final_end = [calculated_end, Date.today].min
       [selected_date.beginning_of_day, final_end.end_of_day]
 
     when 'Range'
