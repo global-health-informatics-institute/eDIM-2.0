@@ -3362,73 +3362,46 @@ document.addEventListener('keydown', function(e) {
 }
 
 </style>
-
 <script>
-function resetDispenseModal() { closeDispenseModal(); }
-function cancelDispense() { closeDispenseModal(); }
-function editPrepackInline(id) { window.editPrepackInlineReal?.(id); }
+/* ===============================
+   GLOBAL FUNCTIONS
+================================= */
+window.resetDispenseModal = function() { closeDispenseModal(); }
+window.cancelDispense = function() { closeDispenseModal(); }
+window.editPrepackInline = function(id) {
+  if (window.editPrepackInlineReal) window.editPrepackInlineReal(id);
+}
 
+/* ===============================
+   DATA
+================================= */
 let currentPrepackData = null;
 
-/* ===============================
-   FREQUENCIES
-================================= */
-
 const FREQUENCIES = {
-  OD: 1,
-  BD: 2,
-  TDS: 3,
-  QID: 4,
-  Q4HRS: 6,
-  Q2HRS: 12,
-  QHR: 24,
-  EOD: 0.5,
-  QWK: 0.14,  
-  QN: 1
+  OD: 1, BD: 2, TDS: 3, QID: 4,
+  Q4HRS: 6, Q2HRS: 12, QHR: 24,
+  EOD: 0.5, QWK: 0.14, QN: 1
 };
 
-
 /* ===============================
-   CALCULATION (FIXED)
+   CALCULATION
 ================================= */
-
 function calcQuantity(dose, frequency, duration) {
-
   const safeDose = parseFloat(dose) || 0;
   const safeDuration = parseFloat(duration) || 0;
   const perDay = FREQUENCIES[frequency] || 0;
-
   const total = safeDose * perDay * safeDuration;
-
   return isNaN(total) ? 0 : Math.ceil(total);
 }
 
-
-/* ===============================
-   TAB HANDLING
-================================= */
-
-function showDispenseDiv(divId) {
-
-  document.querySelectorAll('.mobi-div')
-    .forEach(div => div.style.display = 'none');
-
-  const target = document.getElementById(divId);
-  if (target) target.style.display = 'block';
-
-  const form = document.getElementById('dispenseForm2');
-  if (form) form.style.display = 'block';
-
-  populateActiveTab();
+function setQuantity(value) {
+  const qtyField = document.getElementById('quantity_per_pack');
+  const qtyDisp = document.getElementById('qtyDisp');
+  if (qtyField) qtyField.value = value ?? 0;
+  if (qtyDisp) qtyDisp.textContent = (value ?? 0) + " per pack";
 }
 
-
-/* ===============================
-   QUANTITY LIVE UPDATE
-================================= */
-
 function updateQuantityLive() {
-
   const activeTab = document.querySelector('.mobi-div[style*="block"]');
   if (!activeTab) return;
 
@@ -3441,74 +3414,120 @@ function updateQuantityLive() {
     return;
   }
 
-  const result = calcQuantity(dose, freqEl.value, duration);
-
-  console.log("LIVE UPDATE →",
-    { dose, frequency: freqEl.value, duration, result }
-  );
-
-  setQuantity(result);
+  const total = calcQuantity(dose, freqEl.value, duration);
+  setQuantity(total);
+  console.log("LIVE UPDATE →", { dose, frequency: freqEl.value, duration, total });
 }
-
-function setQuantity(value) {
-  const qtyField = document.getElementById('quantity_per_pack');
-  const qtyDisp = document.getElementById('qtyDisp');
-
-  if (qtyField) qtyField.value = value ?? 0;
-  if (qtyDisp) qtyDisp.textContent = (value ?? 0) + " per pack";
-}
-
 
 /* ===============================
    LABEL CHECKBOXES
 ================================= */
-
 function safeCheckLabels(num) {
-
   const labelsDiv = document.getElementById('labelsDiv');
   if (!labelsDiv) return;
-
   const boxes = labelsDiv.querySelectorAll("input[type='checkbox']");
   boxes.forEach(b => b.checked = false);
-
-  Array.from(boxes)
-    .slice(0, parseInt(num) || 0)
-    .forEach(b => b.checked = true);
+  Array.from(boxes).slice(0, parseInt(num) || 0).forEach(b => b.checked = true);
 }
 
+/* ===============================
+   MODAL CONTROL
+================================= */
+function closeDispenseModal() {
+  document.querySelectorAll('.mobi-div').forEach(d => d.style.display = 'none');
+  const form = document.getElementById('dispenseForm2');
+  if (form) form.style.display = 'none';
+
+  // Reset all inputs
+  const allInputs = document.querySelectorAll('#dispenseForm2 input, #dispenseForm2 select, #dispenseForm2 textarea');
+  allInputs.forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') i.checked = false;
+    else i.value = '';
+  });
+  const qtyDisp = document.getElementById('qtyDisp');
+  if (qtyDisp) qtyDisp.textContent = '0 per pack';
+
+  currentPrepackData = null;
+}
 
 /* ===============================
-   LOAD EDIT DATA
+   SHOW TAB
 ================================= */
+function showDispenseDiv(divId) {
+  document.querySelectorAll('.mobi-div').forEach(div => div.style.display = 'none');
+  const target = document.getElementById(divId);
+  if (target) target.style.display = 'block';
+  const form = document.getElementById('dispenseForm2');
+  if (form) form.style.display = 'block';
+  populateActiveTab();
+}
 
+/* ===============================
+   LOAD DATA
+================================= */
 window.editPrepackInlineReal = function(id) {
+  // Reset everything first
+  closeDispenseModal();
 
   fetch('/prepack_labels/' + id + '/edit.json')
-    .then(r => {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
-    })
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(d => {
-
-      console.log("BEFORE EDIT → Retrieved object:", d);
-
       currentPrepackData = d;
 
+      // --- Update table immediately ---
       document.getElementById('item').textContent = d.gn_identifier || '';
       document.getElementById('bottle_id').textContent = d.bottle_id || '';
       document.getElementById('currQty').textContent = d.current_num_packs || 0;
       document.getElementById('directionsDisp').textContent = d.directions || '';
+      
+      // Determine route for table display
+      const routeMap = { 'Take':'oral', 'Apply':'topical', 'Inject':'injection', 'Inhale':'respiratory' };
+      let route = '';
+      for (let [key,val] of Object.entries(routeMap)) {
+        if ((d.directions||'').toLowerCase().includes(key.toLowerCase())) { route = val; break; }
+      }
+      document.getElementById('route_type').textContent = route;
 
+      // --- Update form fields ---
       document.getElementById('prepack_id').value = d.id || '';
       document.getElementById('numPacks').value = d.num_packs || 1;
 
+      // Reset checkboxes and then check correct number
       safeCheckLabels(d.num_packs);
-      setQuantity(d.quantity_per_pack || 0);
 
-      showDispenseDiv('labelsDiv');
+      showDispenseDiv('labelsDiv'); // show the form
+
+      // Populate active tab inputs
+      const activeTab = document.querySelector('.mobi-div[style*="block"]');
+      if (!activeTab) return;
+
+      // Route radios
+      if (route) {
+        const routeEl = activeTab.querySelector(`input[name='administration'][value='${route}']`);
+        if (routeEl) routeEl.checked = true;
+      }
+
+      // Dose & duration
+      const doseInput = activeTab.querySelector('#dose');
+      const durationInput = activeTab.querySelector('#qty');
+      if (doseInput) doseInput.value = d.dose || '';
+      if (durationInput) durationInput.value = d.duration || '';
+
+      // Frequency
+      if (d.frequency) {
+        const freqEl = activeTab.querySelector(`input[name='frequency'][value='${d.frequency}']`);
+        if (freqEl) freqEl.checked = true;
+      }
+
+      // Update quantity only AFTER all inputs are populated
+      updateQuantityLive();
     })
     .catch(e => alert("Load failed: " + e.message));
 };
+
+/* ===============================
+   POPULATE TAB
+================================= */
 function populateActiveTab() {
   const d = currentPrepackData;
   if (!d) return;
@@ -3516,72 +3535,45 @@ function populateActiveTab() {
   const activeTab = document.querySelector('.mobi-div[style*="block"]');
   if (!activeTab) return;
 
-  /* ---------- ROUTE ---------- */
-  // Determine route based on the exact keyword in directions
-  const directions = d.directions || "";
+  // Route
+  const directions = d.directions || '';
   const routeMap = { 'Take': 'oral', 'Apply': 'topical', 'Inject': 'injection', 'Inhale': 'respiratory' };
-
   let route = null;
   for (let [key, value] of Object.entries(routeMap)) {
-    if (directions.toLowerCase().includes(key.toLowerCase())) {
-      route = value;
-      break;
-    }
+    if (directions.toLowerCase().includes(key.toLowerCase())) { route = value; break; }
   }
-
   if (route) {
-    const routeEl = activeTab.querySelector(`#route-${route}`);
-    if (routeEl) {
-      routeEl.checked = true;
-      // Trigger any listeners attached to route changes
-      routeEl.dispatchEvent(new Event('change', { bubbles: true }));
-      console.log("Route set:", route);
-    } else {
-      console.warn("Route element not found for:", route);
-    }
+    const routeEl = activeTab.querySelector(`input[name='administration'][value='${route}']`);
+    if (routeEl) { routeEl.checked = true; routeEl.dispatchEvent(new Event('change', {bubbles: true})); }
   }
 
-  /* ---------- DOSE & DURATION ---------- */
+  // Dose & Duration
   const doseInput = activeTab.querySelector('#dose');
   const durationInput = activeTab.querySelector('#qty');
-  if (doseInput) {
-    doseInput.value = d.dose ?? '';
-    doseInput.dispatchEvent(new Event('input', { bubbles: true }));
-  }
-  if (durationInput) {
-    durationInput.value = d.duration ?? '';
-    durationInput.dispatchEvent(new Event('input', { bubbles: true }));
-  }
+  if (doseInput) { doseInput.value = d.dose ?? ''; doseInput.dispatchEvent(new Event('input',{bubbles:true})); }
+  if (durationInput) { durationInput.value = d.duration ?? ''; durationInput.dispatchEvent(new Event('input',{bubbles:true})); }
 
-  /* ---------- FREQUENCY ---------- */
+  // Frequency
   if (d.frequency) {
     const freqEl = activeTab.querySelector(`input[name='frequency'][value='${d.frequency}']`);
-    if (freqEl) {
-      freqEl.checked = true;
-      freqEl.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    if (freqEl) { freqEl.checked = true; freqEl.dispatchEvent(new Event('change',{bubbles:true})); }
   }
 
-  /* ---------- DIRECTIONS DISPLAY ---------- */
+  // Directions display
   const directionsDisplay = activeTab.querySelector('#directionsDisp');
   if (directionsDisplay) directionsDisplay.textContent = directions;
 
-  /* ---------- LABEL CHECKBOXES ---------- */
+  // Labels
   safeCheckLabels(d.num_packs);
 
-  /* ---------- FORCE QUANTITY UPDATE ---------- */
-  updateQuantityLive(); // ensures quantity_per_pack reflects current dose/frequency/duration
-  console.log("AFTER POPULATE TAB →", {
-    dose: d.dose,
-    frequency: d.frequency,
-    duration: d.duration,
-    route,
-    quantity: document.getElementById('quantity_per_pack')?.value
-  });
+  // Quantity
+  updateQuantityLive();
 }
 
+/* ===============================
+   SAVE
+================================= */
 function saveCurrentTab() {
-
   const id = document.getElementById('prepack_id')?.value;
   if (!id) return alert("Missing prepack ID");
 
@@ -3589,93 +3581,42 @@ function saveCurrentTab() {
   if (!activeTab) return;
 
   const formData = new FormData();
-  activeTab.querySelectorAll("input, select")
-    .forEach(el => {
-      if (!el.name) return;
-      if (el.type === "radio") {
-        if (el.checked) formData.append(el.name, el.value);
-      } else if (el.type === "checkbox") {
-        if (el.checked) formData.append(el.name, el.value);
-      } else {
-        formData.append(el.name, el.value);
-      }
-    });
+  activeTab.querySelectorAll("input, select, textarea").forEach(el => {
+    if (!el.name) return;
+    if (el.type === "radio" || el.type === "checkbox") {
+      if (el.checked) formData.append(el.name, el.value);
+    } else {
+      formData.append(el.name, el.value);
+    }
+  });
 
-  formData.append(
-    'quantity_per_pack',
-    document.getElementById('quantity_per_pack')?.value || 0
-  );
+  formData.append('quantity_per_pack', document.getElementById('quantity_per_pack')?.value || 0);
 
   fetch('/prepack_labels/' + id, {
     method: "PATCH",
     body: formData,
-    headers: {
-      "X-CSRF-Token":
-        document.querySelector('meta[name="csrf-token"]')?.content
-    }
+    headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content }
   })
   .then(r => r.json())
-  .then(data => {
-    console.log("AFTER SAVE RESPONSE →", data);
-    if (!data.success) {
-      alert("Save failed: " + data.error);
-    }
-  })
+  .then(data => { if (!data.success) alert("Save failed: " + data.error); })
   .catch(() => alert("Network error"));
 }
-
-
-/* ===============================
-   CLOSE BUTTON FIX
-================================= */
-
-function closeDispenseModal() {
-
-  console.log("Modal closed");
-
-  document.querySelectorAll('.mobi-div')
-    .forEach(div => div.style.display = 'none');
-
-  const form = document.getElementById('dispenseForm2');
-  if (form) form.style.display = 'none';
-
-  currentPrepackData = null;
-}
-
 
 /* ===============================
    LIVE LISTENERS
 ================================= */
-
 function initLiveEditing() {
-
-  document.addEventListener('input', function(e) {
-
-    if (
-      e.target.matches('#dose') ||
-      e.target.matches('#qty')
-    ) {
-      updateQuantityLive();
-    }
+  document.addEventListener('input', e => {
+    if (e.target.matches('#dose') || e.target.matches('#qty')) updateQuantityLive();
   });
-
-  document.addEventListener('change', function(e) {
-
-    if (e.target.matches("input[name='frequency']")) {
-      updateQuantityLive();
-    }
+  document.addEventListener('change', e => {
+    if (e.target.matches("input[name='frequency']")) updateQuantityLive();
   });
-
   const numPacksInput = document.getElementById('numPacks');
-  if (numPacksInput) {
-    numPacksInput.addEventListener('input', function() {
-      safeCheckLabels(this.value);
-    });
-  }
+  if (numPacksInput) numPacksInput.addEventListener('input', function() { safeCheckLabels(this.value); });
 }
 document.addEventListener("DOMContentLoaded", initLiveEditing);
 document.addEventListener("turbo:load", initLiveEditing);
-
 </script>
 
 </body>
