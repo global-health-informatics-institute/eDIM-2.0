@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
+ActiveRecord::Schema[7.0].define(version: 2026_02_19_072554) do
   create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
@@ -364,7 +364,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "date_dispensed"
     t.boolean "voided", default: false
     t.boolean "deleted", default: false
-    t.string "patient_id"
     t.index ["bottle_id"], name: "fk_rails_03e2d3a9d7"
     t.index ["label_identifier"], name: "index_prepack_labels_on_label_identifier", unique: true
     t.index ["prepack_id"], name: "index_prepack_labels_on_prepack_id"
@@ -388,6 +387,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.boolean "deleted", default: false, null: false
     t.string "pack_identifier"
     t.text "times", size: :long, collation: "utf8mb4_bin"
+    t.decimal "dose", precision: 10
+    t.integer "duration"
+    t.string "frequency"
+    t.string "administration"
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
     t.index ["deleted"], name: "index_prepacks_on_deleted"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
@@ -395,7 +398,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
     t.index ["voided"], name: "index_prepacks_on_voided"
-    t.check_constraint "json_valid(`times`)", name: "times"
   end
 
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
