@@ -56,43 +56,6 @@ class PrepackLabelsController < ApplicationController
 
   #add edit  prepack method to return json data for prepack edit form
 
-def edit
-  @prepack = Prepack.find(params[:id])
-  respond_to do |format|
-    format.json { 
-      render json: {
-        id: @prepack.id,
-        bottle_id: @prepack.bottle_id,
-        gn_identifier: @prepack.gn_identifier,
-        directions: @prepack.directions,
-        total_quantity: @prepack.total_quantity,
-        current_num_packs: @prepack.current_num_packs,
-        num_packs: @prepack.num_packs,              
-        quantity_per_pack: @prepack.quantity_per_pack,    
-        times: @prepack.times                      
-      }
-    }
-  end
-rescue => e
-  render json: { error: e.message }, status: 500
-  console.error("Error in PrepackLabelsController#edit: #{e.message}")
-end
-
-#method to update prepacks after editing
-def update
-  @prepack = Prepack.find(params[:id])  # Use params[:id], not prepack_id
-  if @prepack.update(
-    num_packs: params[:numPacks],
-    quantity_per_pack: params[:dose],
-    times: params[:times]&.to_json
-  )
-    render json: { success: true }
-  else
-    render json: { success: false, error: @prepack.errors.full_messages }, 
-           status: :unprocessable_entity
-  end
-end
-
 
   def list
     # Try to get filters from session, use default if not found
@@ -270,6 +233,96 @@ end
       }
     end
   end
+  
+def edit
+  @prepack = Prepack.find(params[:id])
+  
+  # Parse directions
+  dose = @prepack.directions.to_s.match(/(\d+(?:\.\d+)?)/)&.[](1) || '2'
+  frequency = case @prepack.directions.to_s.downcase
+              when /once|one|daily/ then 'OD'
+              when /two|twice/ then 'BD'
+              when /three|thrice/ then 'TDS'
+              when /four/ then 'QID'
+              else 'BD'
+              end
+  administration = case @prepack.directions.to_s.downcase
+                  when /take/ then 'oral'
+                  when /apply/ then 'topical'
+                  when /inject/ then 'injection'
+                  when /inhale/ then 'respiratory'
+                  else 'oral'
+                  end
+  
+  # Reverse calculate duration
+  qty_per_pack = @prepack.quantity_per_pack.to_f
+  freq_multiplier = { 'OD' => 1, 'BD' => 2, 'TDS' => 3, 'QID' => 4 }[frequency] || 2
+  duration = qty_per_pack > 0 ? (qty_per_pack / (dose.to_f * freq_multiplier)).round(1) : 7
+  
+  respond_to do |format|
+    format.html  # Regular edit page
+    format.json do
+      render json: {
+        id: @prepack.id,
+        bottle_id: @prepack.bottle_id,
+        gn_identifier: @prepack.gn_identifier,
+        directions: @prepack.directions,
+        num_packs: @prepack.num_packs,
+        quantity_per_pack: @prepack.quantity_per_pack,
+        current_num_packs: @prepack.current_num_packs,
+        dose: dose,
+        duration: duration.to_s,
+        frequency: frequency,
+        administration: administration
+      }
+    end
+  end
+end
+
+
+def update
+  @prepack = Prepack.find(params[:id])
+  
+  new_quantity_per_pack = params[:quantity_per_pack].to_i
+  new_num_packs = params[:num_packs].to_i
+  dose = params[:dose]&.strip || '2'
+  frequency = params[:frequency] || 'BD'
+  administration = params[:administration] || 'oral'
+  
+  freq_words = { 'OD' => 'Once', 'BD' => 'Two', 'TDS' => 'Three', 'QID' => 'Four' }
+  route_words = { 'oral' => 'Take', 'topical' => 'Apply', 'injection' => 'Inject', 'respiratory' => 'Inhale' }
+  new_directions = "#{route_words[administration]} #{dose} #{freq_words[frequency]} Times A Day"
+  
+  update_data = {
+    quantity_per_pack: new_quantity_per_pack,
+    num_packs: new_num_packs,
+    directions: new_directions,
+    total_quantity: new_quantity_per_pack * new_num_packs
+  }
+  
+  respond_to do |format|
+    format.html do  # ← ADD THIS for HTML fallback
+      if @prepack.update(update_data)
+        redirect_to prepack_labels_path, notice: 'Updated successfully'
+      else
+        render :edit
+      end
+    end
+    format.json do
+      if @prepack.update(update_data)
+        render json: { 
+          success: true, 
+          directions: new_directions,
+          total_quantity: update_data[:total_quantity]
+        }
+      else
+        render json: { success: false, error: @prepack.errors.full_messages }, status: 422
+      end
+    end
+  end
+end
+
+
 
   def destroy
     prepack = Prepack.find_by(id: params[:id])
