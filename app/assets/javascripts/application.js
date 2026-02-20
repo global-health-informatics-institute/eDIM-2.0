@@ -15,7 +15,6 @@
 //= require turbolinks
 //= require inventory_alerts
 
-
 function getBrowserHeight() {
     var intH = 0;
     var intW = 0;
