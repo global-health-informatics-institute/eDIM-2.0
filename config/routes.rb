@@ -72,9 +72,14 @@ Rails.application.routes.draw do
   get '/prepack_labels/delete/:id', to: 'prepack_labels#delete', as: 'delete_prepack_label'
 
   ###################### Resources #####################################
-  patch '/prepack_labels/:id', to: 'prepack_labels#update', as: :update_prepack_label
-  get '/prepack_labels/:id/edit', to: 'prepack_labels#edit', as: :edit_prepack_label
 
+
+  resources :prepack_labels do
+    member do
+    get :edit     # Handles /prepack_labels/:id/edit + /prepack_labels/:id/edit.json
+    patch :update # Handles PATCH /prepack_labels/:id
+  end
+end
 
   resources :general_inventory do
     member do
@@ -102,9 +107,6 @@ Rails.application.routes.draw do
     end
   end
 
-  get 'prepack_labels/:id/edit', to: 'prepack_labels#edit'
-
-  get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
 
   resources :requests do
     member do
