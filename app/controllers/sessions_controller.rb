@@ -55,7 +55,6 @@ end
     end
   end
 
-
   def destroy
     session[:location] = nil
     session[:user_id] = nil
