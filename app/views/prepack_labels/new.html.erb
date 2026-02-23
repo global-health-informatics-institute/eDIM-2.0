@@ -3671,42 +3671,6 @@ function closeDispenseModal() {
 }
 
 
-function clearCurrentTab(tabId) {
-  console.log(`🧹 Clearing tab: ${tabId}`);
-  const tab = document.getElementById(tabId);
-  if (!tab) return;
-  
-  tab.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(i => {
-    if (i.type === 'radio' || i.type === 'checkbox') i.checked = false;
-    else i.value = '';
-  });
-  
-  if (tabId.includes('dose')) {
-    window.currentCalculatedQuantity = 0;
-    setQuantity(0);
-  }
-}
-
-// 🟡 CLEAR = Fresh fields, form stays visible
-function clearForm() {
-  console.log('🧹 CLEARING FIELDS ONLY - Form stays open');
-  
-  // Clear inputs only (form visible)
-  document.querySelectorAll('#dispenseForm2 input:not([type=hidden]), .form-control').forEach(i => {
-    if (i.type === 'radio' || i.type === 'checkbox') {
-      i.checked = false;
-    } else if (i.name !== 'quantity_per_pack' && i.id !== 'prepack_id') {
-      i.value = '';
-    }
-  });
-  
-  setQuantity(0);
-  window.currentCalculatedQuantity = 0;
-  
-  console.log('✅ FIELDS CLEARED - Form ready for new entry');
-}
-
-
 
 function validateFullForm() {
   const errors = [];
@@ -3803,9 +3767,9 @@ window.editPrepackInline = function(id) {
   editPrepackInlineReal(id); 
 };
 window.resetDispenseModal = closeDispenseModal;
-window.clearCurrentTab = clearCurrentTab;
+
 window.handleNextButton = handleNextButton;
-window.clearForm = clearForm;
+
 window.saveCurrentTab = saveCurrentTab;
 window.cancelDispense = cancelDispense;  
 console.log('✅ Prepack script loaded!');
