@@ -3479,16 +3479,22 @@ function closeDispenseModal() {
   console.log('✅ Modal CLOSED');
 }
 
-
 function showDispenseDiv(divId) {
   document.querySelectorAll('.mobi-div').forEach(div => div.style.display = 'none');
   const target = document.getElementById(divId);
   if (target) {
     target.style.display = 'block';
-    const form = document.getElementById('dispenseForm2');
-    if (form) form.style.display = 'block';
+    document.getElementById('dispenseForm2').style.display = 'block';
+    
+    // 🔥 EDIT-ONLY: ALWAYS HIDE clear button
+    const clearBtn = document.getElementById('dispClear');
+    if (clearBtn) {
+      clearBtn.style.display = 'none !important';  // NEVER show in EDIT
+    }
   }
 }
+
+
 
 function editPrepackInlineReal(id) {
   console.log('editPrepackInlineReal called for ID:', id);
@@ -3710,12 +3716,18 @@ document.addEventListener('click', e => {
 
 function handleNextButton() {
   const nextBtn = document.getElementById('nextBtn');
-  if (nextBtn.textContent.includes('Print')) {
+  if (nextBtn.textContent.includes('Print Labels')) {
     saveCurrentTab();
+
+    setTimeout(() => {
+      nextBtn.textContent = 'Labels Printed ✓';
+      setTimeout(() => nextBtn.textContent = 'Print Labels', 3000);
+    }, 100);
   } else {
     document.getElementById('nextBtn').textContent = 'Print Labels';
   }
 }
+
 
 function initLiveEditing() {
   console.log('initLiveEditing called');
