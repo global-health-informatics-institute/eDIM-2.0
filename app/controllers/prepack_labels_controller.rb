@@ -1,4 +1,7 @@
 class PrepackLabelsController < ApplicationController
+  #Skip CSRF only for JSON API requests
+  skip_before_action :verify_authenticity_token, only: [:update], if: -> { request.format.json? }
+  
   before_action :ensure_location
   before_action :set_pending_requests_count
 
@@ -301,7 +304,7 @@ def update
   }
   
   respond_to do |format|
-    format.html do  # ← ADD THIS for HTML fallback
+    format.html do  
       if @prepack.update(update_data)
         redirect_to prepack_labels_path, notice: 'Updated successfully'
       else
@@ -321,8 +324,6 @@ def update
     end
   end
 end
-
-
 
   def destroy
     prepack = Prepack.find_by(id: params[:id])
