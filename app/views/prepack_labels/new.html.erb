@@ -3448,19 +3448,37 @@ function safeCheckLabels(num) {
 }
 
 function closeDispenseModal() {
-  document.querySelectorAll('.mobi-div').forEach(tab => tab.style.display = 'none');
-  document.querySelectorAll('#dispenseForm2 input, #dispenseForm2 select, #dispenseForm2 textarea')
-    .forEach(i => {
-      if (i.type === 'radio' || i.type === 'checkbox') i.checked = false;
-      else i.value = '';
-    });
+  console.log('🔒 Closing modal...');
+  
+  // Hide ALL tabs first
+  document.querySelectorAll('.mobi-div, .tab-pane').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  // Clear ALL form inputs (safer selectors)
+  document.querySelectorAll('#dispenseForm2 input, input, .form-control, [name]').forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') {
+      i.checked = false;
+    } else if (i.name !== 'quantity_per_pack' && i.id !== 'prepack_id') {
+      i.value = '';
+    }
+  });
+  
+  // Reset calculations & state
   setQuantity(0);
+  window.currentCalculatedQuantity = 0;
   currentPrepackData = null;
-  const nextBtn = document.getElementById('nextBtn');
+  
+  // Reset buttons
+  const nextBtn = document.querySelector('#nextBtn, .next-btn');
   if (nextBtn) nextBtn.textContent = 'Next';
-  const form = document.getElementById('dispenseForm2');
+  
+  // Hide entire form/modal
+  const form = document.querySelector('#dispenseForm2, .modal, #editModal');
   if (form) form.style.display = 'none';
+  
+  console.log('✅ Modal CLOSED');
 }
+
 
 function showDispenseDiv(divId) {
   document.querySelectorAll('.mobi-div').forEach(div => div.style.display = 'none');
@@ -3609,35 +3627,122 @@ function saveCurrentTab() {
     alert("❌ Network error: " + e.message);
   });
 }
-function cancelDispense() {
-  console.log("↩ Reverting to original DB state");
 
-  const prepackId = document.getElementById('prepack_id')?.value;
-
-  if (prepackId) {
+function closeDispenseModal() {
+  console.log('🔒 CLOSING FORM - NUKING CACHE');
   
-    editPrepackInlineReal(prepackId);
-  } else {
-    closeDispenseModal();
+  // 1. Hide the entire form/modal
+  const form = document.querySelector('#dispenseForm2, .modal, #editModal');
+  if (form) {
+    form.style.display = 'none';
   }
+  
+  // 2. Hide all tabs
+  document.querySelectorAll('.mobi-div, .tab-pane').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  
+  // 🔥 3. CRITICAL: NUKE ALL GLOBAL + FORM STATE
+  setQuantity(0);
+  window.currentCalculatedQuantity = 0;
+  window.currentPrepackData = null;  // Global cache cleared
+  currentPrepackData = null;         // Local cache cleared
+  
+  // 🔥 4. FORCE CLEAR ALL FORM FIELDS (Turbo cache killer)
+  document.querySelectorAll('#dispenseForm2 input, input, .form-control, [name]').forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') {
+      i.checked = false;
+      i.removeAttribute('checked');
+    } else {
+      i.value = '';
+      i.removeAttribute('value');
+    }
+  });
+  
+  // 🔥 5. Turbo cache buster (prevents stale form restoration)
+  if (typeof Turbo !== 'undefined') {
+    Turbo.cache.clear();  // Nuclear option - clears ALL Turbo cache
+  }
+  
+  // Reset flags
+  isEditingMode = false;
+  
+  console.log('✅ FORM CLOSED + CACHE NUKED - Fresh for next prepack');
 }
 
 
 function clearCurrentTab(tabId) {
+  console.log(`🧹 Clearing tab: ${tabId}`);
   const tab = document.getElementById(tabId);
   if (!tab) return;
-
-  tab.querySelectorAll('input:not([type=hidden]), select, textarea')
-    .forEach(i => {
-      if (i.type === 'radio' || i.type === 'checkbox') {
-        i.checked = false;
-      } else {
-        i.value = '';
-      }
-    });
-
-  updateQuantityLive();
+  
+  tab.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') i.checked = false;
+    else i.value = '';
+  });
+  
+  if (tabId.includes('dose')) {
+    window.currentCalculatedQuantity = 0;
+    setQuantity(0);
+  }
 }
+
+// 🟡 CLEAR = Fresh fields, form stays visible
+function clearForm() {
+  console.log('🧹 CLEARING FIELDS ONLY - Form stays open');
+  
+  // Clear inputs only (form visible)
+  document.querySelectorAll('#dispenseForm2 input:not([type=hidden]), .form-control').forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') {
+      i.checked = false;
+    } else if (i.name !== 'quantity_per_pack' && i.id !== 'prepack_id') {
+      i.value = '';
+    }
+  });
+  
+  setQuantity(0);
+  window.currentCalculatedQuantity = 0;
+  
+  console.log('✅ FIELDS CLEARED - Form ready for new entry');
+}
+
+
+
+function validateFullForm() {
+  const errors = [];
+  
+  // Labels
+  const numPacks = parseInt(document.getElementById('numPacks')?.value || 0);
+  const dispensed = parseInt(document.getElementById('currQty')?.textContent || 0);
+  if (numPacks < dispensed) errors.push(`Labels: ${numPacks} >= ${dispensed} required`);
+  
+  // Dose/Duration/Frequency
+  const dose = document.getElementById('dose')?.value.trim();
+  const duration = document.getElementById('qty')?.value.trim();
+  const frequency = document.querySelector("input[name='frequency']:checked")?.value;
+  if (!dose) errors.push('Dose required');
+  if (!duration) errors.push('Duration required');
+  if (!frequency) errors.push('Frequency required');
+  
+  // Route
+  const route = document.querySelector("input[name='administration']:checked")?.value;
+  if (!route) errors.push('Route required');
+  
+  return errors.length === 0 ? { valid: true } : { valid: false, errors: errors.join('\n') };
+}
+
+// Save button hook
+document.addEventListener('click', e => {
+  if (e.target.matches('#saveBtn, button[onclick*="saveCurrentTab"]')) {
+    const result = validateFullForm();
+    if (!result.valid) {
+      e.preventDefault();
+      alert(result.errors);
+      return;
+    }
+    saveCurrentTab();
+  }
+});
 
 function handleNextButton() {
   const nextBtn = document.getElementById('nextBtn');
@@ -3700,8 +3805,9 @@ window.editPrepackInline = function(id) {
 window.resetDispenseModal = closeDispenseModal;
 window.clearCurrentTab = clearCurrentTab;
 window.handleNextButton = handleNextButton;
+window.clearForm = clearForm;
 window.saveCurrentTab = saveCurrentTab;
-window.cancelDispense = cancelDispense;  // ← ADD THIS
+window.cancelDispense = cancelDispense;  
 console.log('✅ Prepack script loaded!');
 </script>
 </html>
