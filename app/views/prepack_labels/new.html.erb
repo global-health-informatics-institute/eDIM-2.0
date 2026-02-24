@@ -3528,7 +3528,7 @@ function editPrepackInlineReal(id) {
       }
       document.getElementById('route_type').textContent = routeDisplay;
       
-      // ✅ FORM: EXACT reverse-calculated values
+      // FORM: EXACT reverse-calculated values
       document.querySelectorAll('#dose').forEach(input => input.value = d.dose);
       document.querySelectorAll('#qty').forEach(input => input.value = d.duration);
       
@@ -3548,9 +3548,9 @@ if (freqInput) freqInput.checked = true;
       // Verify math works forward
       setTimeout(() => {
         updateQuantityLive();
-        document.getElementById('qtyDisp').textContent = `${d.quantity_per_pack} per pack (Verified)`;
+        document.getElementById('qtyDisp').textContent = `${d.quantity_per_pack} per pack`;
         
-        // ✅ MATH VERIFICATION in console
+        // MATH VERIFICATION in console
         const calcBack = parseFloat(d.dose) * FREQUENCIES[d.frequency] * parseFloat(d.duration);
         console.log('🔍 MATH CHECK:', {
           original: d.quantity_per_pack,
