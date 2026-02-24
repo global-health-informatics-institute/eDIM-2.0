@@ -3412,5 +3412,422 @@ document.addEventListener('keydown', function(e) {
 }
 </style>
 
+<script>
+const FREQUENCIES = {
+  OD: 1, BD: 2, TDS: 3, QID: 4,
+  Q4HRS: 6, Q2HRS: 12, QHR: 24,
+  EOD: 0.5, QWK: 0.14, QN: 1
+};
+
+let currentPrepackData = null;
+let isEditingMode = false;
+function calcQuantity(dose, frequency, duration) {
+  const safeDose = parseFloat(dose) || 0;
+  const safeDuration = parseFloat(duration) || 0;
+  const perDay = FREQUENCIES[frequency] || 0;
+  return Math.ceil(safeDose * perDay * safeDuration) || 0;
+}
+
+function setQuantity(value) {
+  const qtyDisp = document.getElementById('qtyDisp');
+  if (qtyDisp) qtyDisp.textContent = (value ?? 0) + " per pack";
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+const updateQuantityLive = debounce(function() {
+  const doseInput = document.getElementById('dose');
+  const durationInput = document.getElementById('qty');
+  const frequencyInput = document.querySelector("input[name='frequency']:checked");
+  const directionInput = document.querySelector("input[name='administration']:checked");
+  
+  const doseRaw = doseInput ? doseInput.value.trim() : '';
+  const durationRaw = durationInput ? durationInput.value.trim() : '';
+  const frequencyRaw = frequencyInput ? frequencyInput.value : '';
+  const directionRaw = directionInput ? directionInput.value : '';
+  
+  const dose = parseFloat(doseRaw) || 0;
+  const duration = parseFloat(durationRaw) || 0;
+  
+  let total = 0;
+  if (doseRaw && durationRaw && frequencyRaw && dose > 0 && duration > 0) {
+    total = calcQuantity(dose, frequencyRaw, duration);
+  }
+  
+setQuantity(total);
+
+ const qtyField = document.querySelector('input[name="quantity_per_pack"]') || 
+                   document.getElementById('quantity_per_pack');
+  if (qtyField) {
+    qtyField.value = total;
+    qtyField.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+// store globally so save doesn't depend on recalculation
+window.currentCalculatedQuantity = total;
+
+if (currentPrepackData) {
+  currentPrepackData.dose = doseRaw;
+  currentPrepackData.duration = durationRaw;
+  currentPrepackData.frequency = frequencyRaw;
+  currentPrepackData.administration = directionRaw;
+  currentPrepackData.quantity_per_pack = total;
+}
+  
+  console.log("LIVE UPDATE →", { doseRaw, durationRaw, frequencyRaw, directionRaw, dose, duration, total });
+}, 300);
+
+function safeCheckLabels(num) {
+  const labelsDiv = document.getElementById('labelsDiv');
+  if (!labelsDiv) return;
+  const boxes = labelsDiv.querySelectorAll("input[type='checkbox']");
+  boxes.forEach(b => b.checked = false);
+  Array.from(boxes).slice(0, parseInt(num) || 0).forEach(b => b.checked = true);
+}
+
+function closeDispenseModal() {
+  console.log('🔒 Closing modal...');
+  
+  // Hide ALL tabs first
+  document.querySelectorAll('.mobi-div, .tab-pane').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  // Clear ALL form inputs (safer selectors)
+  document.querySelectorAll('#dispenseForm2 input, input, .form-control, [name]').forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') {
+      i.checked = false;
+    } else if (i.name !== 'quantity_per_pack' && i.id !== 'prepack_id') {
+      i.value = '';
+    }
+  });
+  
+  // Reset calculations & state
+  setQuantity(0);
+  window.currentCalculatedQuantity = 0;
+  currentPrepackData = null;
+  
+  // Reset buttons
+  const nextBtn = document.querySelector('#nextBtn, .next-btn');
+  if (nextBtn) nextBtn.textContent = 'Next';
+  
+  // Hide entire form/modal
+  const form = document.querySelector('#dispenseForm2, .modal, #editModal');
+  if (form) form.style.display = 'none';
+  
+  console.log('✅ Modal CLOSED');
+}
+
+function showDispenseDiv(divId) {
+  document.querySelectorAll('.mobi-div').forEach(div => div.style.display = 'none');
+  const target = document.getElementById(divId);
+  if (target) {
+    target.style.display = 'block';
+    document.getElementById('dispenseForm2').style.display = 'block';
+    
+    // 🔥 EDIT-ONLY: ALWAYS HIDE clear button
+    const clearBtn = document.getElementById('dispClear');
+    if (clearBtn) {
+      clearBtn.style.display = 'none !important';  // NEVER show in EDIT
+    }
+  }
+}
+
+
+
+function editPrepackInlineReal(id) {
+  console.log('editPrepackInlineReal called for ID:', id);
+  closeDispenseModal();
+  
+  fetch(`/prepack_labels/${id}/edit.json`)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then(d => {
+      console.log('✅ REAL DATA:', d);
+      currentPrepackData = d;
+      
+      // Table display
+      document.getElementById('item').textContent = d.gn_identifier || '';
+      document.getElementById('bottle_id').textContent = d.bottle_id || '';
+      document.getElementById('currQty').textContent = d.current_num_packs || 0;
+      document.getElementById('prepack_id').value = d.id || '';
+      document.getElementById('numPacks').value = d.num_packs || 1;
+      document.getElementById('directionsDisp').textContent = d.directions || '';
+      
+      // Route display
+      const routeMap = { 'Take':'oral', 'Apply':'topical', 'Inject':'injection', 'Inhale':'respiratory' };
+      let routeDisplay = '';
+      for (const [key, val] of Object.entries(routeMap)) {
+        if ((d.directions || '').toLowerCase().includes(key.toLowerCase())) {
+          routeDisplay = val;
+          break;
+        }
+      }
+      document.getElementById('route_type').textContent = routeDisplay;
+      
+      // FORM: EXACT reverse-calculated values
+      document.querySelectorAll('#dose').forEach(input => input.value = d.dose);
+      document.querySelectorAll('#qty').forEach(input => input.value = d.duration);
+      
+     const adminInput = document.querySelector(
+  `input[name='administration'][value='${d.administration}']`
+);
+if (adminInput) adminInput.checked = true;
+
+const freqInput = document.querySelector(
+  `input[name='frequency'][value='${d.frequency}']`
+);
+if (freqInput) freqInput.checked = true;
+      
+      safeCheckLabels(d.num_packs);
+      showDispenseDiv('labelsDiv');
+      
+      // Verify math works forward
+      setTimeout(() => {
+        updateQuantityLive();
+        document.getElementById('qtyDisp').textContent = `${d.quantity_per_pack} per pack`;
+        
+        // MATH VERIFICATION in console
+        const calcBack = parseFloat(d.dose) * FREQUENCIES[d.frequency] * parseFloat(d.duration);
+        console.log('🔍 MATH CHECK:', {
+          original: d.quantity_per_pack,
+          calculated: Math.round(calcBack),
+          matches: Math.abs(d.quantity_per_pack - calcBack) < 1
+        });
+      }, 200);
+    })
+    .catch(e => {
+      console.error('❌ Edit load error:', e);
+      alert("Load failed: " + e.message);
+    });
+}
+
+function saveCurrentTab() {
+ // updateQuantityLive(); Calculate final quantity before saving
+  
+
+  const prepackId = document.getElementById('prepack_id')?.value;
+  if (!prepackId) return alert("Missing prepack ID");
+
+  const dispensedCount = parseInt(document.getElementById('currQty')?.textContent || 0);
+  const numPacksVal = parseInt(document.getElementById('numPacks')?.value || 0);
+  if (numPacksVal < dispensedCount) {
+    return alert(`Cannot reduce below dispensed packs (${dispensedCount})`);
+  }
+    // ADD THIS ONE LINE:
+  window.currentCalculatedQuantity = calcQuantity(
+    parseFloat(document.getElementById('dose')?.value || 0),
+    document.querySelector("input[name='frequency']:checked")?.value || '',
+    parseFloat(document.getElementById('qty')?.value || 0)
+  );
+  const dose = parseFloat(document.getElementById('dose')?.value || 0);
+  const duration = parseFloat(document.getElementById('qty')?.value || 0);
+  const frequency = document.querySelector("input[name='frequency']:checked")?.value || '';
+  const freqMultiplier = FREQUENCIES[frequency] || 0;
+  const quantityPerPack = window.currentCalculatedQuantity || 0;
+
+  const formData = new FormData();
+  formData.append('num_packs', document.getElementById('numPacks')?.value || 0);
+  formData.append('quantity_per_pack', quantityPerPack);
+  formData.append('dose', document.getElementById('dose')?.value || '');
+  formData.append('duration', document.getElementById('qty')?.value || '');
+  formData.append('frequency', document.querySelector("input[name='frequency']:checked")?.value || '');
+  formData.append('administration', document.querySelector("input[name='administration']:checked")?.value || '');
+
+  // ✅ FIXED: Rails-safe logging
+  console.log('💾 Saving:', {
+    num_packs: formData.get('num_packs'),
+    quantity_per_pack: formData.get('quantity_per_pack'),
+    dose: formData.get('dose'),
+    duration: formData.get('duration'),
+    frequency: formData.get('frequency'),
+    administration: formData.get('administration')
+  });
+  formData.append('format','json');
+  fetch(`/prepack_labels/${prepackId}`, {
+    method: "PATCH",
+    body: formData,
+    credentials: 'same-origin' // Ensure cookies are sent for CSRF protection
+    //headers: { 
+     // "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content
+   // }
+  })
+  .then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then(data => {
+    if (data.success) {
+      alert("✅ Saved successfully!");
+      closeDispenseModal();
+      location.reload();
+    } else {
+      alert("❌ Save failed: " + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(e => {
+    console.error('💾 Save error:', e);
+    alert("❌ Network error: " + e.message);
+  });
+}
+
+function closeDispenseModal() {
+  console.log('🔒 CLOSING FORM - NUKING CACHE');
+  
+  // 1. Hide the entire form/modal
+  const form = document.querySelector('#dispenseForm2, .modal, #editModal');
+  if (form) {
+    form.style.display = 'none';
+  }
+  
+  // 2. Hide all tabs
+  document.querySelectorAll('.mobi-div, .tab-pane').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  
+  // 🔥 3. CRITICAL: NUKE ALL GLOBAL + FORM STATE
+  setQuantity(0);
+  window.currentCalculatedQuantity = 0;
+  window.currentPrepackData = null;  // Global cache cleared
+  currentPrepackData = null;         // Local cache cleared
+  
+  // 🔥 4. FORCE CLEAR ALL FORM FIELDS (Turbo cache killer)
+  document.querySelectorAll('#dispenseForm2 input, input, .form-control, [name]').forEach(i => {
+    if (i.type === 'radio' || i.type === 'checkbox') {
+      i.checked = false;
+      i.removeAttribute('checked');
+    } else {
+      i.value = '';
+      i.removeAttribute('value');
+    }
+  });
+  
+  // 🔥 5. Turbo cache buster (prevents stale form restoration)
+  if (typeof Turbo !== 'undefined') {
+    Turbo.cache.clear();  // Nuclear option - clears ALL Turbo cache
+  }
+  
+  // Reset flags
+  isEditingMode = false;
+  
+  console.log('✅ FORM CLOSED + CACHE NUKED - Fresh for next prepack');
+}
+
+
+
+function validateFullForm() {
+  const errors = [];
+  
+  // Labels
+  const numPacks = parseInt(document.getElementById('numPacks')?.value || 0);
+  const dispensed = parseInt(document.getElementById('currQty')?.textContent || 0);
+  if (numPacks < dispensed) errors.push(`Labels: ${numPacks} >= ${dispensed} required`);
+  
+  // Dose/Duration/Frequency
+  const dose = document.getElementById('dose')?.value.trim();
+  const duration = document.getElementById('qty')?.value.trim();
+  const frequency = document.querySelector("input[name='frequency']:checked")?.value;
+  if (!dose) errors.push('Dose required');
+  if (!duration) errors.push('Duration required');
+  if (!frequency) errors.push('Frequency required');
+  
+  // Route
+  const route = document.querySelector("input[name='administration']:checked")?.value;
+  if (!route) errors.push('Route required');
+  
+  return errors.length === 0 ? { valid: true } : { valid: false, errors: errors.join('\n') };
+}
+
+// Save button hook
+document.addEventListener('click', e => {
+  if (e.target.matches('#saveBtn, button[onclick*="saveCurrentTab"]')) {
+    const result = validateFullForm();
+    if (!result.valid) {
+      e.preventDefault();
+      alert(result.errors);
+      return;
+    }
+    saveCurrentTab();
+  }
+});
+
+function handleNextButton() {
+  const nextBtn = document.getElementById('nextBtn');
+  if (nextBtn.textContent.includes('Print Labels')) {
+    saveCurrentTab();
+
+    setTimeout(() => {
+      nextBtn.textContent = 'Labels Printed ✓';
+      setTimeout(() => nextBtn.textContent = 'Print Labels', 3000);
+    }, 100);
+  } else {
+    document.getElementById('nextBtn').textContent = 'Print Labels';
+  }
+}
+
+
+function initLiveEditing() {
+  console.log('initLiveEditing called');
+  
+  const doseEl = document.getElementById('dose');
+  const qtyEl = document.getElementById('qty');
+  const numPacksEl = document.getElementById('numPacks');
+  const nextBtn = document.getElementById('nextBtn');
+  
+  if (doseEl) doseEl.addEventListener('input', updateQuantityLive);
+  if (qtyEl) qtyEl.addEventListener('input', updateQuantityLive);
+  
+  document.querySelectorAll("input[name='frequency']").forEach(el => {
+    el.addEventListener('change', updateQuantityLive);
+  });
+  
+  document.querySelectorAll("input[name='administration']").forEach(el => {
+    el.addEventListener('change', updateQuantityLive);
+  });
+  
+  if (numPacksEl) {
+    numPacksEl.addEventListener('input', function() { 
+      safeCheckLabels(this.value); 
+    });
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', handleNextButton);
+  }
+  
+  console.log('Event listeners attached');
+}
+
+// ✅ FIXED: Single Turbo listener - works on initial load + navigations
+document.addEventListener("turbo:load", function() {
+  console.log('turbo:load fired');
+  initLiveEditing();
+});
+
+// ✅ FIXED: Also handle turbo:frame-load for modal/frame updates
+document.addEventListener("turbo:frame-load", function() {
+  console.log('turbo:frame-load fired');
+  setTimeout(initLiveEditing, 50); // Slight delay for DOM settle
+});
+// ✅ SINGLE Global functions block - MUST be LAST
+window.editPrepackInline = function(id) { 
+  console.log('🎯 window.editPrepackInline called:', id);
+  isEditingMode = true;  // ← SET EDITING MODE FIRST
+  editPrepackInlineReal(id); 
+};
+window.resetDispenseModal = closeDispenseModal;
+
+window.handleNextButton = handleNextButton;
+
+window.saveCurrentTab = saveCurrentTab;
+window.cancelDispense = cancelDispense;  
+console.log('✅ Prepack script loaded!');
+</script>
 </body>
 </html>
