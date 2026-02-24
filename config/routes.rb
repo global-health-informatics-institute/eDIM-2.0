@@ -73,6 +73,14 @@ Rails.application.routes.draw do
 
   ###################### Resources #####################################
 
+  resources :prepack_labels do
+    member do
+      get 'edit'
+      patch 'update'
+    end
+  end
+
+
   resources :general_inventory do
     member do
       post :damage_item
