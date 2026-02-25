@@ -1448,13 +1448,14 @@ function removePrepackFromList(id) {
   }
 
   // Main modal display functions
-  function showDispenseForm() {
+  function showDispenseForm(preserveEditState = false) {
     const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
-    currentStep = 0;
-    completedTabs.clear();
+
+    // Always start from a clean modal state (prevents stale values between opens)
+    resetDispenseModal(preserveEditState);
 
     // Set modal state
     isModalOpen = true;
@@ -1495,11 +1496,11 @@ function removePrepackFromList(id) {
           } else {
             try {
               const result = JSON.parse(results);
+              showDispenseForm();
               document.getElementById('item').innerHTML = result['name'];
               document.getElementById('currQty').innerHTML = result['currentQty'];
               document.getElementById('bottle_id').innerHTML = bottleId;
-              
-              showDispenseForm();
+              document.getElementById('btl_field').value = bottleId;
               showDispenseDiv('routesDiv');
             } catch(e){ 
               showFlashError(`Bottle ID ${bottleId} returned invalid data.`);
@@ -1675,10 +1676,15 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        // Reset all tabs to blue except completed ones
+        // Reset all tabs to neutral except completed ones
         if (!completedTabs.has(tabId)) {
-          tab.style.backgroundColor = '#2196F3';  // Blue
-          tab.style.color = 'white';
+          if (prepackEditMode) {
+            tab.style.backgroundColor = '#e5e7eb';
+            tab.style.color = '#111827';
+          } else {
+            tab.style.backgroundColor = '#2196F3';
+            tab.style.color = 'white';
+          }
           tab.style.border = '1px outset silver';
         } else {
           // Completed tabs stay green
@@ -1690,8 +1696,11 @@ function removePrepackFromList(id) {
     });
 
     // Current active tab gets red border
-    const currentTab = document.getElementById(option.replace('Div','Tab'));
+    const currentTabId = option.replace('Div','Tab');
+    const currentTab = document.getElementById(currentTabId);
     if (currentTab) {
+      currentTab.style.backgroundColor = completedTabs.has(currentTabId) ? '#28a745' : '#2196F3';
+      currentTab.style.color = 'white';
       currentTab.style.border = '5px solid #de0404';
     }
 
@@ -1702,6 +1711,8 @@ function removePrepackFromList(id) {
       nextBtn.textContent = (option === 'labelsDiv')
         ? (prepackEditMode ? 'Save & Print Labels' : 'Print Labels')
         : 'Next';
+      nextBtn.style.whiteSpace = 'nowrap';
+      nextBtn.style.minWidth = (option === 'labelsDiv' && prepackEditMode) ? '220px' : '140px';
       
       // If showing the final tab (labelsDiv), recalculate and check stock
       if (option === 'labelsDiv') {
@@ -2080,8 +2091,12 @@ function removePrepackFromList(id) {
   });
 
   // ResetDispenseModal function - UPDATED
-  function resetDispenseModal() {
+  function resetDispenseModal(preserveEditState = false) {
     // Reset all modal fields to initial state
+    document.getElementById('item').innerHTML = '&nbsp;';
+    document.getElementById('bottle_id').innerHTML = '&nbsp;';
+    document.getElementById('currQty').innerHTML = '&nbsp;';
+    document.getElementById('btl_field').value = '';
     document.getElementById('dose').value = '';
     document.getElementById('qty').value = '';
     document.getElementById('numPacks').value = '';
@@ -2090,8 +2105,11 @@ function removePrepackFromList(id) {
     document.getElementById('route_type').innerHTML = '';
     document.getElementById('directionsDisp').innerHTML = '';
     document.getElementById('prepack_id').value = '';
-    prepackEditMode = false;
-    editingPrepackId = null;
+    if (!preserveEditState) {
+      prepackEditMode = false;
+      editingPrepackId = null;
+    }
+    hideDispensationWarning();
     
     // Uncheck radio buttons
     ['administration', 'frequency'].forEach(name => {
@@ -2106,8 +2124,13 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        tab.style.backgroundColor = '#2196F3';  // Blue (default)
-        tab.style.color = 'white';
+        if (prepackEditMode) {
+          tab.style.backgroundColor = '#e5e7eb';
+          tab.style.color = '#111827';
+        } else {
+          tab.style.backgroundColor = '#2196F3';
+          tab.style.color = 'white';
+        }
         tab.style.border = '1px outset silver';
         
         // Remove checkmark if present
@@ -3491,6 +3514,7 @@ window.editPrepackInline = function(id) {
 
   fetch(`/prepack_labels/${id}/edit.json?t=${Date.now()}`, {
     headers: { 'Accept': 'application/json' },
+    cache: 'no-store',
     credentials: 'same-origin'
   })
     .then(response => {
@@ -3498,7 +3522,7 @@ window.editPrepackInline = function(id) {
       return response.json();
     })
     .then(data => {
-      showDispenseForm();
+      showDispenseForm(true);
       document.getElementById('prepack_id').value = data.id || '';
       document.getElementById('item').textContent = data.drug_name || '';
       document.getElementById('bottle_id').textContent = data.gn_identifier || '';
@@ -3517,6 +3541,9 @@ window.editPrepackInline = function(id) {
       const frequencyRadio = document.querySelector(`input[name='frequency'][value='${frequencyValue}']`);
       if (frequencyRadio) frequencyRadio.checked = true;
       setDirections();
+      if (parseFloat(data.num_packs) > 0) {
+        markTabCompleted('labelsTab');
+      }
 
       showDispenseDiv('labelsDiv');
       updateQuantity();
