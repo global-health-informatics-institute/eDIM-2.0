@@ -64,15 +64,19 @@ def edit
 end
 
 def update
-  puts "🚀 UPDATE DEBUG: #{@prepack.id} | BEFORE=#{@prepack.quantity_per_pack}"
-  puts "🚀 PARAMS: #{params.inspect}"
+  puts " UPDATE DEBUG: #{@prepack.id} | BEFORE=#{@prepack.quantity_per_pack}"
+  puts " PARAMS: #{params.inspect}"
   
   data = build_update_data
-  puts "🚀 DATA: #{data.inspect}"
+  puts " DATA: #{data.inspect}"
   
-  # SINGLE UPDATE - NO DUPLICATES!
-  if @prepack.update(data)
-    puts "✅ SAVED! AFTER=#{@prepack.quantity_per_pack}"
+  begin
+    Prepack.transaction do
+      @prepack.update!(data)
+      sync_prepack_labels!(@prepack, data[:num_packs].to_i)
+    end
+
+    puts "SAVED! AFTER=#{@prepack.quantity_per_pack}"
     respond_to do |format|
       format.html { 
         redirect_to general_inventory_prepack_labels_path, notice: 'Updated successfully' 
@@ -85,16 +89,17 @@ def update
         } 
       }
     end
-  else
-    puts "❌ FAILED: #{@prepack.errors.full_messages}"
+  rescue => e
+    Rails.logger.error("Prepack update failed: #{e.message}")
+    puts "FAILED: #{@prepack.errors.full_messages}"
     respond_to do |format|
       format.html { 
-        render :edit, status: :unprocessable_entity 
+        redirect_to general_inventory_prepack_labels_path, alert: "Update failed: #{e.message}"
       }
       format.json { 
         render json: { 
           success: false, 
-          error: @prepack.errors.full_messages.to_sentence 
+          error: (@prepack.errors.full_messages.to_sentence.presence || e.message)
         }, status: :unprocessable_entity 
       }
     end
@@ -165,6 +170,62 @@ def build_update_data
     directions: new_directions,
     total_quantity: new_quantity_per_pack * new_num_packs
   }
+end
+
+def sync_prepack_labels!(prepack, target_num_packs)
+  target = [target_num_packs.to_i, 0].max
+  now = Time.current
+
+  # Ensure editable labels are tied to the same bottle as the parent prepack.
+  editable_labels = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false)
+
+  mismatched_ids = editable_labels
+    .joins(:bottle)
+    .where.not(general_inventories: { gn_inventory_id: prepack.bottle_id })
+    .pluck(:id)
+
+  if mismatched_ids.any?
+    prepack.prepack_labels.where(id: mismatched_ids).update_all(bottle_id: prepack.bottle_id, updated_at: now)
+  end
+
+  matching_scope = prepack.prepack_labels
+    .joins(:bottle)
+    .where(prepack_labels: { deleted: false, voided: false, dispensed: false })
+    .where(general_inventories: { gn_inventory_id: prepack.bottle_id })
+
+  current_count = matching_scope.count
+
+  if target > current_count
+    last_index = next_label_index_for(prepack.gn_identifier)
+    (1..(target - current_count)).each do |offset|
+      PrepackLabel.create!(
+        prepack_id: prepack.id,
+        bottle_id: prepack.bottle_id,
+        label_identifier: "PK-#{prepack.gn_identifier}-#{last_index + offset}"
+      )
+    end
+  elsif target < current_count
+    remove_ids = matching_scope.order(id: :desc).limit(current_count - target).pluck(:id)
+    prepack.prepack_labels.where(id: remove_ids).update_all(deleted: true, updated_at: now)
+  end
+
+  remaining_undispensed = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false).count
+
+  # Always persist an edit-side write on active labels so prepack_labels stays in sync transactionally.
+  prepack.prepack_labels
+         .where(deleted: false, voided: false, dispensed: false)
+         .update_all(bottle_id: prepack.bottle_id, updated_at: now)
+
+  prepack.update!(current_num_packs: remaining_undispensed)
+end
+
+def next_label_index_for(gn_identifier)
+  last_label = PrepackLabel
+    .where("label_identifier LIKE ?", "PK-#{gn_identifier}-%")
+    .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
+    .first
+
+  last_label ? last_label.label_identifier.split('-').last.to_i : 0
 end
 
 public
