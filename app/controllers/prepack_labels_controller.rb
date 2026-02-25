@@ -1,6 +1,7 @@
 class PrepackLabelsController < ApplicationController
   before_action :ensure_location
   before_action :set_pending_requests_count
+  before_action :set_prepack, only: [:edit, :update]
 
   def index
     @prepack_inventory = Prepack.joins(:drug)
@@ -55,10 +56,10 @@ class PrepackLabelsController < ApplicationController
   end
 
   # edit and update actions for prepack labels
-  def edit
+def edit
   respond_to do |format|
-    format.html
-    format.json { render json: render_prepack_json(@prepack) }
+    format.html { redirect_to general_inventory_prepack_labels_path, notice: "Use Edit button" }  # ← Browser protection
+    format.json { render json: render_prepack_json(@prepack) }                                # ← JS gets data
   end
 end
 
@@ -129,8 +130,10 @@ def render_prepack_json(prepack = @prepack)
   
   {
     id: prepack.id,
+    drug_name: prepack.drug&.name,
     bottle_id: prepack.bottle_id,
     gn_identifier: prepack.gn_identifier,
+    bottle_quantity: GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)&.current_quantity.to_i,
     directions: prepack.directions,
     num_packs: prepack.num_packs,
     quantity_per_pack: prepack.quantity_per_pack,
@@ -149,9 +152,12 @@ def build_update_data
   frequency = params[:frequency] || 'BD'
   administration = params[:administration] || 'oral'
   
-  freq_words = { 'OD' => 'Once', 'BD' => 'Two', 'TDS' => 'Three', 'QID' => 'Four' }
-  route_words = { 'oral' => 'Take', 'topical' => 'Apply', 'injection' => 'Inject', 'respiratory' => 'Inhale' }
-  new_directions = "#{route_words[administration]} #{dose} #{freq_words[frequency]} Times A Day"
+  freq_words = {
+    'OD' => 'Once', 'BD' => 'Two', 'TDS' => 'Three', 'QID' => 'Four',
+    'QHR' => 'Twenty Four', 'Q2HRS' => 'Twelve', 'Q4HRS' => 'Six', 'EOD' => 'One', 'QN' => 'One', 'QWK' => 'One'
+  }
+  route_words = { 'oral' => 'Take', 'topical' => 'Apply', 'injection' => 'Inject', 'respiratory' => 'Inhale', 'other' => 'Take' }
+  new_directions = "#{route_words[administration] || 'Take'} #{dose} #{freq_words[frequency] || 'Two'} Times A Day"
   
   {
     quantity_per_pack: new_quantity_per_pack,
@@ -160,6 +166,8 @@ def build_update_data
     total_quantity: new_quantity_per_pack * new_num_packs
   }
 end
+
+public
 
   def list
     # Try to get filters from session, use default if not found
