@@ -164,6 +164,7 @@ Rails.application.routes.draw do
     collection do
       post 'login', action: :create
       get 'logout', action: :destroy
+      get 'active'
       get 'add_location'
       post 'workstation_location'
     end

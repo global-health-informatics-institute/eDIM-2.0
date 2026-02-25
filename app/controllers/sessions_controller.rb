@@ -57,10 +57,13 @@ end
 
 
   def destroy
-    session[:location] = nil
-    session[:user_id] = nil
+    reset_session
     User.current = nil
     redirect_to "/sessions/new"
+  end
+
+  def active
+    head :ok
   end
 
   private

@@ -140,5 +140,26 @@
   });
 
 </script>
+<script>
+  (() => {
+    const IDLE_LIMIT_MS = <%= ((request.session_options[:expire_after] || 2.minutes).to_i * 1000) %>;
+    let idleTime = 0;
+
+    const resetIdleTimer = () => {
+      idleTime = 0;
+    };
+
+    ['mousedown', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach((eventName) => {
+      document.addEventListener(eventName, resetIdleTimer, { passive: true });
+    });
+
+    setInterval(() => {
+      idleTime += 30000;
+      if (idleTime >= IDLE_LIMIT_MS) {
+        window.location.href = '/sessions/logout';
+      }
+    }, 30000);
+  })();
+</script>
 </body>
 </html>
