@@ -78,6 +78,6 @@ end
 
 
   def exempted_routes
-    ['/sessions/new','/sessions/login','/sessions/logout','/main/time'].include?(request.env['PATH_INFO'])
+    ['/sessions/new','/sessions/login','/sessions/logout','/time'].include?(request.env['PATH_INFO'])
   end
 end

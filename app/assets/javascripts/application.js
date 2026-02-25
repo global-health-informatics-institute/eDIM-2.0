@@ -15,6 +15,34 @@
 //= require turbolinks
 //= require inventory_alerts
 
+var sessionCheckTimer = null;
+
+function startSessionExpiryWatcher() {
+    if (sessionCheckTimer) {
+        clearInterval(sessionCheckTimer);
+    }
+
+    function verifySessionStillActive() {
+        fetch('/sessions/active', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'text/html' }
+        }).then(function(response) {
+            if (response.redirected || (response.url && response.url.indexOf('/sessions/new') >= 0)) {
+                window.location.href = '/sessions/new';
+            }
+        }).catch(function() {
+            // Keep checking on the next tick.
+        });
+    }
+
+    verifySessionStillActive();
+    sessionCheckTimer = setInterval(verifySessionStillActive, 30000);
+}
+
+document.addEventListener('turbolinks:load', startSessionExpiryWatcher);
+document.addEventListener('DOMContentLoaded', startSessionExpiryWatcher);
+
 
 function getBrowserHeight() {
     var intH = 0;

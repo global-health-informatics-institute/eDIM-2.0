@@ -44,15 +44,17 @@
 </div>
 </div>
 <script>
-let idleTime = 0;
-  const IDLE_LIMIT = 5 * 60 * 1000;
-  ['mousedown', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach(e => {
-  document.addEventListener(e, () => idleTime = 0);
+  let idleTime = 0;
+  const IDLE_LIMIT = <%= ((request.session_options[:expire_after] || 2.minutes).to_i * 1000) %>;
+  ['mousedown', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach((e) => {
+    document.addEventListener(e, () => {
+      idleTime = 0;
+    }, { passive: true });
   });
 
   setInterval(() => {
-  idleTime += 30000;
-  if (idleTime >= IDLE_LIMIT) window.location.href = '/sessions/new';
+    idleTime += 30000;
+    if (idleTime >= IDLE_LIMIT) window.location.href = '/sessions/logout';
   }, 30000);
 </script>
 
