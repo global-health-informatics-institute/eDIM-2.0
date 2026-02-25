@@ -36,23 +36,23 @@ end
     render :layout => 'touch'
   end
 
-def workstation_location
-  location_id = params[:location_id] || params[:location] # try both
-  location = Location.find_by_id(location_id)
+  def workstation_location
+    location_id = params[:location_id] || params[:location]
+    location = Location.find_by(location_id: location_id)
 
-  Rails.logger.info "Params location: #{params.inspect}"
-  Rails.logger.info "Found location: #{location.inspect}"
+    Rails.logger.info "Params location: #{params.inspect}"
+    Rails.logger.info "Found location: #{location.inspect}"
 
-  if location.blank? || location.is_a_workstation?
-    Rails.logger.warn "Invalid workstation location"
-    flash[:error] = "Invalid workstation location"
-    redirect_to '/sessions/add_location' and return
-  else
-    Rails.logger.info "Valid workstation location, proceeding"
-    session[:location_id] = location.id  # <-- match ApplicationHelper
-    redirect_to root_path
+    if location.blank? || location.is_a_workstation?
+      Rails.logger.warn "Invalid workstation location"
+      flash[:error] = "Invalid workstation location"
+      redirect_to '/sessions/add_location' and return
+    else
+      Rails.logger.info "Valid workstation location, proceeding"
+      session[:location] = location.location_id
+      redirect_to root_path
+    end
   end
-end
 
   def destroy
     reset_session
