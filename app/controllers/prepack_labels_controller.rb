@@ -131,7 +131,8 @@ def render_prepack_json(prepack = @prepack)
   
   qty_per_pack = prepack.quantity_per_pack.to_f
   freq_multiplier = { 'OD' => 1, 'BD' => 2, 'TDS' => 3, 'QID' => 4 }[frequency] || 2
-  duration = qty_per_pack > 0 ? (qty_per_pack / (dose.to_f * freq_multiplier)).round(1) : 7
+  raw_duration = qty_per_pack > 0 ? (qty_per_pack / (dose.to_f * freq_multiplier)) : 7
+  duration = [raw_duration.ceil, 1].max
   
   {
     id: prepack.id,
