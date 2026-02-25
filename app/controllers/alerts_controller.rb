@@ -1,4 +1,6 @@
 class AlertsController < ApplicationController
+  PREPACK_LOW_PERCENT = 0.2
+
   def inventory
     location_id = session[:location] || User.current.location_id
     today = Date.current
@@ -19,10 +21,11 @@ class AlertsController < ApplicationController
       .where(voided: false)
       .includes(:drug)
 
-    # Prepacks with low stock
+    # Prepacks with low stock (percentage of original packs)
     prepacks_low = Prepack
       .where(location_id: location_id, voided: 0, deleted: 0)
-      .where("current_num_packs > 0 AND current_num_packs <= ?", 5)
+      .where("num_packs > 0")
+      .where("current_num_packs > 0 AND current_num_packs <= (num_packs * ?)", PREPACK_LOW_PERCENT)
       .includes(:drug)
 
     render json: {
@@ -52,7 +55,9 @@ class AlertsController < ApplicationController
           type: "prepack",
           prepack_id: p.id,
           drug: p.drug.name,
-          remaining_packs: p.current_num_packs
+          remaining_packs: p.current_num_packs,
+          total_packs: p.num_packs,
+          remaining_percent: p.num_packs.to_i > 0 ? ((p.current_num_packs.to_f / p.num_packs.to_f) * 100).round(1) : 0
         }
       }
     }

@@ -106,10 +106,10 @@ class IssuesController < ApplicationController
       @report_type = "Issues Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format: '%d %B, %Y')}"
 
     when t('forms.options.monthly')
-      start_date = params[:start_date].to_date.beginning_of_month.beginning_of_day
-      end_date   = params[:start_date].to_date.end_of_month.end_of_day
+      start_date = params[:start_date].to_date.beginning_of_day
+      end_date   = (params[:start_date].to_date + 1.month - 1.day).end_of_day
 
-      @report_type = "Issues Report for #{l(params[:start_date].to_date, format: '%B %Y')}"
+      @report_type = "Issues Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format: '%d %B, %Y')}"
 
     when t('forms.options.range')
       start_date = params[:start_date].to_date.beginning_of_day

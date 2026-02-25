@@ -54,7 +54,6 @@ def workstation_location
   end
 end
 
-
   def destroy
     reset_session
     User.current = nil
