@@ -1305,6 +1305,22 @@ function clearCurrentTab() {
     // Remove completed status for labels tab
     completedTabs.delete('labelsTab');
   } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
 
   }
 
@@ -1329,8 +1345,8 @@ function clearCurrentTab() {
 function updateClearButtonVisibility(activeDivId) {
   const clearBtn = document.getElementById("dispClear");
   if (!clearBtn) return;
-  const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
-  clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+  const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
+  clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
 }
 </script>
 
@@ -1770,6 +1786,23 @@ function removePrepackFromList(id) {
       document.getElementById("numPacks").value = "";
       // Remove completed status for labels tab
       completedTabs.delete('labelsTab');
+    } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
     }
 
     // Revert the tab styling to blue and remove checkmark
@@ -1792,8 +1825,8 @@ function removePrepackFromList(id) {
   function updateClearButtonVisibility(activeDivId) {
     const clearBtn = document.getElementById("dispClear");
     if (!clearBtn) return;
-    const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
-    clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+    const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
+    clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
   }
 
   // Global function to check stock and update button state
@@ -1970,7 +2003,7 @@ function removePrepackFromList(id) {
     const numPacks = document.getElementById('numPacks').value;
     if (!numPacks || parseFloat(numPacks) <= 0) {
       alert("Please enter number of packs to print");
-      showDispenseDiv('labelsDiv');
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
       return;
     }
 
@@ -2032,6 +2065,11 @@ function removePrepackFromList(id) {
     const frequency = document.querySelector("input[name='frequency']:checked")?.value || 'BD';
     const administration = document.querySelector("input[name='administration']:checked")?.value || 'oral';
     const quantityPerPack = document.getElementById('dispensed_quantity')?.value || '0';
+    // Get selected times of day
+    const selectedTimes = [];
+    document.querySelectorAll('input[name="times[]"]:checked').forEach(checkbox => {
+      selectedTimes.push(checkbox.value);
+    });
 
     const formData = new URLSearchParams();
     formData.append('num_packs', numPacks);
@@ -2040,9 +2078,10 @@ function removePrepackFromList(id) {
     formData.append('duration', duration);
     formData.append('frequency', frequency);
     formData.append('administration', administration);
+    formData.append('times', JSON.stringify(selectedTimes));
     formData.append('format', 'json');
 
-    showFlashMessage('Saving prepack changes ...', 'notice', { transient: true, duration: 1800 });
+    showFlashMessage('Saving prepack changes ...', 'notice', { transient: true, duration: 1000 });
 
     fetch(`/prepack_labels/${prepackId}`, {
       method: 'PATCH',
@@ -3510,7 +3549,6 @@ window.editPrepackInline = function(id) {
   prepackEditMode = true;
   editingPrepackId = id;
 
-  showFlashMessage('Loading prepack for edit ...', 'notice', { transient: true, duration: 1200 });
 
   fetch(`/prepack_labels/${id}/edit.json?t=${Date.now()}`, {
     headers: { 'Accept': 'application/json' },
@@ -3538,6 +3576,13 @@ window.editPrepackInline = function(id) {
       setRoute(routeValue);
 
       const frequencyValue = data.frequency || 'BD';
+      // Populate times checkboxes from loaded data
+      const timesData = data.times || [];
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => {
+        checkbox.checked = timesData.includes(checkbox.value);
+      });
+
       const frequencyRadio = document.querySelector(`input[name='frequency'][value='${frequencyValue}']`);
       if (frequencyRadio) frequencyRadio.checked = true;
       setDirections();
@@ -3545,9 +3590,8 @@ window.editPrepackInline = function(id) {
         markTabCompleted('labelsTab');
       }
 
-      showDispenseDiv('labelsDiv');
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
       updateQuantity();
-      showFlashMessage('Edit loaded. Save to print updated labels.', 'notice', { transient: true, duration: 1800 });
     })
     .catch(error => {
       prepackEditMode = false;
