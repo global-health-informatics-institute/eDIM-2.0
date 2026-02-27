@@ -147,7 +147,8 @@ def render_prepack_json(prepack = @prepack)
     dose: dose,
     duration: duration.to_s,
     frequency: frequency,
-    administration: administration
+    administration: administration,
+    times: normalize_times(prepack.times)
   }
 end
 
@@ -157,6 +158,7 @@ def build_update_data
   dose = params[:dose]&.strip || '2'
   frequency = params[:frequency] || 'BD'
   administration = params[:administration] || 'oral'
+  normalized_times = normalize_times(params[:times])
   
   freq_words = {
     'OD' => 'Once', 'BD' => 'Two', 'TDS' => 'Three', 'QID' => 'Four',
@@ -169,8 +171,25 @@ def build_update_data
     quantity_per_pack: new_quantity_per_pack,
     num_packs: new_num_packs,
     directions: new_directions,
-    total_quantity: new_quantity_per_pack * new_num_packs
+    total_quantity: new_quantity_per_pack * new_num_packs,
+    times: normalized_times.to_json
   }
+end
+
+def normalize_times(raw_times)
+  case raw_times
+  when Array
+    raw_times.map(&:to_s).map(&:strip).reject(&:blank?)
+  when String
+    begin
+      parsed = JSON.parse(raw_times)
+      parsed.is_a?(Array) ? parsed.map(&:to_s).map(&:strip).reject(&:blank?) : []
+    rescue JSON::ParserError
+      raw_times.split(',').map(&:strip).reject(&:blank?)
+    end
+  else
+    []
+  end
 end
 
 def sync_prepack_labels!(prepack, target_num_packs)
@@ -178,7 +197,8 @@ def sync_prepack_labels!(prepack, target_num_packs)
   now = Time.current
 
   # Ensure editable labels are tied to the same bottle as the parent prepack.
-  editable_labels = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false)
+  # Only consider labels where dispensed_by is null (not yet dispensed)
+  editable_labels = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false, dispensed_by: nil)
 
   mismatched_ids = editable_labels
     .joins(:bottle)
@@ -191,30 +211,48 @@ def sync_prepack_labels!(prepack, target_num_packs)
 
   matching_scope = prepack.prepack_labels
     .joins(:bottle)
-    .where(prepack_labels: { deleted: false, voided: false, dispensed: false })
+    .where(prepack_labels: { deleted: false, voided: false, dispensed: false, dispensed_by: nil })
     .where(general_inventories: { gn_inventory_id: prepack.bottle_id })
 
   current_count = matching_scope.count
 
   if target > current_count
-    last_index = next_label_index_for(prepack.gn_identifier)
-    (1..(target - current_count)).each do |offset|
-      PrepackLabel.create!(
-        prepack_id: prepack.id,
-        bottle_id: prepack.bottle_id,
-        label_identifier: "PK-#{prepack.gn_identifier}-#{last_index + offset}"
-      )
+    # Instead of creating new labels, update existing records where dispensed_by is null
+    # Find undispensed labels (dispensed_by is null) and update them to match the new target
+    undispensed_labels = prepack.prepack_labels
+      .where(deleted: false, voided: false, dispensed: false)
+      .where(dispensed_by: nil)
+      .order(id: :asc)
+    
+    undispensed_count = undispensed_labels.count
+    
+    if undispensed_count < target
+      # Need more labels - create additional ones
+      last_index = next_label_index_for(prepack.gn_identifier)
+      (1..(target - undispensed_count)).each do |offset|
+        PrepackLabel.create!(
+          prepack_id: prepack.id,
+          bottle_id: prepack.bottle_id,
+          label_identifier: "PK-#{prepack.gn_identifier}-#{last_index + offset}"
+        )
+      end
+    elsif undispensed_count > target
+      # Mark excess labels as deleted (only those with dispensed_by null)
+      excess_labels = undispensed_labels.order(id: :desc).limit(undispensed_count - target)
+      prepack.prepack_labels.where(id: excess_labels.pluck(:id)).update_all(deleted: true, updated_at: now)
     end
   elsif target < current_count
+    # Reduce labels - only delete those with dispensed_by null
     remove_ids = matching_scope.order(id: :desc).limit(current_count - target).pluck(:id)
     prepack.prepack_labels.where(id: remove_ids).update_all(deleted: true, updated_at: now)
   end
 
-  remaining_undispensed = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false).count
+  remaining_undispensed = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false, dispensed_by: nil).count
 
   # Always persist an edit-side write on active labels so prepack_labels stays in sync transactionally.
+  # Only update labels where dispensed_by is null
   prepack.prepack_labels
-         .where(deleted: false, voided: false, dispensed: false)
+         .where(deleted: false, voided: false, dispensed: false, dispensed_by: nil)
          .update_all(bottle_id: prepack.bottle_id, updated_at: now)
 
   prepack.update!(current_num_packs: remaining_undispensed)
