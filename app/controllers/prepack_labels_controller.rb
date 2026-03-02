@@ -56,15 +56,33 @@ class PrepackLabelsController < ApplicationController
   end
 
   # edit and update actions for prepack labels
-def edit
-  respond_to do |format|
-    format.html { redirect_to general_inventory_prepack_labels_path, notice: "Use Edit button" }  # ← Browser protection
-    format.json { render json: render_prepack_json(@prepack) }                                # ← JS gets data
-  end
-end
+  def edit
+    # Check if prepack can be edited (must have at least one undispensed label)
+    unless can_edit_prepack?(@prepack)
+      respond_to do |format|
+        format.html { redirect_to general_inventory_prepack_labels_path, alert: "Cannot edit: All packs for this prepack have been dispensed" }
+        format.json { render json: { error: "Cannot edit: All packs for this prepack have been dispensed" }, status: :forbidden }
+      end
+      return
+    end
 
-def update
-  puts " UPDATE DEBUG: #{@prepack.id} | BEFORE=#{@prepack.quantity_per_pack}"
+    respond_to do |format|
+      format.html { redirect_to general_inventory_prepack_labels_path, notice: "Use Edit button" }  # ← Browser protection
+      format.json { render json: render_prepack_json(@prepack) }                                # ← JS gets data
+    end
+  end
+
+  def update
+    # Check if prepack can be edited (must have at least one undispensed label)
+    unless can_edit_prepack?(@prepack)
+      respond_to do |format|
+        format.html { redirect_to general_inventory_prepack_labels_path, alert: "Cannot update: All packs for this prepack have been dispensed" }
+        format.json { render json: { success: false, error: "Cannot update: All packs for this prepack have been dispensed" }, status: :forbidden }
+      end
+      return
+    end
+
+    puts " UPDATE DEBUG: #{@prepack.id} | BEFORE=#{@prepack.quantity_per_pack}"
   puts " PARAMS: #{params.inspect}"
   
   data = build_update_data
@@ -110,6 +128,18 @@ private
 
 def set_prepack
   @prepack = Prepack.find(params[:id])
+end
+
+# Check if a prepack can be edited
+# Returns true if there is at least one undispensed label
+def can_edit_prepack?(prepack)
+  return false if prepack.nil?
+  
+  undispensed_count = prepack.prepack_labels
+    .where(deleted: false, voided: false, dispensed: false)
+    .count
+  
+  undispensed_count > 0
 end
 
 def render_prepack_json(prepack = @prepack)
