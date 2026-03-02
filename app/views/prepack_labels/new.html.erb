@@ -386,7 +386,7 @@ img[src*="/assets/"] {
                       background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
                       position: relative; border-radius: 8px; min-height: 90px; cursor: pointer; transition: all 0.2s ease;"
                       onclick="showPrepackDetailModal('<%= prepack[:id] %>', '<%= j(prepack[:drug_name]) %>', '<%= prepack[:packs_dispensed] %>', '<%= prepack[:total_packs_created] %>', '<%= prepack[:quantity_per_pack] %>', '<%= prepack[:gn_identifier] %>', '<%= prepack[:status] %>', '<%= prepack[:created_at].present? ? l(prepack[:created_at].to_date, format: "%d/%m/%Y") : "N/A" %>', '<%= prepack[:packs_remaining] %>')"
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                      onmouseover="this.style.transform='scale(1.02)'"
                       
                       <!-- Progress Indicator and Action Buttons -->
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -480,7 +480,7 @@ img[src*="/assets/"] {
                                       <%= prepack[:bottle_quantity] || 0 %>,
                                       <%= prepack[:quantity_per_pack] || 0 %>
                                     )"
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
                                 <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
                                       white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.3s;">
@@ -496,7 +496,7 @@ img[src*="/assets/"] {
                                     src="/assets/delete.png" 
                                     title="Delete Prepack"
                                     onmousedown="event.stopPropagation(); confirmAction('<%= delete_prepack_label_path(prepack[:id]) %>', 'Are you sure you want to remove this prepack from the list?')"
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
                                 <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
                                       white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.4s;">
@@ -513,7 +513,7 @@ img[src*="/assets/"] {
                             src="/assets/print.png" 
                             title="Print prepack labels"
                             onmousedown="event.stopPropagation(); printPrepackLabel('<%= prepack[:id] %>');"
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                             onmouseout="this.style.transform='scale(1)'">
                         
                         <!-- Delete/Cancel Button -->
@@ -2443,7 +2443,7 @@ function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks,
                         border: none; color: white; font-size: 32px; cursor: pointer; 
                         width: 40px; height: 40px; display: flex; align-items: center; 
                         justify-content: center; border-radius: 4px; line-height: 1;"
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                   onmouseout="this.style.background='rgba(255,255,255,0.2)'">
             X
           </button>
@@ -2529,7 +2529,7 @@ function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks,
                           border-radius: 6px; font-size: 1.6rem; font-weight: bold; cursor: pointer;
                           transition: background 0.2s; display: inline-flex; align-items: center; 
                           justify-content: center; line-height: 1;"
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                     onmouseout="this.style.background='#006495'">
               Print Label
             </button>
@@ -2917,7 +2917,7 @@ function showDamageConfirmationModal(quantity, drugName, reason, prepackId, dama
                     justify-content: center;
                     line-height: 1;
                   "
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                   onmouseout="this.style.transform='translateY(0)'; this.style.background='#28a745'">
             OKAY
           </button>
@@ -2940,7 +2940,7 @@ function showDamageConfirmationModal(quantity, drugName, reason, prepackId, dama
                     justify-content: center;
                     line-height: 1;
                   "
-                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor="not-allowed"' %>"
+                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
                   onmouseout="this.style.transform='translateY(0)'; this.style.background='#6c757d'">
             CANCEL
           </button>
