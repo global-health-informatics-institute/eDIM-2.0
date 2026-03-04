@@ -2,6 +2,7 @@ class PrepackLabelsController < ApplicationController
   before_action :ensure_location
   before_action :set_pending_requests_count
   before_action :set_prepack, only: [:edit, :update]
+  before_action :set_prepack, only: [:edit, :update]
 
   def index
     @prepack_inventory = Prepack.joins(:drug)
