@@ -452,7 +452,7 @@ img[src*="/assets/"] {
                                           opacity: <%= can_edit ? '1' : '0.4' %>; transform: scale(0.8) translateX(10px); 
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/edit.png" 
-                                    title="<%= can_edit ? 'Edit Prepack' : 'Cannot edit - all packs have been dispensed' %>"
+                                    title="<%= can_edit ? 'Edit Prepack': 'Cannot edit - all packs have been dispensed' %>"
                                   onmousedown="event.stopPropagation(); <%= can_edit ? "window.editPrepackInline(#{prepack[:id]})" : "showFlashMessage('Cannot edit: All packs for this prepack have been dispensed', 'errors', { transient: true, duration: 1000 })" %>"
                                     onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor=\"not-allowed\"' %>"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
@@ -3591,7 +3591,7 @@ window.editPrepackInline = function(id) {
         markTabCompleted('labelsTab');
       }
 
-      showDispenseDiv('routesDiv'); // Show routes tab first when editing
+      showDispenseDiv('routesDiv'); 
       updateQuantity();
     })
     .catch(error => {
