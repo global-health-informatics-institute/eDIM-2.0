@@ -67,8 +67,8 @@ class PrepackLabelsController < ApplicationController
     end
 
     respond_to do |format|
-      format.html { redirect_to general_inventory_prepack_labels_path, notice: "Use Edit button" }  # ← Browser protection
-      format.json { render json: render_prepack_json(@prepack) }                                # ← JS gets data
+      format.html { redirect_to general_inventory_prepack_labels_path, notice: "Use Edit button" }  
+      format.json { render json: render_prepack_json(@prepack) }                                
     end
   end
 
