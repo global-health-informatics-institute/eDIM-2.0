@@ -61,7 +61,7 @@ class PrepackLabelsController < ApplicationController
     unless can_edit_prepack?(@prepack)
       respond_to do |format|
         format.html { redirect_to general_inventory_prepack_labels_path, alert: "Cannot edit: All packs for this prepack have been dispensed" }
-        format.json { render json: { error: "Cannot edit: All packs for this prepack have been dispensed" }, status: :forbidden }
+        format.json { render json: { error: "Cannot edit: All packs for this prepack or batch  have been dispensed" }, status: :forbidden }
       end
       return
     end
