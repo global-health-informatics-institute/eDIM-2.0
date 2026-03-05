@@ -135,12 +135,15 @@ end
 # Returns true if there is at least one undispensed label
 def can_edit_prepack?(prepack)
   return false if prepack.nil?
-  
-  undispensed_count = prepack.prepack_labels
-    .where(deleted: false, voided: false, dispensed: false)
-    .count
-  
-  undispensed_count > 0
+
+  # Primary rule: editable when at least one label has not been dispensed yet.
+  undispensed_count = prepack.prepack_labels.where(dispensed: [false, nil]).count
+  return true if undispensed_count > 0
+
+  # Fallback for inconsistent legacy records:
+  # if total dispensed labels is still less than intended packs, keep editable.
+  dispensed_count = prepack.prepack_labels.where(dispensed: true).count
+  prepack.num_packs.to_i > dispensed_count
 end
 
 def render_prepack_json(prepack = @prepack)
@@ -557,16 +560,16 @@ public
                       .order(created_at: :desc)
 
     inventory = prepacks.map do |prepack|
-      labels = prepack.prepack_labels.where(deleted: false, voided: false)
+      labels = prepack.prepack_labels
 
       {
         id: prepack.id,
         bottle_id: prepack.bottle_id,
         gn_identifier: prepack.gn_identifier,
         drug_name: prepack.drug.name,
-        total_packs_created: prepack.current_num_packs,
+        total_packs_created: prepack.num_packs,
         quantity_per_pack: prepack.quantity_per_pack,
-        packs_remaining: labels.where(dispensed: false).count,
+        packs_remaining: labels.where(dispensed: [false, nil]).count,
         packs_dispensed: labels.where(dispensed: true).count,
         status: prepack.status,
         created_at: prepack.created_at,
