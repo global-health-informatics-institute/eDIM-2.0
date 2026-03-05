@@ -1130,7 +1130,7 @@ prepackCheckboxes.forEach(cb => {
 });
 
 // Override the handleNextButton function to include validation
-const originalHandleNextButton = handleNextButton;
+const originalHandleNextButton = (typeof handleNextButton === 'function') ? handleNextButton : null;
 handleNextButton = function() {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   
@@ -1148,11 +1148,13 @@ handleNextButton = function() {
   }
   
   // Call original function if validation passes
-  originalHandleNextButton();
+  if (typeof originalHandleNextButton === 'function') {
+    originalHandleNextButton();
+  }
 };
 
 // Override the showDispenseDiv function
-const originalShowDispenseDiv = showDispenseDiv;
+const originalShowDispenseDiv = (typeof showDispenseDiv === 'function') ? showDispenseDiv : null;
 showDispenseDiv = function(option) {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   const currentDivId = currentDiv ? currentDiv.id : '';
@@ -1174,14 +1176,16 @@ showDispenseDiv = function(option) {
   }
   
   // Call original function if validation passes or if navigating to tabs before directions
-  originalShowDispenseDiv.call(this, option);
+  if (typeof originalShowDispenseDiv === 'function') {
+    originalShowDispenseDiv.call(this, option);
+  }
   
   // Update navigation after showing new div
   updatePrepackTabNavigation();
 };
 
 // Override the nextStep function to include validation
-const originalNextStep = nextStep;
+const originalNextStep = (typeof nextStep === 'function') ? nextStep : null;
 nextStep = function() {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   
@@ -1199,7 +1203,9 @@ nextStep = function() {
   }
   
   // Call original function if validation passes
-  originalNextStep();
+  if (typeof originalNextStep === 'function') {
+    originalNextStep();
+  }
   
   // Update navigation after moving to next step
   updatePrepackTabNavigation();
@@ -1249,10 +1255,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Reset validation
-const originalResetDispenseModal = resetDispenseModal;
-resetDispenseModal = function() {
+const originalResetDispenseModal = (typeof resetDispenseModal === 'function') ? resetDispenseModal : function() {};
+resetDispenseModal = function(preserveEditState = false) {
   // Call original function first
-  originalResetDispenseModal();
+  originalResetDispenseModal(preserveEditState);
   
   // Reset checkbox validation
   prepackCheckboxes.forEach(cb => {
@@ -1268,7 +1274,7 @@ resetDispenseModal = function() {
 };
 
 // ValidateDisp with checkbox validation
-const originalValidateDisp = validateDisp;
+const originalValidateDisp = (typeof validateDisp === 'function') ? validateDisp : function() {};
 validateDisp = function() {
   // Check checkbox validation if on directions tab
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
@@ -1369,8 +1375,6 @@ function updateClearButtonVisibility(activeDivId) {
   if (!clearBtn) return;
   const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
   clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
-  const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
-  clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
 }
 </script>
 
@@ -1401,8 +1405,6 @@ function removePrepackFromList(id) {
   var barcodeTxt = null;
   const tabOrder = ['routesDiv', 'doseDiv', 'directionsDiv', 'qtyDiv', 'labelsDiv'];
   let currentStep = 0;
-  let prepackEditMode = false;
-  let editingPrepackId = null;
   let prepackEditMode = false;
   let editingPrepackId = null;
 
@@ -1491,14 +1493,10 @@ function removePrepackFromList(id) {
 
   // Main modal display functions
   function showDispenseForm(preserveEditState = false) {
-  function showDispenseForm(preserveEditState = false) {
     const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
-
-    // Always start from a clean modal state (prevents stale values between opens)
-    resetDispenseModal(preserveEditState);
 
     // Always start from a clean modal state (prevents stale values between opens)
     resetDispenseModal(preserveEditState);
@@ -1518,8 +1516,6 @@ function removePrepackFromList(id) {
     if (overlay) overlay.style.display = 'none';
     
     resetDispenseModal(); // This now properly resets everything
-    prepackEditMode = false;
-    editingPrepackId = null;
     prepackEditMode = false;
     editingPrepackId = null;
     
@@ -1545,11 +1541,9 @@ function removePrepackFromList(id) {
             try {
               const result = JSON.parse(results);
               showDispenseForm();
-              showDispenseForm();
               document.getElementById('item').innerHTML = result['name'];
               document.getElementById('currQty').innerHTML = result['currentQty'];
               document.getElementById('bottle_id').innerHTML = bottleId;
-              document.getElementById('btl_field').value = bottleId;
               document.getElementById('btl_field').value = bottleId;
               showDispenseDiv('routesDiv');
             } catch(e){ 
@@ -1756,11 +1750,7 @@ function removePrepackFromList(id) {
     // Current active tab gets red border
     const currentTabId = option.replace('Div','Tab');
     const currentTab = document.getElementById(currentTabId);
-    const currentTabId = option.replace('Div','Tab');
-    const currentTab = document.getElementById(currentTabId);
     if (currentTab) {
-      currentTab.style.backgroundColor = completedTabs.has(currentTabId) ? '#28a745' : '#2196F3';
-      currentTab.style.color = 'white';
       currentTab.style.backgroundColor = completedTabs.has(currentTabId) ? '#28a745' : '#2196F3';
       currentTab.style.color = 'white';
       currentTab.style.border = '5px solid #de0404';
@@ -1770,11 +1760,6 @@ function removePrepackFromList(id) {
     currentStep = tabOrder.indexOf(option);
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) {
-      nextBtn.textContent = (option === 'labelsDiv')
-        ? (prepackEditMode ? 'Save & Print Labels' : 'Print Labels')
-        : 'Next';
-      nextBtn.style.whiteSpace = 'nowrap';
-      nextBtn.style.minWidth = (option === 'labelsDiv' && prepackEditMode) ? '220px' : '140px';
       nextBtn.textContent = (option === 'labelsDiv')
         ? (prepackEditMode ? 'Save & Print Labels' : 'Print Labels')
         : 'Next';
@@ -1812,7 +1797,6 @@ function removePrepackFromList(id) {
   }
 
   function handleNextButton() {
-    if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
     if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
     else nextStep();
   }
@@ -1896,8 +1880,6 @@ function removePrepackFromList(id) {
     if (!clearBtn) return;
     const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
     clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
-    const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
-    clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
   }
 
   // Global function to check stock and update button state
@@ -1906,7 +1888,6 @@ function removePrepackFromList(id) {
     if (!button) return;
     
     // Only apply stock validation when on the final tab (Print Labels button)
-    if (button.textContent === 'Print Labels' || button.textContent === 'Save & Print Labels') {
     if (button.textContent === 'Print Labels' || button.textContent === 'Save & Print Labels') {
       // Recalculate the original quantity to check against stock
       var dose = parseFloat(document.getElementById('dose').value) || 0;
@@ -2075,7 +2056,6 @@ function removePrepackFromList(id) {
     const numPacks = document.getElementById('numPacks').value;
     if (!numPacks || parseFloat(numPacks) <= 0) {
       alert("Please enter number of packs to print");
-      showDispenseDiv('routesDiv'); // Show routes tab first when editing
       showDispenseDiv('routesDiv'); // Show routes tab first when editing
       return;
     }
@@ -2266,12 +2246,7 @@ function removePrepackFromList(id) {
 
   // ResetDispenseModal function - UPDATED
   function resetDispenseModal(preserveEditState = false) {
-  function resetDispenseModal(preserveEditState = false) {
     // Reset all modal fields to initial state
-    document.getElementById('item').innerHTML = '&nbsp;';
-    document.getElementById('bottle_id').innerHTML = '&nbsp;';
-    document.getElementById('currQty').innerHTML = '&nbsp;';
-    document.getElementById('btl_field').value = '';
     document.getElementById('item').innerHTML = '&nbsp;';
     document.getElementById('bottle_id').innerHTML = '&nbsp;';
     document.getElementById('currQty').innerHTML = '&nbsp;';
@@ -2283,12 +2258,6 @@ function removePrepackFromList(id) {
     document.getElementById('dispensed_quantity').value = '0';
     document.getElementById('route_type').innerHTML = '';
     document.getElementById('directionsDisp').innerHTML = '';
-    document.getElementById('prepack_id').value = '';
-    if (!preserveEditState) {
-      prepackEditMode = false;
-      editingPrepackId = null;
-    }
-    hideDispensationWarning();
     document.getElementById('prepack_id').value = '';
     if (!preserveEditState) {
       prepackEditMode = false;
@@ -2309,13 +2278,6 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        if (prepackEditMode) {
-          tab.style.backgroundColor = '#e5e7eb';
-          tab.style.color = '#111827';
-        } else {
-          tab.style.backgroundColor = '#2196F3';
-          tab.style.color = 'white';
-        }
         if (prepackEditMode) {
           tab.style.backgroundColor = '#e5e7eb';
           tab.style.color = '#111827';
@@ -3753,6 +3715,38 @@ window.editPrepackInline = function(id) {
     });
 };
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const barcodeInput = document.getElementById('barcode');
+  if (!barcodeInput) return;
+
+  function isModalVisible() {
+    const ids = ['dispenseForm2', 'modalOverlay', 'damageModalOverlay', 'prepackDetailModalOverlay'];
+    return ids.some((id) => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    });
+  }
+
+  function keepBarcodeFocused() {
+    if (isModalVisible()) return;
+    if (barcodeInput.disabled) barcodeInput.disabled = false;
+    if (document.activeElement !== barcodeInput) {
+      barcodeInput.focus();
+      if (typeof barcodeInput.select === 'function') barcodeInput.select();
+    }
+  }
+
+  keepBarcodeFocused();
+  barcodeInput.addEventListener('blur', () => setTimeout(keepBarcodeFocused, 80));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) setTimeout(keepBarcodeFocused, 80);
+  });
+  document.addEventListener('click', () => setTimeout(keepBarcodeFocused, 80), true);
+});
+</script>
 </body>
 </html>
-
