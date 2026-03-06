@@ -413,12 +413,15 @@ def create
             date_dispensed: Time.current
           )
 
-          if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
-            prepack.update!(
-              status: 'dispensed',
-              location_id: prepack.location_id || session[:location]
-            )
-          end
+          dispensed_count = prepack.prepack_labels.where(dispensed:1, deleted: 0, voided: 0).count
+          remaining_packs = [prepack.num_packs.to_i - dispensed_count,0].max
+
+          prepack.update!(
+            current_num_packs:  remaining_packs,
+            status: (remaining_packs.zero? ? 'dispensed' : prepack.status),
+            location_id: prepack.location_id || session[:location]
+          )
+
         end
 
         return render json: {

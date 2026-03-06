@@ -323,7 +323,7 @@ img[src*="/assets/"] {
     </div>
     <div style="display: table-row">
       <div style="display: table-cell; text-align: center;">
-        <h2 id="flashMessage" style="margin:0; font-size:3rem !important; line-height:1.3;"></h2>
+        <h2 id="flashMessage" style="margin:0; font-size:2.2rem; line-height:1.3;"></h2>
       </div>
     </div>
     <div id="flashMessageActions" style="display: table-row">
@@ -445,17 +445,18 @@ img[src*="/assets/"] {
                               <!-- Tray "handle" indicator -->
                               <div class="tray-handle" style="width: 4px; height: 60px; background: #e5e7eb; border-radius: 2px; margin-right: 16px; opacity: 0; align-self: center;"></div>
                               
-                              <!-- Edit Button (disabled for now) -->
+                              <!-- Edit Button -->
+                              <% can_edit = prepack[:packs_remaining].to_i > 0 %>
                               <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.1s;">
-                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
-                                          opacity: 0; transform: scale(0.8) translateX(10px); 
+                                <img style="cursor: <%= can_edit ? 'pointer' : 'not-allowed' %>; width: 48px; height: 48px; transition: all 0.3s ease; 
+                                          opacity: <%= can_edit ? '1' : '0.4' %>; transform: scale(0.8) translateX(10px); 
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/edit.png" 
-                                    title="Edit Prepack"
-                                    onmousedown="event.stopPropagation(); window.location='/prepack_labels/<%= prepack[:id] %>/edit'"
-                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+                                    title="<%= can_edit ? 'Edit Prepack': 'Cannot edit - all packs have been dispensed' %>"
+                                  onmousedown="event.stopPropagation(); <%= can_edit ? "window.editPrepackInline(#{prepack[:id]})" : "showFlashMessage('Cannot edit: All packs for this prepack have been dispensed', 'errors', { transient: true, duration: 1000 })" %>"
+                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor=\"not-allowed\"' %>"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
-                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: <%= can_edit ? '#333' : '#999' %>; text-align: center; 
                                       white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.2s;">
                                   Edit
                                 </div>
@@ -645,6 +646,8 @@ img[src*="/assets/"] {
 
           <div style="display: table-cell; border-left:2px solid black; height:70vh; position:relative;">
             <!-- ROUTES DIV -->
+
+
             <div class="mobi-div" id="routesDiv">
              <div class="section-wrapper">
               <h3 style="font-weight:bold; font-size:1.5rem;">Select Administration Route</h3>
@@ -850,6 +853,14 @@ img[src*="/assets/"] {
 
       <div id="nextBtn" onmousedown="handleNextButton()">Next</div>
     <% end %>
+    <input type="hidden" id="prepack_id" value="">
+    <input type="hidden" name="quantity_per_pack" id="quantity_per_pack" value="">
+    <input type="hidden" name="num_packs" id="numPacksField" value="">
+
+    <input type="hidden" id="prepack_id" value="">
+    <input type="hidden" name="quantity_per_pack" id="quantity_per_pack" value="">
+    <input type="hidden" name="num_packs" id="numPacksField" value="">
+
   </div>
 
   <!-- FOOTER -->
@@ -1300,6 +1311,38 @@ function clearCurrentTab() {
     // Remove completed status for labels tab
     completedTabs.delete('labelsTab');
   } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
 
   }
 
@@ -1324,8 +1367,8 @@ function clearCurrentTab() {
 function updateClearButtonVisibility(activeDivId) {
   const clearBtn = document.getElementById("dispClear");
   if (!clearBtn) return;
-  const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
-  clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+  const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
+  clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
 }
 </script>
 
@@ -1356,6 +1399,8 @@ function removePrepackFromList(id) {
   var barcodeTxt = null;
   const tabOrder = ['routesDiv', 'doseDiv', 'directionsDiv', 'qtyDiv', 'labelsDiv'];
   let currentStep = 0;
+  let prepackEditMode = false;
+  let editingPrepackId = null;
 
   // Track completed tabs
   let completedTabs = new Set();
@@ -1441,13 +1486,14 @@ function removePrepackFromList(id) {
   }
 
   // Main modal display functions
-  function showDispenseForm() {
+  function showDispenseForm(preserveEditState = false) {
     const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
-    currentStep = 0;
-    completedTabs.clear();
+
+    // Always start from a clean modal state (prevents stale values between opens)
+    resetDispenseModal(preserveEditState);
 
     // Set modal state
     isModalOpen = true;
@@ -1464,6 +1510,10 @@ function removePrepackFromList(id) {
     if (overlay) overlay.style.display = 'none';
     
     resetDispenseModal(); // This now properly resets everything
+    prepackEditMode = false;
+    editingPrepackId = null;
+    prepackEditMode = false;
+    editingPrepackId = null;
     
     // Reset modal state and reinitialize scanner
     isModalOpen = false;
@@ -1486,11 +1536,13 @@ function removePrepackFromList(id) {
           } else {
             try {
               const result = JSON.parse(results);
+              showDispenseForm();
+              showDispenseForm();
               document.getElementById('item').innerHTML = result['name'];
               document.getElementById('currQty').innerHTML = result['currentQty'];
               document.getElementById('bottle_id').innerHTML = bottleId;
-              
-              showDispenseForm();
+              document.getElementById('btl_field').value = bottleId;
+              document.getElementById('btl_field').value = bottleId;
               showDispenseDiv('routesDiv');
             } catch(e){ 
               showFlashError(`Bottle ID ${bottleId} returned invalid data.`);
@@ -1666,10 +1718,15 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        // Reset all tabs to blue except completed ones
+        // Reset all tabs to neutral except completed ones
         if (!completedTabs.has(tabId)) {
-          tab.style.backgroundColor = '#2196F3';  // Blue
-          tab.style.color = 'white';
+          if (prepackEditMode) {
+            tab.style.backgroundColor = '#e5e7eb';
+            tab.style.color = '#111827';
+          } else {
+            tab.style.backgroundColor = '#2196F3';
+            tab.style.color = 'white';
+          }
           tab.style.border = '1px outset silver';
         } else {
           // Completed tabs stay green
@@ -1681,8 +1738,11 @@ function removePrepackFromList(id) {
     });
 
     // Current active tab gets red border
-    const currentTab = document.getElementById(option.replace('Div','Tab'));
+    const currentTabId = option.replace('Div','Tab');
+    const currentTab = document.getElementById(currentTabId);
     if (currentTab) {
+      currentTab.style.backgroundColor = completedTabs.has(currentTabId) ? '#28a745' : '#2196F3';
+      currentTab.style.color = 'white';
       currentTab.style.border = '5px solid #de0404';
     }
 
@@ -1690,7 +1750,11 @@ function removePrepackFromList(id) {
     currentStep = tabOrder.indexOf(option);
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) {
-      nextBtn.textContent = (option === 'labelsDiv') ? 'Print Labels' : 'Next';
+      nextBtn.textContent = (option === 'labelsDiv')
+        ? (prepackEditMode ? 'Save & Print Labels' : 'Print Labels')
+        : 'Next';
+      nextBtn.style.whiteSpace = 'nowrap';
+      nextBtn.style.minWidth = (option === 'labelsDiv' && prepackEditMode) ? '220px' : '140px';
       
       // If showing the final tab (labelsDiv), recalculate and check stock
       if (option === 'labelsDiv') {
@@ -1717,15 +1781,14 @@ function removePrepackFromList(id) {
     if (currentStep < tabOrder.length - 1) {
       currentStep++;
       showDispenseDiv(tabOrder[currentStep]);
-      if (currentStep === tabOrder.length - 1) nextBtn.textContent = 'Print Labels';
     } else {
       validateDisp();
     }
   }
 
   function handleNextButton() {
-    const nextBtn = document.getElementById('nextBtn');
-    if (nextBtn.textContent === 'Print Labels') validateDispWithStockCheck();
+    if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
+    if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
     else nextStep();
   }
 
@@ -1750,6 +1813,40 @@ function removePrepackFromList(id) {
       document.getElementById("numPacks").value = "";
       // Remove completed status for labels tab
       completedTabs.delete('labelsTab');
+    } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
+    } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
     }
 
     // Revert the tab styling to blue and remove checkmark
@@ -1772,8 +1869,8 @@ function removePrepackFromList(id) {
   function updateClearButtonVisibility(activeDivId) {
     const clearBtn = document.getElementById("dispClear");
     if (!clearBtn) return;
-    const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
-    clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+    const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
+    clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
   }
 
   // Global function to check stock and update button state
@@ -1782,7 +1879,7 @@ function removePrepackFromList(id) {
     if (!button) return;
     
     // Only apply stock validation when on the final tab (Print Labels button)
-    if (button.textContent === 'Print Labels') {
+    if (button.textContent === 'Print Labels' || button.textContent === 'Save & Print Labels') {
       // Recalculate the original quantity to check against stock
       var dose = parseFloat(document.getElementById('dose').value) || 0;
       var duration = parseFloat(document.getElementById('qty').value) || 0;
@@ -1950,7 +2047,8 @@ function removePrepackFromList(id) {
     const numPacks = document.getElementById('numPacks').value;
     if (!numPacks || parseFloat(numPacks) <= 0) {
       alert("Please enter number of packs to print");
-      showDispenseDiv('labelsDiv');
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
       return;
     }
 
@@ -1988,10 +2086,78 @@ function removePrepackFromList(id) {
     }
 
     updateQuantity();
-    
+
+    if (prepackEditMode) {
+      saveEditedPrepackAndPrint();
+      return;
+    }
+
     // Before submitting, clear modal state so focus returns after submit
     isModalOpen = false;
     document.forms[0].submit();
+  }
+
+  function saveEditedPrepackAndPrint() {
+    const prepackIdEl = document.getElementById('prepack_id');
+    const prepackId = editingPrepackId || (prepackIdEl ? prepackIdEl.value : null);
+    if (!prepackId) {
+      showFlashError('Missing prepack id for edit.');
+      return;
+    }
+
+    const numPacksEl = document.getElementById('numPacks');
+    const doseEl = document.getElementById('dose');
+    const durationEl = document.getElementById('qty');
+    const frequencyChecked = document.querySelector("input[name='frequency']:checked");
+    const administrationChecked = document.querySelector("input[name='administration']:checked");
+    const quantityPerPackEl = document.getElementById('dispensed_quantity');
+    const numPacks = (numPacksEl && numPacksEl.value) || '1';
+    const dose = (doseEl && doseEl.value) || '1';
+    const duration = (durationEl && durationEl.value) || '1';
+    const frequency = (frequencyChecked && frequencyChecked.value) || 'BD';
+    const administration = (administrationChecked && administrationChecked.value) || 'oral';
+    const quantityPerPack = (quantityPerPackEl && quantityPerPackEl.value) || '0';
+    // Get selected times of day
+    const selectedTimes = [];
+    document.querySelectorAll('input[name="times[]"]:checked').forEach(checkbox => {
+      selectedTimes.push(checkbox.value);
+    });
+
+    const formData = new URLSearchParams();
+    formData.append('num_packs', numPacks);
+    formData.append('quantity_per_pack', quantityPerPack);
+    formData.append('dose', dose);
+    formData.append('duration', duration);
+    formData.append('frequency', frequency);
+    formData.append('administration', administration);
+    formData.append('times', JSON.stringify(selectedTimes));
+    formData.append('format', 'json');
+
+    showFlashMessage('Saving prepack changes ...', 'notice', { transient: true, duration: 1000 });
+
+    fetch(`/prepack_labels/${prepackId}`, {
+      method: 'PATCH',
+      headers: {
+        'X-CSRF-Token': (document.querySelector('meta[name="csrf-token"]') || {}).content,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: formData.toString(),
+      credentials: 'same-origin'
+    })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        if (!data.success) throw new Error(data.error || 'Update failed');
+        showFlashMessage('Prepack updated. Printing label ...', 'notice', { transient: true, duration: 2000 });
+        printPrepackLabel(prepackId);
+        setTimeout(() => { window.location.reload(); }, 1800);
+      })
+      .catch(error => {
+        showFlashError(`Failed to save edits: ${error.message}`);
+      });
   }
 
   function checkRadio(list) {
@@ -2016,8 +2182,12 @@ function removePrepackFromList(id) {
   });
 
   // ResetDispenseModal function - UPDATED
-  function resetDispenseModal() {
+  function resetDispenseModal(preserveEditState = false) {
     // Reset all modal fields to initial state
+    document.getElementById('item').innerHTML = '&nbsp;';
+    document.getElementById('bottle_id').innerHTML = '&nbsp;';
+    document.getElementById('currQty').innerHTML = '&nbsp;';
+    document.getElementById('btl_field').value = '';
     document.getElementById('dose').value = '';
     document.getElementById('qty').value = '';
     document.getElementById('numPacks').value = '';
@@ -2025,6 +2195,12 @@ function removePrepackFromList(id) {
     document.getElementById('dispensed_quantity').value = '0';
     document.getElementById('route_type').innerHTML = '';
     document.getElementById('directionsDisp').innerHTML = '';
+    document.getElementById('prepack_id').value = '';
+    if (!preserveEditState) {
+      prepackEditMode = false;
+      editingPrepackId = null;
+    }
+    hideDispensationWarning();
     
     // Uncheck radio buttons
     ['administration', 'frequency'].forEach(name => {
@@ -2039,8 +2215,13 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        tab.style.backgroundColor = '#2196F3';  // Blue (default)
-        tab.style.color = 'white';
+        if (prepackEditMode) {
+          tab.style.backgroundColor = '#e5e7eb';
+          tab.style.color = '#111827';
+        } else {
+          tab.style.backgroundColor = '#2196F3';
+          tab.style.color = 'white';
+        }
         tab.style.border = '1px outset silver';
         
         // Remove checkmark if present
@@ -3034,8 +3215,8 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, 
   }
 
   // Determine damage type
-  const damageType = [...document.getElementsByName('damageType')]
-    .find(r => r.checked)?.value || 'pack';
+  const selectedDamageRadio = [...document.getElementsByName('damageType')].find(r => r.checked);
+  const damageType = (selectedDamageRadio && selectedDamageRadio.value) || 'pack';
 
   const maxQty = damageType === 'pack' ? maxQuantity : bottle_quantity;
   if (quantity > maxQty) {
@@ -3142,7 +3323,8 @@ function updateQuickSelectButtons() {
   const input = document.getElementById('damageQuantity');
   if (!buttons.length || !input) return;
 
-  const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+  const selectedDamageTypeEl = document.querySelector('input[name="damageType"]:checked');
+  const selectedType = selectedDamageTypeEl ? selectedDamageTypeEl.value : null;
 
   let maxAllowed = 0;
   if (selectedType === 'pack') {
@@ -3245,7 +3427,8 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
   let holdDirection = 0;
 
   function getCurrentMax() {
-    const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+    const selectedDamageTypeEl = document.querySelector('input[name="damageType"]:checked');
+    const selectedType = selectedDamageTypeEl ? selectedDamageTypeEl.value : null;
     if (selectedType === 'pack') return maxPacks;
     return bottle_quantity; // bottle
   }
@@ -3358,7 +3541,7 @@ function closeDamageModal() {
   }
 }
 
-// Close modal on escape key
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeDamageModal();
@@ -3411,6 +3594,61 @@ document.addEventListener('keydown', function(e) {
   transform: scale(1.3);
 }
 </style>
+<script>
+window.editPrepackInline = function(id) {
+  prepackEditMode = true;
+  editingPrepackId = id;
 
+
+  fetch(`/prepack_labels/${id}/edit.json?t=${Date.now()}`, {
+    headers: { 'Accept': 'application/json' },
+    cache: 'no-store',
+    credentials: 'same-origin'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      showDispenseForm(true);
+      document.getElementById('prepack_id').value = data.id || '';
+      document.getElementById('item').textContent = data.drug_name || '';
+      document.getElementById('bottle_id').textContent = data.gn_identifier || '';
+      document.getElementById('btl_field').value = data.gn_identifier || '';
+      document.getElementById('currQty').textContent = data.bottle_quantity || 0;
+      document.getElementById('numPacks').value = data.current_num_packs || '';
+      document.getElementById('dose').value = data.dose || '';
+      document.getElementById('qty').value = data.duration || '';
+
+      const routeValue = data.administration || 'oral';
+      const routeRadio = document.querySelector(`input[name='administration'][value='${routeValue}']`);
+      if (routeRadio) routeRadio.checked = true;
+      setRoute(routeValue);
+
+      const frequencyValue = data.frequency || 'BD';
+      // Populate times checkboxes from loaded data
+      const timesData = data.times || [];
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => {
+        checkbox.checked = timesData.includes(checkbox.value);
+      });
+
+      const frequencyRadio = document.querySelector(`input[name='frequency'][value='${frequencyValue}']`);
+      if (frequencyRadio) frequencyRadio.checked = true;
+      setDirections();
+      if (parseFloat(data.num_packs) > 0) {
+        markTabCompleted('labelsTab');
+      }
+
+      showDispenseDiv('routesDiv'); 
+      updateQuantity();
+    })
+    .catch(error => {
+      prepackEditMode = false;
+      editingPrepackId = null;
+      showFlashError(`Unable to load edit values: ${error.message}`);
+    });
+};
+</script>
 </body>
 </html>

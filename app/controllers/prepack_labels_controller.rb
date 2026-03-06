@@ -1,6 +1,8 @@
 class PrepackLabelsController < ApplicationController
   before_action :ensure_location
   before_action :set_pending_requests_count
+  before_action :set_prepack, only: [:edit, :update]
+  before_action :set_prepack, only: [:edit, :update]
 
   def index
     @prepack_inventory = Prepack.joins(:drug)
@@ -54,9 +56,216 @@ class PrepackLabelsController < ApplicationController
     end
   end
 
+  # edit and update actions for prepack labels
   def edit
-    redirect_to "/general_inventory/prepack_labels", notice: "Editing prepack batches is not available yet."
+    # Check if prepack can be edited (must have at least one undispensed label)
+    unless can_edit_prepack?(@prepack)
+      respond_to do |format|
+        format.html { redirect_to general_inventory_prepack_labels_path, alert: "Cannot edit: All packs for this prepack have been dispensed" }
+        format.json { render json: { error: "Cannot edit: All packs for this prepack or batch  have been dispensed" }, status: :forbidden }
+      end
+      return
+    end
+
+    respond_to do |format|
+      format.html { redirect_to general_inventory_prepack_labels_path, notice: "Use Edit button" }  
+      format.json { render json: render_prepack_json(@prepack) }                                
+    end
   end
+
+  def update
+    # Check if prepack can be edited (must have at least one undispensed label)
+    unless can_edit_prepack?(@prepack)
+      respond_to do |format|
+        format.html { redirect_to general_inventory_prepack_labels_path, alert: "Cannot update: All packs for this prepack have been dispensed" }
+        format.json { render json: { success: false, error: "Cannot update: All packs for this prepack have been dispensed" }, status: :forbidden }
+      end
+      return
+    end
+
+    puts " UPDATE DEBUG: #{@prepack.id} | BEFORE=#{@prepack.quantity_per_pack}"
+  puts " PARAMS: #{params.inspect}"
+  
+  data = build_update_data
+  puts " DATA: #{data.inspect}"
+  
+  begin
+    Prepack.transaction do
+      @prepack.update!(data)
+      sync_prepack_labels!(@prepack, data[:current_num_packs].to_i)
+    end
+
+    puts "SAVED! AFTER=#{@prepack.quantity_per_pack}"
+    respond_to do |format|
+      format.html { 
+        redirect_to general_inventory_prepack_labels_path, notice: 'Updated successfully' 
+      }
+      format.json { 
+        render json: { 
+          success: true, 
+          prepack: render_prepack_json(@prepack),
+          message: 'Updated successfully'
+        } 
+      }
+    end
+  rescue => e
+    Rails.logger.error("Prepack update failed: #{e.message}")
+    puts "FAILED: #{@prepack.errors.full_messages}"
+    respond_to do |format|
+      format.html { 
+        redirect_to general_inventory_prepack_labels_path, alert: "Update failed: #{e.message}"
+      }
+      format.json { 
+        render json: { 
+          success: false, 
+          error: (@prepack.errors.full_messages.to_sentence.presence || e.message)
+        }, status: :unprocessable_entity 
+      }
+    end
+  end
+end
+
+private
+
+def set_prepack
+  @prepack = Prepack.find(params[:id])
+end
+
+# Check if a prepack can be edited
+# Returns true if there is at least one undispensed label
+def can_edit_prepack?(prepack)
+  return false if prepack.nil?
+
+  # Primary rule: editable when at least one label has not been dispensed yet.
+  undispensed_count = prepack.prepack_labels.where(dispensed: [false, nil]).count
+  return true if undispensed_count > 0
+
+  # Fallback for inconsistent legacy records:
+  # if total dispensed labels is still less than intended packs, keep editable.
+  dispensed_count = prepack.prepack_labels.where(dispensed: true).count
+  prepack.num_packs.to_i > dispensed_count
+end
+
+def render_prepack_json(prepack = @prepack)
+  dose = prepack.directions.to_s.match(/(\d+(?:\.\d+)?)/)&.[](1) || '2'
+  frequency = case prepack.directions.to_s.downcase
+              when /once|one|daily/ then 'OD'
+              when /two|twice/ then 'BD'
+              when /three|thrice/ then 'TDS'
+              when /four/ then 'QID'
+              else 'BD'
+              end
+  administration = case prepack.directions.to_s.downcase
+                  when /take/ then 'oral'
+                  when /apply/ then 'topical'
+                  when /inject/ then 'injection'
+                  when /inhale/ then 'respiratory'
+                  else 'oral'
+                  end
+  
+  qty_per_pack = prepack.quantity_per_pack.to_f
+  freq_multiplier = { 'OD' => 1, 'BD' => 2, 'TDS' => 3, 'QID' => 4 }[frequency] || 2
+  raw_duration = qty_per_pack > 0 ? (qty_per_pack / (dose.to_f * freq_multiplier)) : 7
+  duration = [raw_duration.ceil, 1].max
+  
+  {
+    id: prepack.id,
+    drug_name: prepack.drug&.name,
+    bottle_id: prepack.bottle_id,
+    gn_identifier: prepack.gn_identifier,
+    bottle_quantity: GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)&.current_quantity.to_i,
+    directions: prepack.directions,
+    num_packs: prepack.current_num_packs.nonzero? || prepack.num_packs,
+    quantity_per_pack: prepack.quantity_per_pack,
+    current_num_packs: prepack.current_num_packs,
+    dose: dose,
+    duration: duration.to_s,
+    frequency: frequency,
+    administration: administration,
+    times: normalize_times(prepack.times)
+  }
+end
+
+def build_update_data
+  new_quantity_per_pack = params[:quantity_per_pack].to_i
+  # current_num_packs is derived from existing undispensed labels in this batch.
+  # Editing must not add/remove labels.
+  new_current_num_packs = @prepack.prepack_labels.where(
+    dispensed: false, deleted: false, voided: false, dispensed_by: nil
+  ).count
+  dose = params[:dose]&.strip || '2'
+  frequency = params[:frequency] || 'BD'
+  administration = params[:administration] || 'oral'
+  normalized_times = normalize_times(params[:times])
+  
+  freq_words = {
+    'OD' => 'Once', 'BD' => 'Two', 'TDS' => 'Three', 'QID' => 'Four',
+    'QHR' => 'Twenty Four', 'Q2HRS' => 'Twelve', 'Q4HRS' => 'Six', 'EOD' => 'One', 'QN' => 'One', 'QWK' => 'One'
+  }
+  route_words = { 'oral' => 'Take', 'topical' => 'Apply', 'injection' => 'Inject', 'respiratory' => 'Inhale', 'other' => 'Take' }
+  new_directions = "#{route_words[administration] || 'Take'} #{dose} #{freq_words[frequency] || 'Two'} Times A Day"
+  
+  {
+    quantity_per_pack: new_quantity_per_pack,
+    current_num_packs: new_current_num_packs,
+    directions: new_directions,
+    total_quantity: new_quantity_per_pack * new_current_num_packs,
+    times: normalized_times.to_json
+  }
+end
+
+def normalize_times(raw_times)
+  case raw_times
+  when Array
+    raw_times.map(&:to_s).map(&:strip).reject(&:blank?)
+  when String
+    begin
+      parsed = JSON.parse(raw_times)
+      parsed.is_a?(Array) ? parsed.map(&:to_s).map(&:strip).reject(&:blank?) : []
+    rescue JSON::ParserError
+      raw_times.split(',').map(&:strip).reject(&:blank?)
+    end
+  else
+    []
+  end
+end
+
+def sync_prepack_labels!(prepack, _target_num_packs)
+  now = Time.current
+
+  # Editing must never create/remove label rows. Keep operations within the same batch.
+  editable_labels = prepack.prepack_labels.where(voided: false, dispensed: false, dispensed_by: nil)
+
+  mismatched_ids = editable_labels
+    .joins(:bottle)
+    .where.not(general_inventories: { gn_inventory_id: prepack.bottle_id })
+    .pluck(:id)
+
+  if mismatched_ids.any?
+    prepack.prepack_labels.where(id: mismatched_ids).update_all(bottle_id: prepack.bottle_id, updated_at: now)
+  end
+
+  remaining_undispensed = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false, dispensed_by: nil).count
+
+  # Always persist an edit-side write on active labels so prepack_labels stays in sync transactionally.
+  # Only update labels where dispensed_by is null
+  prepack.prepack_labels
+         .where(deleted: false, voided: false, dispensed: false, dispensed_by: nil)
+         .update_all(bottle_id: prepack.bottle_id, updated_at: now)
+
+  prepack.update!(current_num_packs: remaining_undispensed)
+end
+
+def next_label_index_for(gn_identifier)
+  last_label = PrepackLabel
+    .where("label_identifier LIKE ?", "PK-#{gn_identifier}-%")
+    .order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED) DESC"))
+    .first
+
+  last_label ? last_label.label_identifier.split('-').last.to_i : 0
+end
+
+public
 
   def list
     # Try to get filters from session, use default if not found
@@ -315,16 +524,16 @@ class PrepackLabelsController < ApplicationController
                       .order(created_at: :desc)
 
     inventory = prepacks.map do |prepack|
-      labels = prepack.prepack_labels.where(deleted: false, voided: false)
+      labels = prepack.prepack_labels
 
       {
         id: prepack.id,
         bottle_id: prepack.bottle_id,
         gn_identifier: prepack.gn_identifier,
         drug_name: prepack.drug.name,
-        total_packs_created: prepack.current_num_packs,
+        total_packs_created: prepack.num_packs,
         quantity_per_pack: prepack.quantity_per_pack,
-        packs_remaining: labels.where(dispensed: false).count,
+        packs_remaining: labels.where(dispensed: [false, nil]).count,
         packs_dispensed: labels.where(dispensed: true).count,
         status: prepack.status,
         created_at: prepack.created_at,
