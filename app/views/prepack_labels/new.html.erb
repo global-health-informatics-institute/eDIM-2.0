@@ -1130,7 +1130,7 @@ prepackCheckboxes.forEach(cb => {
 });
 
 // Override the handleNextButton function to include validation
-const originalHandleNextButton = (typeof handleNextButton === 'function') ? handleNextButton : null;
+const originalHandleNextButton = handleNextButton;
 handleNextButton = function() {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   
@@ -1148,13 +1148,11 @@ handleNextButton = function() {
   }
   
   // Call original function if validation passes
-  if (typeof originalHandleNextButton === 'function') {
-    originalHandleNextButton();
-  }
+  originalHandleNextButton();
 };
 
 // Override the showDispenseDiv function
-const originalShowDispenseDiv = (typeof showDispenseDiv === 'function') ? showDispenseDiv : null;
+const originalShowDispenseDiv = showDispenseDiv;
 showDispenseDiv = function(option) {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   const currentDivId = currentDiv ? currentDiv.id : '';
@@ -1176,16 +1174,14 @@ showDispenseDiv = function(option) {
   }
   
   // Call original function if validation passes or if navigating to tabs before directions
-  if (typeof originalShowDispenseDiv === 'function') {
-    originalShowDispenseDiv.call(this, option);
-  }
+  originalShowDispenseDiv.call(this, option);
   
   // Update navigation after showing new div
   updatePrepackTabNavigation();
 };
 
 // Override the nextStep function to include validation
-const originalNextStep = (typeof nextStep === 'function') ? nextStep : null;
+const originalNextStep = nextStep;
 nextStep = function() {
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
   
@@ -1203,9 +1199,7 @@ nextStep = function() {
   }
   
   // Call original function if validation passes
-  if (typeof originalNextStep === 'function') {
-    originalNextStep();
-  }
+  originalNextStep();
   
   // Update navigation after moving to next step
   updatePrepackTabNavigation();
@@ -1255,10 +1249,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Reset validation
-const originalResetDispenseModal = (typeof resetDispenseModal === 'function') ? resetDispenseModal : function() {};
-resetDispenseModal = function(preserveEditState = false) {
+const originalResetDispenseModal = resetDispenseModal;
+resetDispenseModal = function() {
   // Call original function first
-  originalResetDispenseModal(preserveEditState);
+  originalResetDispenseModal();
   
   // Reset checkbox validation
   prepackCheckboxes.forEach(cb => {
@@ -1274,7 +1268,7 @@ resetDispenseModal = function(preserveEditState = false) {
 };
 
 // ValidateDisp with checkbox validation
-const originalValidateDisp = (typeof validateDisp === 'function') ? validateDisp : function() {};
+const originalValidateDisp = validateDisp;
 validateDisp = function() {
   // Check checkbox validation if on directions tab
   const currentDiv = document.querySelector('.mobi-div:not([style*="display: none"])');
@@ -1518,6 +1512,8 @@ function removePrepackFromList(id) {
     resetDispenseModal(); // This now properly resets everything
     prepackEditMode = false;
     editingPrepackId = null;
+    prepackEditMode = false;
+    editingPrepackId = null;
     
     // Reset modal state and reinitialize scanner
     isModalOpen = false;
@@ -1541,9 +1537,11 @@ function removePrepackFromList(id) {
             try {
               const result = JSON.parse(results);
               showDispenseForm();
+              showDispenseForm();
               document.getElementById('item').innerHTML = result['name'];
               document.getElementById('currQty').innerHTML = result['currentQty'];
               document.getElementById('bottle_id').innerHTML = bottleId;
+              document.getElementById('btl_field').value = bottleId;
               document.getElementById('btl_field').value = bottleId;
               showDispenseDiv('routesDiv');
             } catch(e){ 
@@ -1721,15 +1719,7 @@ function removePrepackFromList(id) {
       const tab = document.getElementById(tabId);
       if (tab) {
         // Reset all tabs to neutral except completed ones
-        // Reset all tabs to neutral except completed ones
         if (!completedTabs.has(tabId)) {
-          if (prepackEditMode) {
-            tab.style.backgroundColor = '#e5e7eb';
-            tab.style.color = '#111827';
-          } else {
-            tab.style.backgroundColor = '#2196F3';
-            tab.style.color = 'white';
-          }
           if (prepackEditMode) {
             tab.style.backgroundColor = '#e5e7eb';
             tab.style.color = '#111827';
@@ -1797,6 +1787,7 @@ function removePrepackFromList(id) {
   }
 
   function handleNextButton() {
+    if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
     if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
     else nextStep();
   }
@@ -2057,6 +2048,7 @@ function removePrepackFromList(id) {
     if (!numPacks || parseFloat(numPacks) <= 0) {
       alert("Please enter number of packs to print");
       showDispenseDiv('routesDiv'); // Show routes tab first when editing
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
       return;
     }
 
@@ -2100,30 +2092,31 @@ function removePrepackFromList(id) {
       return;
     }
 
-
-    if (prepackEditMode) {
-      saveEditedPrepackAndPrint();
-      return;
-    }
-
     // Before submitting, clear modal state so focus returns after submit
     isModalOpen = false;
     document.forms[0].submit();
   }
 
   function saveEditedPrepackAndPrint() {
-    const prepackId = editingPrepackId || document.getElementById('prepack_id')?.value;
+    const prepackIdEl = document.getElementById('prepack_id');
+    const prepackId = editingPrepackId || (prepackIdEl ? prepackIdEl.value : null);
     if (!prepackId) {
       showFlashError('Missing prepack id for edit.');
       return;
     }
 
-    const numPacks = document.getElementById('numPacks')?.value || '1';
-    const dose = document.getElementById('dose')?.value || '1';
-    const duration = document.getElementById('qty')?.value || '1';
-    const frequency = document.querySelector("input[name='frequency']:checked")?.value || 'BD';
-    const administration = document.querySelector("input[name='administration']:checked")?.value || 'oral';
-    const quantityPerPack = document.getElementById('dispensed_quantity')?.value || '0';
+    const numPacksEl = document.getElementById('numPacks');
+    const doseEl = document.getElementById('dose');
+    const durationEl = document.getElementById('qty');
+    const frequencyChecked = document.querySelector("input[name='frequency']:checked");
+    const administrationChecked = document.querySelector("input[name='administration']:checked");
+    const quantityPerPackEl = document.getElementById('dispensed_quantity');
+    const numPacks = (numPacksEl && numPacksEl.value) || '1';
+    const dose = (doseEl && doseEl.value) || '1';
+    const duration = (durationEl && durationEl.value) || '1';
+    const frequency = (frequencyChecked && frequencyChecked.value) || 'BD';
+    const administration = (administrationChecked && administrationChecked.value) || 'oral';
+    const quantityPerPack = (quantityPerPackEl && quantityPerPackEl.value) || '0';
     // Get selected times of day
     const selectedTimes = [];
     document.querySelectorAll('input[name="times[]"]:checked').forEach(checkbox => {
@@ -2145,63 +2138,7 @@ function removePrepackFromList(id) {
     fetch(`/prepack_labels/${prepackId}`, {
       method: 'PATCH',
       headers: {
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-      },
-      body: formData.toString(),
-      credentials: 'same-origin'
-    })
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        if (!data.success) throw new Error(data.error || 'Update failed');
-        showFlashMessage('Prepack updated. Printing label ...', 'notice', { transient: true, duration: 2000 });
-        printPrepackLabel(prepackId);
-        setTimeout(() => { window.location.reload(); }, 1800);
-      })
-      .catch(error => {
-        showFlashError(`Failed to save edits: ${error.message}`);
-      });
-  }
-
-  function saveEditedPrepackAndPrint() {
-    const prepackId = editingPrepackId || document.getElementById('prepack_id')?.value;
-    if (!prepackId) {
-      showFlashError('Missing prepack id for edit.');
-      return;
-    }
-
-    const numPacks = document.getElementById('numPacks')?.value || '1';
-    const dose = document.getElementById('dose')?.value || '1';
-    const duration = document.getElementById('qty')?.value || '1';
-    const frequency = document.querySelector("input[name='frequency']:checked")?.value || 'BD';
-    const administration = document.querySelector("input[name='administration']:checked")?.value || 'oral';
-    const quantityPerPack = document.getElementById('dispensed_quantity')?.value || '0';
-    // Get selected times of day
-    const selectedTimes = [];
-    document.querySelectorAll('input[name="times[]"]:checked').forEach(checkbox => {
-      selectedTimes.push(checkbox.value);
-    });
-
-    const formData = new URLSearchParams();
-    formData.append('num_packs', numPacks);
-    formData.append('quantity_per_pack', quantityPerPack);
-    formData.append('dose', dose);
-    formData.append('duration', duration);
-    formData.append('frequency', frequency);
-    formData.append('administration', administration);
-    formData.append('times', JSON.stringify(selectedTimes));
-    formData.append('format', 'json');
-
-    showFlashMessage('Saving prepack changes ...', 'notice', { transient: true, duration: 1000 });
-
-    fetch(`/prepack_labels/${prepackId}`, {
-      method: 'PATCH',
-      headers: {
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+        'X-CSRF-Token': (document.querySelector('meta[name="csrf-token"]') || {}).content,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       },
@@ -3278,8 +3215,8 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, 
   }
 
   // Determine damage type
-  const damageType = [...document.getElementsByName('damageType')]
-    .find(r => r.checked)?.value || 'pack';
+  const selectedDamageRadio = [...document.getElementsByName('damageType')].find(r => r.checked);
+  const damageType = (selectedDamageRadio && selectedDamageRadio.value) || 'pack';
 
   const maxQty = damageType === 'pack' ? maxQuantity : bottle_quantity;
   if (quantity > maxQty) {
@@ -3386,7 +3323,8 @@ function updateQuickSelectButtons() {
   const input = document.getElementById('damageQuantity');
   if (!buttons.length || !input) return;
 
-  const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+  const selectedDamageTypeEl = document.querySelector('input[name="damageType"]:checked');
+  const selectedType = selectedDamageTypeEl ? selectedDamageTypeEl.value : null;
 
   let maxAllowed = 0;
   if (selectedType === 'pack') {
@@ -3489,7 +3427,8 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
   let holdDirection = 0;
 
   function getCurrentMax() {
-    const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+    const selectedDamageTypeEl = document.querySelector('input[name="damageType"]:checked');
+    const selectedType = selectedDamageTypeEl ? selectedDamageTypeEl.value : null;
     if (selectedType === 'pack') return maxPacks;
     return bottle_quantity; // bottle
   }
@@ -3602,7 +3541,7 @@ function closeDamageModal() {
   }
 }
 
-// Close modal on escape key
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeDamageModal();
@@ -3655,10 +3594,6 @@ document.addEventListener('keydown', function(e) {
   transform: scale(1.3);
 }
 </style>
-
-
-
-
 <script>
 window.editPrepackInline = function(id) {
   prepackEditMode = true;
@@ -3681,7 +3616,7 @@ window.editPrepackInline = function(id) {
       document.getElementById('bottle_id').textContent = data.gn_identifier || '';
       document.getElementById('btl_field').value = data.gn_identifier || '';
       document.getElementById('currQty').textContent = data.bottle_quantity || 0;
-      document.getElementById('numPacks').value = data.num_packs || '';
+      document.getElementById('numPacks').value = data.current_num_packs || '';
       document.getElementById('dose').value = data.dose || '';
       document.getElementById('qty').value = data.duration || '';
 
@@ -3714,39 +3649,6 @@ window.editPrepackInline = function(id) {
       showFlashError(`Unable to load edit values: ${error.message}`);
     });
 };
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const barcodeInput = document.getElementById('barcode');
-  if (!barcodeInput) return;
-
-  function isModalVisible() {
-    const ids = ['dispenseForm2', 'modalOverlay', 'damageModalOverlay', 'prepackDetailModalOverlay'];
-    return ids.some((id) => {
-      const el = document.getElementById(id);
-      if (!el) return false;
-      const style = window.getComputedStyle(el);
-      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-    });
-  }
-
-  function keepBarcodeFocused() {
-    if (isModalVisible()) return;
-    if (barcodeInput.disabled) barcodeInput.disabled = false;
-    if (document.activeElement !== barcodeInput) {
-      barcodeInput.focus();
-      if (typeof barcodeInput.select === 'function') barcodeInput.select();
-    }
-  }
-
-  keepBarcodeFocused();
-  barcodeInput.addEventListener('blur', () => setTimeout(keepBarcodeFocused, 80));
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) setTimeout(keepBarcodeFocused, 80);
-  });
-  document.addEventListener('click', () => setTimeout(keepBarcodeFocused, 80), true);
-});
 </script>
 </body>
 </html>
