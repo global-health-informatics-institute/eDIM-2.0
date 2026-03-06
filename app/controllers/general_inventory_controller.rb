@@ -419,6 +419,9 @@ def create
               location_id: prepack.location_id || session[:location]
             )
           end
+          if prepack.prepack_labels.where(dispensed:1).count > 0
+            prepack.prepacks.where(:current_num_packs =>:num_packs - dispensed:1).count
+            
         end
 
         return render json: {
