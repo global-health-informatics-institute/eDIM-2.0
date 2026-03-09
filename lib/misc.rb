@@ -69,7 +69,12 @@ module Misc
     label.left_margin = 10
 
     # Text content
-    label.draw_multi_text("ID: #{bottle_id}", column_width: 2700)
+    id_line = "ID: #{bottle_id}"
+    if pack_id.present? && pack_id.start_with?("PK-")
+      pack_number = pack_id.to_s.split('-').last
+      id_line += "   Pack NO.: #{pack_number}"
+    end
+    label.draw_multi_text(id_line, column_width: 2700)
     label.draw_multi_text("Drug: #{item}", column_width: 2700)
     label.draw_multi_text("Dir : #{directions}", column_width: 2700)
 
@@ -92,9 +97,9 @@ module Misc
 
     #label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
 
-    #if pack_index && total_packs
-    # label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
-    #end
+    if pack_index && total_packs && (!pack_id.present? || !pack_id.start_with?("PK-"))
+      label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
+    end
 
     # Only draw barcode for PREPACK labels
     if pack_id.present? && pack_id.start_with?("PK-")
@@ -311,5 +316,3 @@ module Misc
     return mappings
   end
 end
-
-
