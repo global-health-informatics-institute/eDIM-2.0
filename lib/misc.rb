@@ -29,10 +29,11 @@ module Misc
     label.font_horizontal_multiplier = 1
     label.font_vertical_multiplier = 1
     label.left_margin = 10
+    label.x = label.left_margin
 
-    label_width = 609       
+    label_width = 809       
     text_x = 50              
-    column_width = 500       
+    column_width = 800       
     current_y = 30           
 
     # Draw text lines
@@ -66,7 +67,10 @@ module Misc
     label.font_size = 4
     label.font_horizontal_multiplier = 1
     label.font_vertical_multiplier = 1
-    label.left_margin = 10
+    label.left_margin = 20
+    label.right_margin = 20
+    label.x = label.left_margin
+    text_column_width = [label.width.to_i - (label.left_margin.to_i + label.right_margin.to_i), 200].max
 
     # Text content
     id_line = "ID: #{bottle_id}"
@@ -74,9 +78,9 @@ module Misc
       pack_number = pack_id.to_s.split('-').last
       id_line += "   Pack NO.: #{pack_number}"
     end
-    label.draw_multi_text(id_line, column_width: 2700)
-    label.draw_multi_text("Drug: #{item}", column_width: 2700)
-    label.draw_multi_text("Dir : #{directions}", column_width: 2700)
+    label.draw_multi_text(id_line, column_width: text_column_width)
+    label.draw_multi_text("Drug: #{item}", column_width: text_column_width)
+    label.draw_multi_text("Dir : #{directions}", column_width: text_column_width)
 
     # Format dose pattern directly from times hash
     if times.is_a?(Hash)
@@ -84,21 +88,21 @@ module Misc
     else
       dose_pattern = Misc.extract_dose_pattern(directions, times)
     end
-    label.draw_multi_text(dose_pattern, column_width: 2700) if dose_pattern.present?
+    label.draw_multi_text(dose_pattern, column_width: text_column_width) if dose_pattern.present?
 
-    label.draw_multi_text("QTY : #{quantity}", column_width: 2700)
+    label.draw_multi_text("QTY : #{quantity}", column_width: text_column_width)
 
     expiry_text = if expiration_date.blank? || expiration_date.to_s.strip.downcase.in?(%w[nil null])
       "Expiry: Unknown"
     else
       "Expiry: #{expiration_date.strftime('%d/%m/%Y')}"
     end
-    label.draw_multi_text(expiry_text, column_width: 2700)
+    label.draw_multi_text(expiry_text, column_width: text_column_width)
 
     #label.draw_multi_text("Date: #{date.strftime('%d/%m/%Y')}", column_width: 2700)
 
     if pack_index && total_packs && (!pack_id.present? || !pack_id.start_with?("PK-"))
-      label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: 2700)
+      label.draw_multi_text("Pack #{pack_index} of #{total_packs}", column_width: text_column_width)
     end
 
     # Only draw barcode for PREPACK labels
