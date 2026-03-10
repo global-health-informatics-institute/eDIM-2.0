@@ -591,43 +591,65 @@ img[src*="/assets/"] {
       </div>
     </div>
   </div>
+<!-- Modal for printing prepack labels -->
 
 <div id="modalOverlay" style="display:none;"></div>
-<div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; background:white; border:2px solid #006495; border-radius:12px; padding:25px; z-index:10001; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+<div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:300px; background:white; border:2px solid #006495; border-radius:10px; padding:10px; z-index:10001; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
   <div style="text-align:center;">
-    <h2 style="color:#006495; margin-top:0; font-size:2rem;">Print Prepack Label</h2>
-    
-     <div style="margin: 20px 0;">
+    <h2 style="color:#006495; margin:0 0 6px 0; font-size:1.3rem;">Print prepack label</h2>
+    <div style="margin: 6px 0;">
       <button onclick="printLowestUndispensed()" 
-              style="padding:18px 50px; font-size:1.5rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%;">
+              style="padding:8px 15px; font-size:1rem; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; width:100%; box-sizing:border-box;">
         Print undispensed label
       </button>
     </div>
     
-    <div style="border-top: 2px dashed #ccc; margin: 20px 0; padding-top: 20px;">
-      <h3 style="color:#666; font-size:1.4rem; margin-bottom:15px;">Or Manual Reprint</h3>
-      
-      <div style="margin: 15px 0; text-align:left;">
-        <label for="searchBottleId" style="font-weight:bold; font-size:1.3rem; display:block; margin-bottom:5px;">Bottle ID (e.g., G0000042):</label>
-        <input type="text" id="searchBottleId" autocomplete="off" 
-               style="width:100%; padding:12px; font-size:1.4rem; border:2px solid #006495; border-radius:5px; box-sizing:border-box;">
+    <div style="border-top: 2px dashed #ccc; margin: 6px 0; padding-top: 6px;">
+      <h3 style="color:#666; font-size:0.9rem; margin-bottom:5px;">Manual Reprint</h3>
+      <div style="margin: 3px 0; text-align:left;">
+        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:2px;">Bottle ID:</label>
+        <input type="text" id="searchBottleId" autocomplete="off" readonly
+               style="width:100%; padding:5px; font-size:0.95rem; border:2px solid #006495; border-radius:4px; box-sizing:border-box; cursor:pointer;">
       </div>
       
-      <div style="margin: 15px 0; text-align:left;">
-        <label for="searchPackNo" style="font-weight:bold; font-size:1.3rem; display:block; margin-bottom:5px;">Pack Number (e.g., 4):</label>
-        <input type="text" id="searchPackNo" autocomplete="off" 
-               style="width:100%; padding:12px; font-size:1.4rem; border:2px solid #006495; border-radius:5px; box-sizing:border-box;">
+      <!-- Simple Touch Keypad for Bottle ID - Fixed width buttons -->
+      <div style="display:flex; flex-wrap:wrap; gap:2px; justify-content:center; margin-bottom:6px; box-sizing:border-box;">
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '1')">1</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '2')">2</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '3')">3</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'G')">G</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '4')">4</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '5')">5</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '6')">6</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'P')">P</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '7')">7</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '8')">8</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '9')">9</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'K')">K</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'del')">DEL</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '0')">0</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '-')">-</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:30%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#006495; color:white; cursor:pointer;" onclick="document.getElementById('searchPackNo').focus();">NEXT</button>
+      </div>
+      
+      <!-- Pack Number with Up/Down -->
+      <div style="margin: 4px 0; text-align:left;">
+        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:2px;">Pack Number:</label>
+        <div style="display:flex; align-items:center; gap:4px;">
+          <button type="button" onclick="adjustPackNumber(-1)" style="padding:5px 8px; font-size:0.9rem; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer;">-</button>
+          <input type="text" id="searchPackNo" autocomplete="off" readonly
+                 style="width:45px; padding:5px; font-size:0.9rem; border:2px solid #006495; border-radius:3px; text-align:center;">
+          <button type="button" onclick="adjustPackNumber(1)" style="padding:5px 8px; font-size:0.9rem; background:#28a745; color:white; border:none; border-radius:3px; max-width:16%;  cursor:pointer;">+</button>
+        </div>
       </div>
       
       <button onclick="searchAndPrintLabel()" 
-              style="padding:15px 40px; font-size:1.4rem; background:#006495; color:white; border:none; border-radius:5px; cursor:pointer;">
-        Reprint Specific Label
+              style="padding:6px 15px; font-size:0.85rem; background:#006495; color:white; border:none; border-radius:3px; cursor:pointer; margin-top:5px;">
+        Reprint
       </button>
-    </div>
-    
-    <div style="margin-top:20px;">
-      <button onclick="closePrinterModal()" 
-              style="padding:12px 30px; font-size:1.2rem; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
+      
+      <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
+              style="padding:5px 12px; font-size:0.8rem; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer; margin-left:4px;">
         Cancel
       </button>
     </div>
@@ -1706,24 +1728,48 @@ function removePrepackFromList(id) {
   // Global variable to store the current prepack ID for the printer modal
   var currentPrepackId = null;
 
+  // Helper function for touchscreen keypad
+  function appendToField(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    
+    if (value === 'del') {
+      field.value = field.value.slice(0, -1);
+    } else {
+      field.value += value;
+    }
+  }
+
+  // Adjust pack number by increment/decrement
+  function adjustPackNumber(delta) {
+    const field = document.getElementById('searchPackNo');
+    if (!field) return;
+    
+    let current = parseInt(field.value) || 0;
+    let newVal = current + delta;
+    if (newVal < 0) newVal = 0;
+    field.value = newVal.toString();
+  }
+
   // Open the printer modal
   function openPrinterModal(prepackId) {
-    // Handle case where prepackId might be null or undefined
-    if (prepackId == null || prepackId === 'null' || prepackId === '') {
+    // Handle case where prepackId might be null, undefined, or empty string
+    if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined') {
       showFlashMessage('Error: No prepack selected', 'error', { transient: true, duration: 30000 });
+      console.log('Print error: prepackId =', prepackId);
       return;
     }
+    
+    console.log('Opening printer modal for prepack:', prepackId);
     
     currentPrepackId = prepackId;
     document.getElementById('printerModal').style.display = 'block';
     document.getElementById('printerModalShadow').style.display = 'block';
     document.getElementById('searchBottleId').value = '';
     document.getElementById('searchPackNo').value = '';
-    // Focus on the Print Lowest Undispensed button for quick action
+    // Focus on the bottle ID input
     setTimeout(function() {
-      // Find the first button in the modal and focus it
-      var btn = document.querySelector('#printerModal button');
-      if (btn) btn.focus();
+      document.getElementById('searchBottleId').focus();
     }, 100);
   }
 
@@ -1744,11 +1790,20 @@ function removePrepackFromList(id) {
 
   // Print the lowest undispensed label
   function printLowestUndispensed() {
+    console.log('printLowestUndispensed called, currentPrepackId =', currentPrepackId);
+    
+    if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
+      showFlashMessage('Error: No prepack selected', 'error', { transient: true, duration: 30000 });
+      console.log('Print error: currentPrepackId =', currentPrepackId);
+      return;
+    }
+    
     closePrinterModal();
     
     const frame = document.getElementById('prepackPrintFrame');
     // Print the lowest undispensed label for this prepack
     let printUrl = `/print_dispensation_label/PREPACK-${currentPrepackId}?print_lowest_undispensed=1&_ts=${Date.now()}`;
+    console.log('Print URL:', printUrl);
     showFlashMessage('Finding and printing lowest undispensed label ...', 'notice', { transient: true, duration: 30000 });
 
     if (!frame) {
@@ -1785,7 +1840,6 @@ function removePrepackFromList(id) {
     const frame = document.getElementById('prepackPrintFrame');
 
     // Build the full label_identifier: PK-{bottle_id}-{pack_no}
-    // Example: PK-G0000042-4 where G0000042 is bottle_id and 4 is pack number (index)
     let cleanBottleId = bottleId;
     // Remove PK- prefix if user included it
     if (cleanBottleId.toUpperCase().startsWith('PK-')) {
