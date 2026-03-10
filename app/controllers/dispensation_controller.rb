@@ -290,10 +290,19 @@ class DispensationController < ApplicationController
     end
 
     single = params[:single].to_s == "1"
+    print_all_undispensed = params[:print_all_undispensed].to_s == "1"
+    print_lowest_undispensed = params[:print_lowest_undispensed].to_s == "1"
 
     # Prepacking drugs
     if params[:id].to_s.start_with?("PREPACK-")
-      prepack = Prepack.find_by(id: params[:id].delete_prefix("PREPACK-"))
+      prepack_id = params[:id].delete_prefix("PREPACK-").to_i
+      
+      # Check if prepack_id is valid
+      if prepack_id.nil? || prepack_id == 0
+        return render plain: "Invalid prepack ID", status: :bad_request
+      end
+      
+      prepack = Prepack.find_by(id: prepack_id)
       return render plain: "Prepack batch not found", status: :not_found unless prepack
 
       dose_map = build_dose_map.call(prepack.directions, prepack.times)
@@ -302,7 +311,20 @@ class DispensationController < ApplicationController
       expiration_date = normalize_expiration.call(bottle&.expiration_date)
 
       labels = PrepackLabel.where(prepack_id: prepack.id).order(:id)
-      labels = labels.first(1) if single
+      
+      # Handle different print options
+      if print_all_undispensed
+        # Print all undispensed labels
+        labels = labels.where(dispensed: [false, nil])
+      elsif print_lowest_undispensed
+        # Print only the lowest undispensed label
+        labels = labels.where(dispensed: [false, nil]).order(:id).limit(1)
+        if labels.empty?
+          return render plain: "No undispensed labels found", status: :not_found
+        end
+      elsif single
+        labels = labels.first(1)
+      end
 
       labels.each_with_index do |label, index|
         print_string += Misc.create_dispensation_label(
@@ -313,8 +335,8 @@ class DispensationController < ApplicationController
           prepack.created_at,
           times: dose_map,
           pack_id: label.label_identifier,
-          pack_index: single ? nil : index + 1,
-          total_packs: single ? nil : labels.size,
+          pack_index: (print_all_undispensed || print_lowest_undispensed || single) ? nil : index + 1,
+          total_packs: print_all_undispensed ? nil : labels.size,
           bottle_id: prepack.gn_identifier,
           expiration_date: expiration_date
         )
@@ -364,6 +386,105 @@ class DispensationController < ApplicationController
     else
       return render plain: "Invalid label request", status: :not_found
     end
+
+    send_data(
+      print_string,
+      type: "application/label; charset=utf-8",
+      disposition: "inline",
+      filename: "#{('a'..'z').to_a.sample(8).join}.lbl"
+    )
+  end
+
+  def search_and_print_label
+    print_string = ""
+
+    slots = %w[morning afternoon evening night]
+
+    build_dose_map = lambda do |directions, raw_times|
+      times =
+        case raw_times
+        when String then JSON.parse(raw_times)
+        when Array  then raw_times
+        else []
+        end
+
+      times = times.map(&:strip).map(&:downcase)
+
+      dose = directions.to_s[/Take\s+(\d+)/i, 1].to_i
+      dose = 1 if dose <= 0
+
+      slots.each_with_object({}) do |slot, h|
+        h[slot.to_sym] = times.include?(slot) ? dose : 0
+      end
+    end
+
+    normalize_expiration = lambda do |exp|
+      return nil if exp.blank?
+      return exp if exp.is_a?(Date) || exp.is_a?(Time)
+      Date.parse(exp.to_s) rescue nil
+    end
+
+    # Search for label by label_identifier (e.g., PK-G0000059-2-001)
+    label_identifier = params[:label_identifier].to_s.strip
+    
+    return render plain: "Label identifier is required", status: :bad_request if label_identifier.blank?
+
+    # Debug: log what's being searched
+    Rails.logger.debug "Searching for label: #{label_identifier}"
+    
+    # Try to find the label by label_identifier (include deleted for debugging)
+    label = PrepackLabel.where(deleted: [false, nil], voided: [false, nil]).find_by(label_identifier: label_identifier)
+    
+    Rails.logger.debug "Exact match result: #{label.inspect}"
+    
+    # If not found, try to find by partial match (starts with)
+    if label.nil?
+      label = PrepackLabel.where(deleted: [false, nil], voided: [false, nil]).where("label_identifier LIKE ?", "#{label_identifier}%").first
+      Rails.logger.debug "LIKE match result: #{label.inspect}"
+    end
+    
+    if label.nil?
+      # Try without deleted/voided filter
+      label = PrepackLabel.find_by(label_identifier: label_identifier)
+      Rails.logger.debug "No filter match result: #{label.inspect}"
+      
+      if label.nil?
+        return render plain: "Label not found: #{label_identifier}", status: :not_found
+      end
+      
+      # Check if label exists but is deleted/voided
+      if label.deleted || label.voided
+        return render plain: "Label exists but is #{label.deleted ? 'deleted' : 'voided'}: #{label_identifier}", status: :not_found
+      end
+    end
+
+    # Check if label is already dispensed
+    if label.dispensed == true || label.dispensed == 1
+      return render plain: "Label already dispensed: #{label_identifier}", status: :conflict
+    end
+
+    # Get the prepack batch
+    prepack = label.prepack
+    return render plain: "Prepack batch not found for this label", status: :not_found unless prepack
+
+    dose_map = build_dose_map.call(prepack.directions, prepack.times)
+
+    bottle = prepack.bottle
+    expiration_date = normalize_expiration.call(bottle&.expiration_date)
+
+    print_string = Misc.create_dispensation_label(
+      prepack.drug.name,
+      prepack.quantity_per_pack,
+      prepack.directions,
+      "",
+      prepack.created_at,
+      times: dose_map,
+      pack_id: label.label_identifier,
+      pack_index: nil,
+      total_packs: nil,
+      bottle_id: prepack.gn_identifier,
+      expiration_date: expiration_date
+    )
 
     send_data(
       print_string,
