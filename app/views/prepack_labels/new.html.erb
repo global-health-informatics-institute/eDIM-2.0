@@ -380,7 +380,9 @@ img[src*="/assets/"] {
               <% next if prepack.blank? %>
                 <div id="prepack_row_<%= prepack[:id] %>" 
                   style="display: table-cell; width: 49vw; padding: 5px;" 
-                  data-prepack-id="<%= prepack[:id] %>">
+                  data-prepack-id="<%= prepack[:id] %>"
+                  data-gn-identifier="<%= prepack[:gn_identifier] %>"
+                  data-packs-remaining="<%= prepack[:packs_remaining] %>">
                   <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
                       padding: 8px; margin: 3px; 
                       background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
@@ -601,65 +603,74 @@ img[src*="/assets/"] {
 <!-- Modal for printing prepack labels -->
 
 <div id="modalOverlay" style="display:none;"></div>
-<div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:300px; background:white; border:2px solid #006495; border-radius:10px; padding:10px; z-index:99999; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-  <div style="text-align:center;">
-    <h2 style="color:#006495; margin:0 0 6px 0; font-size:1.3rem;">Print prepack label</h2>
-    <div style="margin: 6px 0;">
-      <button onclick="printLowestUndispensed()" 
-              style="padding:8px 15px; font-size:1rem; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; width:100%; box-sizing:border-box;">
-        Print undispensed label 
-      </button>
-    </div>
-    
-    <div style="border-top: 2px dashed #ccc; margin: 6px 0; padding-top: 6px;">
-      <h3 style="color:#666; font-size:0.9rem; margin-bottom:5px;">Manual Reprint</h3>
-      <div style="margin: 3px 0; text-align:left;">
-        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:2px;">Bottle ID:</label>
-        <input type="text" id="searchBottleId" autocomplete="off" readonly
-               style="width:100%; padding:5px; font-size:0.95rem; border:2px solid #006495; border-radius:4px; box-sizing:border-box; cursor:pointer;">
-      </div>
-      
-      <div style="display:flex; flex-wrap:wrap; gap:2px; justify-content:center; margin-bottom:6px; box-sizing:border-box;">
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '1')">1</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '2')">2</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '3')">3</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'G')">G</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '4')">4</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '5')">5</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '6')">6</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'P')">P</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '7')">7</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '8')">8</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '9')">9</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'K')">K</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'del')">DEL</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '0')">0</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '-')">-</button>
-        <button type="button" style="flex:1; min-width:30%; max-width:30%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#006495; color:white; cursor:pointer;" onclick="document.getElementById('searchPackNo').focus();">NEXT</button>
-      </div>
-      
-      <!-- Pack Number with Up/Down -->
-      <div style="margin: 4px 0; text-align:left; justify-content:center; display:flex; flex-direction:column; align-items:center;">
-        <label style="font-weight:bold; font-size:0.88rem; display:block; margin-bottom:2px;">Pack Number:</label>
-        <div style="display:flex; align-items:center; gap:3px;">
-          <button type="button" onclick="adjustPackNumber(-1)" style="padding:4px 6px; min-width:90px; font-size:0.8rem; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer;">-</button>
-          <input type="text" id="searchPackNo" autocomplete="off" readonly
-                 style="width:40px; padding:4px; font-size:0.85rem; border:2px solid #006495; border-radius:3px; text-align:center;">
-          <button type="button" onclick="adjustPackNumber(1)" style="padding:4px 6px; min-width:90px; font-size:0.8rem; background:#28a745; color:white; border:none; border-radius:3px; cursor:pointer;">+</button>
-        </div>
-      </div>
-      
-      <button onclick="searchAndPrintLabel()" 
-              style="padding:6px 15px; font-size:0.85rem; background:#006495; color:white; border:none; border-radius:3px; cursor:pointer; margin-top:5px;">
-        Reprint
-      </button>
-      
-      <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
-              style="padding:5px 12px; font-size:0.8rem; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer; margin-left:4px;">
-        Cancel
-      </button>
+<div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:60%; max-width:650px; background:white; border:2px solid #006495; border-radius:16px; padding:24px; z-index:99999; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+  
+  <!-- Header -->
+  <div style="text-align:center; margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid #e9ecef;">
+    <h2 style="color:#006495; margin:0; font-size:1.8rem; font-weight:bold;">Print Prepack Labels</h2>
+  </div>
+  
+  <div style="margin-bottom:24px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #006495; border-radius:12px; background:#006495; cursor:pointer; font-size:1.2rem; font-weight:600; color:white; min-height:50px;"
+             onclick="switchPrintOption('single')">
+        <input type="radio" name="printOption" value="single" checked style="display:none;">
+        Print Single Pack
+      </label>
+      <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #dee2e6; border-radius:12px; background:#f8f9fa; cursor:pointer; font-size:1.2rem; font-weight:600; color:#495057; min-height:50px;"
+             onclick="switchPrintOption('all')">
+        <input type="radio" name="printOption" value="all" style="display:none;">
+        Print All Available
+      </label>
     </div>
   </div>
+  
+  <div id="singlePackSection">
+    <div style="margin-bottom:20px;">
+      <label style="font-weight:bold; font-size:1rem; display:block; margin-bottom:8px; color:#495057;">Bottle ID (Auto-filled)</label>
+      <input type="text" id="searchBottleId" autocomplete="off" readonly
+             style="width:100%; padding:12px; font-size:1.2rem; border:2px solid #006495; border-radius:8px; box-sizing:border-box; background:#e9ecef; color:#495057; font-weight:600;">
+    </div>
+    
+    <!-- Pack Number with Large Controls -->
+    <div style="margin-bottom:24px;">
+      <label style="font-weight:bold; font-size:1rem; display:block; margin-bottom:8px; color:#495057;">Pack Number</label>
+      <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+        <button type="button" onclick="adjustPackNumber(-1)" 
+                style="width:60px; height:60px; border:none; border-radius:12px; background:#dc3545; color:white; font-size:2rem; cursor:pointer;">-</button>
+        <input type="number" id="searchPackNo" value="1" min="1" max="10000"
+               style="width:120px; padding:12px; font-size:1.5rem; border:2px solid #006495; border-radius:8px; text-align:center; font-weight:600;">
+        <button type="button" onclick="adjustPackNumber(1)" 
+                style="width:60px; height:60px; border:none; border-radius:12px; background:#28a745; color:white; font-size:2rem; cursor:pointer;">+</button>
+      </div>
+    </div>
+    
+    <!-- Print Single Button -->
+    <button onclick="searchAndPrintLabel()" 
+            style="padding:16px 32px; font-size:1.3rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%;">
+      Print Single Pack
+    </button>
+  </div>
+  
+  <!-- Print All Section (hidden by default) -->
+  <div id="printAllSection" style="display:none;">
+    <div style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border:2px solid #dee2e6; padding:20px; border-radius:12px; margin-bottom:20px; text-align:center;">
+      <div style="font-size:1.2rem; color:#6c757d; margin-bottom:8px;">Available Labels</div>
+      <div id="availableLabelsCount" style="font-size:2rem; font-weight:bold; color:#28a745;">--</div>
+    </div>
+    
+    <!-- Print All Button -->
+    <button onclick="printAllAvailableLabels()" 
+            style="padding:16px 32px; font-size:1.3rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%;">
+      Print All Available Labels
+    </button>
+  </div>
+  
+  <!-- Cancel Button -->
+  <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
+          style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%;">
+    Cancel
+  </button>
 </div>
 
 <!-- Shadow layer for printer modal -->
@@ -1711,7 +1722,7 @@ function removePrepackFromList(id) {
     
     // Validate prepackId
     if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined' || prepackId === 'NaN') {
-      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 3000 });
+      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 800 });
       console.log('printPrepackLabel error: invalid prepackId =', prepackId);
       return;
     }
@@ -1719,7 +1730,7 @@ function removePrepackFromList(id) {
     // Validate it's a valid number
     const prepackNum = Number(prepackId);
     if (isNaN(prepackNum) || prepackNum === 0) {
-      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 3000 });
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 800 });
       console.log('printPrepackLabel error: prepackId is not valid:', prepackId);
       return;
     }
@@ -1727,7 +1738,7 @@ function removePrepackFromList(id) {
     const frame = document.getElementById('prepackPrintFrame');
     const printUrl = `/print_dispensation_label/PREPACK-${prepackId}?single=1&_ts=${Date.now()}`;
 
-    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 3000 });
+    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 800 });
 
     if (!frame) {
       window.location = printUrl;
@@ -1770,8 +1781,72 @@ function removePrepackFromList(id) {
     
     let current = parseInt(field.value) || 0;
     let newVal = current + delta;
-    if (newVal < 0) newVal = 0;
+    if (newVal < 1) newVal = 1;
+    if (newVal > 10000) newVal = 10000;
     field.value = newVal.toString();
+  }
+  
+  // Switch between print options
+  function switchPrintOption(option) {
+    const singleSection = document.getElementById('singlePackSection');
+    const allSection = document.getElementById('printAllSection');
+    const singleOption = document.getElementById('printSingleOption');
+    const allOption = document.getElementById('printAllOption');
+    
+    if (option === 'single') {
+      singleSection.style.display = 'block';
+      allSection.style.display = 'none';
+      singleOption.style.background = '#006495';
+      singleOption.style.color = 'white';
+      singleOption.style.borderColor = '#006495';
+      allOption.style.background = '#f8f9fa';
+      allOption.style.color = '#495057';
+      allOption.style.borderColor = '#dee2e6';
+    } else {
+      singleSection.style.display = 'none';
+      allSection.style.display = 'block';
+      singleOption.style.background = '#f8f9fa';
+      singleOption.style.color = '#495057';
+      singleOption.style.borderColor = '#dee2e6';
+      allOption.style.background = '#28a745';
+      allOption.style.color = 'white';
+      allOption.style.borderColor = '#28a745';
+    }
+  }
+  
+  // Print all available labels
+  function printAllAvailableLabels() {
+    if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
+      showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 5000 });
+      return;
+    }
+    
+    const prepackIdToPrint = currentPrepackId;
+    const frame = document.getElementById('prepackPrintFrame');
+    let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
+    
+    console.log('Print All URL:', printUrl);
+    showFlashMessage('Printing all available labels ...', 'notice', { transient: true, duration: 5000 });
+    
+    closePrinterModal();
+    
+    if (!frame) {
+      window.location = printUrl;
+      return;
+    }
+    
+    if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+    prepackPrintFallbackTimer = setTimeout(function() {
+      hideFlashMessage();
+    }, 30000);
+    
+    frame.onload = function() {
+      if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+      hideFlashMessage();
+      frame.onload = null;
+    };
+    
+    frame.src = printUrl;
   }
 
   // Open the printer modal
@@ -1781,7 +1856,7 @@ function removePrepackFromList(id) {
     console.log('openPrinterModal called with:', prepackId, typeof prepackId);
     
     if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined' || prepackId === 'NaN') {
-      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 30000 });
+      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 5000 });
       console.log('Print error: prepackId =', prepackId);
       return;
     }
@@ -1789,7 +1864,7 @@ function removePrepackFromList(id) {
     // Try to convert to number and back to ensure it's valid
     const prepackNum = Number(prepackId);
     if (isNaN(prepackNum) || prepackNum === 0) {
-      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 30000 });
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 5000 });
       console.log('Print error: prepackId is not a valid number:', prepackId);
       return;
     }
@@ -1797,14 +1872,43 @@ function removePrepackFromList(id) {
     console.log('Opening printer modal for prepack:', prepackId);
     
     currentPrepackId = prepackId;
+    
+    // Get prepack data from the DOM
+    const prepackRow = document.getElementById('prepack_row_' + prepackId);
+    let bottleId = '';
+    let packsRemaining = 0;
+    
+    if (prepackRow) {
+      // Try to get gn_identifier from the prepack data
+      const gnIdentifier = prepackRow.getAttribute('data-gn-identifier');
+      if (gnIdentifier) {
+        bottleId = gnIdentifier;
+      }
+      packsRemaining = parseInt(prepackRow.getAttribute('data-packs-remaining')) || 0;
+    }
+    
+    // If no bottle ID found, try to get from the view options menu
+    if (!bottleId) {
+      const viewOptions = document.getElementById('view_options_' + prepackId);
+      if (viewOptions) {
+        // Try to find bottle ID in the view options
+        const bottleMatch = viewOptions.textContent.match(/Bottle:\s*(G\d+)/i);
+        if (bottleMatch) {
+          bottleId = bottleMatch[1];
+        }
+      }
+    }
+    
+    // Update the modal
+    document.getElementById('searchBottleId').value = bottleId || '';
+    document.getElementById('searchPackNo').value = '1';
+    document.getElementById('availableLabelsCount').textContent = packsRemaining + ' labels';
+    
+    // Reset to single print option
+    switchPrintOption('single');
+    
     document.getElementById('printerModal').style.display = 'block';
     document.getElementById('printerModalShadow').style.display = 'block';
-    document.getElementById('searchBottleId').value = '';
-    document.getElementById('searchPackNo').value = '';
-    // Focus on the bottle ID input
-    setTimeout(function() {
-      document.getElementById('searchBottleId').focus();
-    }, 100);
   }
 
   // Close the printer modal and return focus to barcode input
@@ -1892,7 +1996,7 @@ function removePrepackFromList(id) {
       return;
     }
 
-    // Validate bottle ID format (should be G followed by digits)
+    // Validate bottle ID format (should be G followed by digits, or PK-G followed by digits)
     let cleanBottleId = bottleId;
     // Remove PK- prefix if user included it
     if (cleanBottleId.toUpperCase().startsWith('PK-')) {
@@ -1901,7 +2005,7 @@ function removePrepackFromList(id) {
     
     // Check if it's a valid format (should start with G and have enough digits)
     if (!/^G\d+$/i.test(cleanBottleId)) {
-      showFlashMessage('Invalid Bottle ID format. Should be like G0000059', 'error', { transient: true, duration: 5000 });
+      showFlashMessage('Invalid Bottle ID format. Should be like G0000059 or PK-G0000059', 'error', { transient: true, duration: 5000 });
       return;
     }
     
