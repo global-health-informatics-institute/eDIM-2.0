@@ -314,8 +314,9 @@ class DispensationController < ApplicationController
       
       # Handle different print options
       if print_all_undispensed
-        # Print all undispensed labels
-        labels = labels.where(dispensed: [false, nil])
+        # Print all undispensed labels (not deleted AND not dispensed)
+        # deleted = 0 means not deleted, dispensed = 0 means not dispensed
+        labels = labels.where(deleted: 0, dispensed: 0)
       elsif print_lowest_undispensed
         # Print only the lowest undispensed label
         labels = labels.where(dispensed: [false, nil]).order(:id).limit(1)
@@ -432,19 +433,19 @@ class DispensationController < ApplicationController
     # Debug: log what's being searched
     Rails.logger.debug "Searching for label: #{label_identifier}"
     
-    # Try to find the label by label_identifier (include deleted for debugging)
-    label = PrepackLabel.where(deleted: [false, nil], voided: [false, nil]).find_by(label_identifier: label_identifier)
+    # Try to find the label by label_identifier (deleted = 0, dispensed = 0 for available)
+    label = PrepackLabel.where(deleted: 0, dispensed: 0).find_by(label_identifier: label_identifier)
     
     Rails.logger.debug "Exact match result: #{label.inspect}"
     
     # If not found, try to find by partial match (starts with)
     if label.nil?
-      label = PrepackLabel.where(deleted: [false, nil], voided: [false, nil]).where("label_identifier LIKE ?", "#{label_identifier}%").first
+      label = PrepackLabel.where(deleted: 0, dispensed: 0).where("label_identifier LIKE ?", "#{label_identifier}%").first
       Rails.logger.debug "LIKE match result: #{label.inspect}"
     end
     
     if label.nil?
-      # Try without deleted/voided filter
+      # Try without deleted/undispensed filter
       label = PrepackLabel.find_by(label_identifier: label_identifier)
       Rails.logger.debug "No filter match result: #{label.inspect}"
       
@@ -452,15 +453,15 @@ class DispensationController < ApplicationController
         return render plain: "Label not found: #{label_identifier}", status: :not_found
       end
       
-      # Check if label exists but is deleted/voided
-      if label.deleted || label.voided
-        return render plain: "Label exists but is #{label.deleted ? 'deleted' : 'voided'}: #{label_identifier}", status: :not_found
+      # Check if label exists but is deleted
+      if label.deleted == 1
+        return render plain: "Label is deleted: #{label_identifier}", status: :not_found
       end
-    end
-
-    # Check if label is already dispensed
-    if label.dispensed == true || label.dispensed == 1
-      return render plain: "Label already dispensed: #{label_identifier}", status: :conflict
+      
+      # Check if label is already dispensed
+      if label.dispensed == 1
+        return render plain: "Label already dispensed: #{label_identifier}", status: :conflict
+      end
     end
 
     # Get the prepack batch
