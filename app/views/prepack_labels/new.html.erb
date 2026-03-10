@@ -505,12 +505,19 @@ img[src*="/assets/"] {
                         </div>                        
                         
                         <!-- Print Button -->
+                        <% prepack_id = prepack[:id] || prepack['id'] rescue nil %>
+                        <% if prepack_id && prepack[:packs_remaining].to_i > 0 %>
                         <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
                             src="/assets/print.png" 
                             title="Print prepack labels"
-                            onmousedown="event.stopPropagation(); openPrinterModal('<%= prepack[:id] %>');"
+                            onmousedown="event.stopPropagation(); openPrinterModal('<%= prepack_id %>');"
                             onmouseover="this.style.transform='scale(1.1)'"
                             onmouseout="this.style.transform='scale(1)'">
+                        <% else %>
+                        <img style="cursor: not-allowed; width: 40px; height: 40px; opacity: 0.5;" 
+                            src="/assets/print.png" 
+                            title="<%= prepack_id ? 'All packs dispensed - cannot print' : 'No prepack ID' %>">
+                        <% end %>
                         
                         <!-- Delete/Cancel Button -->
                         
@@ -594,13 +601,13 @@ img[src*="/assets/"] {
 <!-- Modal for printing prepack labels -->
 
 <div id="modalOverlay" style="display:none;"></div>
-<div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:300px; background:white; border:2px solid #006495; border-radius:10px; padding:10px; z-index:10001; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+<div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:300px; background:white; border:2px solid #006495; border-radius:10px; padding:10px; z-index:99999; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
   <div style="text-align:center;">
     <h2 style="color:#006495; margin:0 0 6px 0; font-size:1.3rem;">Print prepack label</h2>
     <div style="margin: 6px 0;">
       <button onclick="printLowestUndispensed()" 
               style="padding:8px 15px; font-size:1rem; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; width:100%; box-sizing:border-box;">
-        Print undispensed label
+        Print undispensed label 
       </button>
     </div>
     
@@ -612,34 +619,33 @@ img[src*="/assets/"] {
                style="width:100%; padding:5px; font-size:0.95rem; border:2px solid #006495; border-radius:4px; box-sizing:border-box; cursor:pointer;">
       </div>
       
-      <!-- Simple Touch Keypad for Bottle ID - Fixed width buttons -->
       <div style="display:flex; flex-wrap:wrap; gap:2px; justify-content:center; margin-bottom:6px; box-sizing:border-box;">
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '1')">1</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '2')">2</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '3')">3</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'G')">G</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '4')">4</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '5')">5</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '6')">6</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'P')">P</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '7')">7</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '8')">8</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '9')">9</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'K')">K</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', 'del')">DEL</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '0')">0</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onmousedown="appendToField('searchBottleId', '-')">-</button>
-        <button type="button" style="flex:1; min-width:22%; max-width:30%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#006495; color:white; cursor:pointer;" onclick="document.getElementById('searchPackNo').focus();">NEXT</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '1')">1</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '2')">2</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '3')">3</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'G')">G</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '4')">4</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '5')">5</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '6')">6</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'P')">P</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '7')">7</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '8')">8</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '9')">9</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'K')">K</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', 'del')">DEL</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.9rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '0')">0</button>
+        <button type="button" style="flex:1; min-width:22%; max-width:22%; padding:6px 1px; font-size:0.8rem; border:1px solid #999; border-radius:3px; background:#77B1D4; cursor:pointer;" onclick="appendToField('searchBottleId', '-')">-</button>
+        <button type="button" style="flex:1; min-width:30%; max-width:30%; padding:6px 1px; font-size:0.7rem; border:1px solid #999; border-radius:3px; background:#006495; color:white; cursor:pointer;" onclick="document.getElementById('searchPackNo').focus();">NEXT</button>
       </div>
       
       <!-- Pack Number with Up/Down -->
-      <div style="margin: 4px 0; text-align:left;">
-        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:2px;">Pack Number:</label>
-        <div style="display:flex; align-items:center; gap:4px;">
-          <button type="button" onclick="adjustPackNumber(-1)" style="padding:5px 8px; font-size:0.9rem; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer;">-</button>
+      <div style="margin: 4px 0; text-align:left; justify-content:center; display:flex; flex-direction:column; align-items:center;">
+        <label style="font-weight:bold; font-size:0.88rem; display:block; margin-bottom:2px;">Pack Number:</label>
+        <div style="display:flex; align-items:center; gap:3px;">
+          <button type="button" onclick="adjustPackNumber(-1)" style="padding:4px 6px; min-width:90px; font-size:0.8rem; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer;">-</button>
           <input type="text" id="searchPackNo" autocomplete="off" readonly
-                 style="width:45px; padding:5px; font-size:0.9rem; border:2px solid #006495; border-radius:3px; text-align:center;">
-          <button type="button" onclick="adjustPackNumber(1)" style="padding:5px 8px; font-size:0.9rem; background:#28a745; color:white; border:none; border-radius:3px; max-width:16%;  cursor:pointer;">+</button>
+                 style="width:40px; padding:4px; font-size:0.85rem; border:2px solid #006495; border-radius:3px; text-align:center;">
+          <button type="button" onclick="adjustPackNumber(1)" style="padding:4px 6px; min-width:90px; font-size:0.8rem; background:#28a745; color:white; border:none; border-radius:3px; cursor:pointer;">+</button>
         </div>
       </div>
       
@@ -657,7 +663,7 @@ img[src*="/assets/"] {
 </div>
 
 <!-- Shadow layer for printer modal -->
-<div id="printerModalShadow" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000;" onclick="closePrinterModal()"></div>
+<div id="printerModalShadow" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99998;" onclick="closePrinterModal()"></div>
 
 <%= form_for :prescription, method: 'POST', url: dispensation_index_path, html: { id: 'dispenseFormElement' } do |f| %>
   <%= hidden_field_tag :prepacking, true %>
@@ -1701,10 +1707,27 @@ function removePrepackFromList(id) {
   }
 
   function printPrepackLabel(prepackId) {
+    console.log('printPrepackLabel called with:', prepackId, typeof prepackId);
+    
+    // Validate prepackId
+    if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined' || prepackId === 'NaN') {
+      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 3000 });
+      console.log('printPrepackLabel error: invalid prepackId =', prepackId);
+      return;
+    }
+    
+    // Validate it's a valid number
+    const prepackNum = Number(prepackId);
+    if (isNaN(prepackNum) || prepackNum === 0) {
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 3000 });
+      console.log('printPrepackLabel error: prepackId is not valid:', prepackId);
+      return;
+    }
+    
     const frame = document.getElementById('prepackPrintFrame');
     const printUrl = `/print_dispensation_label/PREPACK-${prepackId}?single=1&_ts=${Date.now()}`;
 
-    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 2500 });
+    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 3000 });
 
     if (!frame) {
       window.location = printUrl;
@@ -1754,9 +1777,20 @@ function removePrepackFromList(id) {
   // Open the printer modal
   function openPrinterModal(prepackId) {
     // Handle case where prepackId might be null, undefined, or empty string
-    if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined') {
-      showFlashMessage('Error: No prepack selected', 'error', { transient: true, duration: 30000 });
+    // Also handle case where it might be the string "null"
+    console.log('openPrinterModal called with:', prepackId, typeof prepackId);
+    
+    if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined' || prepackId === 'NaN') {
+      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 30000 });
       console.log('Print error: prepackId =', prepackId);
+      return;
+    }
+    
+    // Try to convert to number and back to ensure it's valid
+    const prepackNum = Number(prepackId);
+    if (isNaN(prepackNum) || prepackNum === 0) {
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 30000 });
+      console.log('Print error: prepackId is not a valid number:', prepackId);
       return;
     }
     
@@ -1790,21 +1824,34 @@ function removePrepackFromList(id) {
 
   // Print the lowest undispensed label
   function printLowestUndispensed() {
-    console.log('printLowestUndispensed called, currentPrepackId =', currentPrepackId);
+    console.log('printLowestUndispensed called, currentPrepackId =', currentPrepackId, typeof currentPrepackId);
     
-    if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
-      showFlashMessage('Error: No prepack selected', 'error', { transient: true, duration: 30000 });
+    // Additional validation
+    if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined' || currentPrepackId === 'NaN') {
+      showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 5000 });
       console.log('Print error: currentPrepackId =', currentPrepackId);
       return;
     }
     
-    closePrinterModal();
+    // Validate it's a valid number
+    const prepackNum = Number(currentPrepackId);
+    if (isNaN(prepackNum) || prepackNum === 0) {
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 5000 });
+      console.log('Print error: currentPrepackId is not valid:', currentPrepackId);
+      return;
+    }
+    
+    // Save the prepack ID before closing modal
+    const prepackIdToPrint = currentPrepackId;
     
     const frame = document.getElementById('prepackPrintFrame');
     // Print the lowest undispensed label for this prepack
-    let printUrl = `/print_dispensation_label/PREPACK-${currentPrepackId}?print_lowest_undispensed=1&_ts=${Date.now()}`;
+    let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_lowest_undispensed=1&_ts=${Date.now()}`;
     console.log('Print URL:', printUrl);
-    showFlashMessage('Finding and printing lowest undispensed label ...', 'notice', { transient: true, duration: 30000 });
+    showFlashMessage('Finding and printing lowest undispensed label ...', 'notice', { transient: true, duration: 5000 });
+
+    // Close the modal AFTER generating the URL
+    closePrinterModal();
 
     if (!frame) {
       window.location = printUrl;
@@ -1827,33 +1874,59 @@ function removePrepackFromList(id) {
 
   // Search and reprint a specific label
   function searchAndPrintLabel() {
+    console.log('searchAndPrintLabel called');
+    
     const bottleId = document.getElementById('searchBottleId').value.trim();
     const packNo = document.getElementById('searchPackNo').value.trim();
 
+    console.log('Bottle ID:', bottleId, 'Pack No:', packNo);
+
     if (bottleId === '') {
-      showFlashMessage('Please enter a Bottle ID', 'error', { transient: true, duration: 30000 });
+      showFlashMessage('Please enter a Bottle ID', 'error', { transient: true, duration: 5000 });
       return;
     }
 
-    closePrinterModal();
+    // Require pack number for search
+    if (packNo === '') {
+      showFlashMessage('Please enter a Pack Number using the +/- buttons', 'error', { transient: true, duration: 5000 });
+      return;
+    }
 
-    const frame = document.getElementById('prepackPrintFrame');
-
-    // Build the full label_identifier: PK-{bottle_id}-{pack_no}
+    // Validate bottle ID format (should be G followed by digits)
     let cleanBottleId = bottleId;
     // Remove PK- prefix if user included it
     if (cleanBottleId.toUpperCase().startsWith('PK-')) {
       cleanBottleId = cleanBottleId.substring(3);
     }
     
+    // Check if it's a valid format (should start with G and have enough digits)
+    if (!/^G\d+$/i.test(cleanBottleId)) {
+      showFlashMessage('Invalid Bottle ID format. Should be like G0000059', 'error', { transient: true, duration: 5000 });
+      return;
+    }
+    
+    // Check minimum length (should be at least 7 characters like G0000026)
+    if (cleanBottleId.length < 7) {
+      showFlashMessage('Bottle ID too short. Use full ID like G0000026', 'error', { transient: true, duration: 5000 });
+      return;
+    }
+    
+    const frame = document.getElementById('prepackPrintFrame');
+
     // Combine: PK-G0000042 + 4 = PK-G0000042-4
     let labelIdentifier = 'PK-' + cleanBottleId;
     if (packNo !== '') {
       labelIdentifier += '-' + packNo;
     }
     
+    console.log('Label Identifier:', labelIdentifier);
+    
     let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
-    showFlashMessage('Searching and reprinting label ...', 'notice', { transient: true, duration: 30000 });
+    console.log('Search Print URL:', printUrl);
+    showFlashMessage('Searching and reprinting label ...', 'notice', { transient: true, duration: 5000 });
+
+    // Close the modal AFTER building the URL
+    closePrinterModal();
 
     if (!frame) {
       window.location = printUrl;
