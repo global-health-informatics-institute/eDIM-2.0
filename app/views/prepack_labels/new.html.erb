@@ -604,20 +604,19 @@ img[src*="/assets/"] {
 
 <div id="modalOverlay" style="display:none;"></div>
 <div id="printerModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:60%; max-width:650px; background:white; border:2px solid #006495; border-radius:16px; padding:24px; z-index:99999; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-  
-  <!-- Header -->
+
   <div style="text-align:center; margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid #e9ecef;">
     <h2 style="color:#006495; margin:0; font-size:1.8rem; font-weight:bold;">Print Prepack Labels</h2>
   </div>
   
   <div style="margin-bottom:24px;">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-      <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #006495; border-radius:12px; background:#006495; cursor:pointer; font-size:1.2rem; font-weight:600; color:white; min-height:50px;"
+      <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #006495; border-radius:12px; background:#006495; cursor:pointer; font-size:1.5rem; font-weight:600; color:white; min-height:60px;"
              onclick="switchPrintOption('single')">
         <input type="radio" name="printOption" value="single" checked style="display:none;">
         Print Single Pack
       </label>
-      <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #dee2e6; border-radius:12px; background:#f8f9fa; cursor:pointer; font-size:1.2rem; font-weight:600; color:#495057; min-height:50px;"
+      <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #dee2e6; border-radius:12px; background:#f8f9fa; cursor:pointer; font-size:1.5rem; font-weight:600; color:#495057; min-height:60px;"
              onclick="switchPrintOption('all')">
         <input type="radio" name="printOption" value="all" style="display:none;">
         Print All Available
@@ -625,29 +624,47 @@ img[src*="/assets/"] {
     </div>
   </div>
   
-  <div id="singlePackSection">
+  <div id="singlePackSection" style="overflow:visible;">
     <div style="margin-bottom:20px;">
-      <label style="font-weight:bold; font-size:1rem; display:block; margin-bottom:8px; color:#495057;">Bottle ID (Auto-filled)</label>
+      <label style="font-weight:bold; font-size:1.3rem; display:block; margin-bottom:8px; color:#495057;">Bottle ID (Auto-filled)</label>
       <input type="text" id="searchBottleId" autocomplete="off" readonly
-             style="width:100%; padding:12px; font-size:1.2rem; border:2px solid #006495; border-radius:8px; box-sizing:border-box; background:#e9ecef; color:#495057; font-weight:600;">
+             style="width:100%; padding:14px; font-size:1.5rem; border:2px solid #006495; border-radius:8px; box-sizing:border-box; background:#e9ecef; color:#495057; font-weight:600;">
     </div>
     
-    <!-- Pack Number with Large Controls -->
     <div style="margin-bottom:24px;">
-      <label style="font-weight:bold; font-size:1rem; display:block; margin-bottom:8px; color:#495057;">Pack Number</label>
-      <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
-        <button type="button" onclick="adjustPackNumber(-1)" 
-                style="width:60px; height:60px; border:none; border-radius:12px; background:#dc3545; color:white; font-size:2rem; cursor:pointer;">-</button>
-        <input type="number" id="searchPackNo" value="1" min="1" max="10000"
-               style="width:120px; padding:12px; font-size:1.5rem; border:2px solid #006495; border-radius:8px; text-align:center; font-weight:600;">
-        <button type="button" onclick="adjustPackNumber(1)" 
-                style="width:60px; height:60px; border:none; border-radius:12px; background:#28a745; color:white; font-size:2rem; cursor:pointer;">+</button>
+      <label style="font-weight:bold; font-size:1.3rem; display:block; margin-bottom:12px; color:#495057;">Pack Number</label>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px;">
+          <button type="button" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; v=v-parseInt(packNoStep); if(v<0)v=0; f.value=v;"
+                  style="width:60px; height:60px; border:none; border-radius:12px; background:#dc3545; color:white; font-size:2.5rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(220,53,69,0.3); line-height:1;">−</button>
+          <input type="text" id="searchPackNo" value="0"
+                 inputmode="numeric" pattern="[0-9]*"
+                 style="width:120px; height:60px; padding:0; font-size:2.2rem; font-weight:700; border-radius:12px; border:3px solid #006495; text-align:center; color:#495057; -moz-appearance:textfield; appearance:textfield; line-height:54px;">
+          <button type="button" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; v=v+parseInt(packNoStep); f.value=v;"
+                  style="width:60px; height:60px; border:none; border-radius:12px; background:#28a745; color:white; font-size:2.5rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(40,167,69,0.3); line-height:1;">+</button>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:12px;">
+          <button type="button" id="stepBtn1" onclick="packNoStep=1; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #006495; border-radius:10px; background:#006495; color:white; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none;">1</button>
+          <button type="button" id="stepBtn10" onclick="packNoStep=10; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none;">10</button>
+          <button type="button" id="stepBtn100" onclick="packNoStep=100; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none;">100</button>
+          <button type="button" id="stepBtn1000" onclick="packNoStep=1000; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none;">1000</button>
+        </div>
+        
+        <div style="font-size:0.85rem; color:#6c757d; text-align:center; margin-bottom:8px;">Select step then use +/- buttons</div>
+        
+        <!-- Clear Button -->
+        <button type="button" onclick="document.getElementById('searchPackNo').value='0';"
+                style="padding:10px 24px; border:2px solid #6c757d; border-radius:8px; background:white; color:#6c757d; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px;">Clear</button>
       </div>
     </div>
     
-    <!-- Print Single Button -->
-    <button onclick="searchAndPrintLabel()" 
-            style="padding:16px 32px; font-size:1.3rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%;">
+    <button  onclick="searchAndPrintLabel()" 
+            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100;">
       Print Single Pack
     </button>
   </div>
@@ -1774,17 +1791,71 @@ function removePrepackFromList(id) {
     }
   }
 
-  // Adjust pack number by increment/decrement
+  // Current step/interval for pack number adjustment
+  var packNoStep = 1;
+
+  // Adjust pack number by increment/decrement using packNoStep
   function adjustPackNumber(delta) {
-    const field = document.getElementById('searchPackNo');
+    var field = document.getElementById('searchPackNo');
     if (!field) return;
     
-    let current = parseInt(field.value) || 0;
-    let newVal = current + delta;
+    var current = parseInt(field.value) || 0;
+    var newVal = current + (delta * packNoStep);
     if (newVal < 1) newVal = 1;
     if (newVal > 10000) newVal = 10000;
     field.value = newVal.toString();
   }
+
+  // Set the step/interval for increment/decrement (same as Log Damages)
+  function setStep(step) {
+    packNoStep = parseInt(step);
+    
+    // Update button styles to show selected step
+    var buttons = [
+      {id: 'stepBtn0', value: 0},
+      {id: 'stepBtn10', value: 10},
+      {id: 'stepBtn100', value: 100},
+      {id: 'stepBtn1000', value: 1000}
+    ];
+    
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      var el = document.getElementById(btn.id);
+      if (el) {
+        if (btn.value === packNoStep) {
+          el.style.border = '2px solid #006495';
+          el.style.background = '#006495';
+          el.style.color = 'white';
+        } else {
+          el.style.border = '2px solid #dee2e6';
+          el.style.background = '#f8f9fa';
+          el.style.color = '#495057';
+        }
+      }
+    }
+  }
+
+  // Allow direct typing in pack number field - filter non-numeric input
+  (function() {
+    var packNoField = document.getElementById('searchPackNo');
+    if (packNoField) {
+      packNoField.addEventListener('input', function(e) {
+        // Remove any non-numeric characters
+        this.value = this.value.replace(/[^0-9]/g, '');
+        // Ensure value is at least 0
+        var val = parseInt(this.value);
+        if (isNaN(val) || val < 0) val = 0;
+        this.value = val;
+      });
+      
+      packNoField.addEventListener('blur', function() {
+        // Ensure value is set on blur
+        if (this.value === '' || parseInt(this.value) < 0) {
+          this.value = '0';
+        }
+      });
+    }
+  })();
   
   // Switch between print options
   function switchPrintOption(option) {
@@ -1986,13 +2057,20 @@ function removePrepackFromList(id) {
     console.log('Bottle ID:', bottleId, 'Pack No:', packNo);
 
     if (bottleId === '') {
-      showFlashMessage('Please enter a Bottle ID', 'error', { transient: true, duration: 5000 });
+      showFlashMessage('Please enter a Bottle ID', 'error', { transient: true, duration: 1000 });
       return;
     }
 
     // Require pack number for search
     if (packNo === '') {
-      showFlashMessage('Please enter a Pack Number using the +/- buttons', 'error', { transient: true, duration: 5000 });
+      showFlashMessage('Please enter a Pack Number', 'error', { transient: true, duration: 1000 });
+      return;
+    }
+
+    // Validate pack number is a valid number
+    let packNum = parseInt(packNo);
+    if (isNaN(packNum) || packNum < 0) {
+      showFlashMessage('Pack Number must be 0 or higher', 'error', { transient: true, duration: 1000 });
       return;
     }
 
@@ -2005,13 +2083,13 @@ function removePrepackFromList(id) {
     
     // Check if it's a valid format (should start with G and have enough digits)
     if (!/^G\d+$/i.test(cleanBottleId)) {
-      showFlashMessage('Invalid Bottle ID format. Should be like G0000059 or PK-G0000059', 'error', { transient: true, duration: 5000 });
+      showFlashMessage('Invalid Bottle ID format. Should be like G0000059 or PK-G0000059', 'error', { transient: true, duration: 1000 });
       return;
     }
     
     // Check minimum length (should be at least 7 characters like G0000026)
     if (cleanBottleId.length < 7) {
-      showFlashMessage('Bottle ID too short. Use full ID like G0000026', 'error', { transient: true, duration: 5000 });
+      showFlashMessage('Bottle ID too short. Use full ID like G0000026', 'error', { transient: true, duration: 1000 });
       return;
     }
     
@@ -2027,7 +2105,7 @@ function removePrepackFromList(id) {
     
     let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
     console.log('Search Print URL:', printUrl);
-    showFlashMessage('Searching and reprinting label ...', 'notice', { transient: true, duration: 5000 });
+    showFlashMessage('Searching and reprinting label ...', 'notice', { transient: true, duration: 1000 });
 
     // Close the modal AFTER building the URL
     closePrinterModal();
@@ -4060,3 +4138,4 @@ window.editPrepackInline = function(id) {
 </script>
 </body>
 </html>
+
