@@ -312,14 +312,12 @@ class DispensationController < ApplicationController
 
       labels = PrepackLabel.where(prepack_id: prepack.id).order(:id)
       
-      # Handle different print options
       if print_all_undispensed
-        # Print all undispensed labels (not deleted AND not dispensed)
-        # deleted = 0 means not deleted, dispensed = 0 means not dispensed
-        labels = labels.where(deleted: 0, dispensed: 0)
+        # Print all undispensed labels (dispensed = 0)
+        labels = labels.where(dispensed: 0)
       elsif print_lowest_undispensed
         # Print only the lowest undispensed label
-        labels = labels.where(dispensed: [false, nil]).order(:id).limit(1)
+        labels = labels.where(dispensed: 0).order(:id).limit(1)
         if labels.empty?
           return render plain: "No undispensed labels found", status: :not_found
         end
@@ -433,29 +431,24 @@ class DispensationController < ApplicationController
     # Debug: log what's being searched
     Rails.logger.debug "Searching for label: #{label_identifier}"
     
-    # Try to find the label by label_identifier (deleted = 0, dispensed = 0 for available)
-    label = PrepackLabel.where(deleted: 0, dispensed: 0).find_by(label_identifier: label_identifier)
+    # Try to find the label by label_identifier (dispensed = 0 for available)
+    label = PrepackLabel.where(dispensed: 0).find_by(label_identifier: label_identifier)
     
     Rails.logger.debug "Exact match result: #{label.inspect}"
     
     # If not found, try to find by partial match (starts with)
     if label.nil?
-      label = PrepackLabel.where(deleted: 0, dispensed: 0).where("label_identifier LIKE ?", "#{label_identifier}%").first
+      label = PrepackLabel.where(dispensed: 0).where("label_identifier LIKE ?", "#{label_identifier}%").first
       Rails.logger.debug "LIKE match result: #{label.inspect}"
     end
     
     if label.nil?
-      # Try without deleted/undispensed filter
+      # Try without dispensed filter to check if it exists
       label = PrepackLabel.find_by(label_identifier: label_identifier)
       Rails.logger.debug "No filter match result: #{label.inspect}"
       
       if label.nil?
         return render plain: "Label not found: #{label_identifier}", status: :not_found
-      end
-      
-      # Check if label exists but is deleted
-      if label.deleted == 1
-        return render plain: "Label is deleted: #{label_identifier}", status: :not_found
       end
       
       # Check if label is already dispensed
