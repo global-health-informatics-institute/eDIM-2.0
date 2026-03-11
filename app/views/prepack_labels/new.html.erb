@@ -316,8 +316,8 @@ img[src*="/assets/"] {
 
 </head>
 <body style="margin:0; padding:0; display: flex; flex-direction: column; min-height: 100vh;">
-  <div id="shadowLayer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.35); z-index:10000;"></div>
-  <div id="messageLayer" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); z-index:10001; background:#fff; border-radius:12px; padding:24px 28px; min-width:320px; max-width:70vw; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+  <div id="shadowLayer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.35); z-index:999998;"></div>
+  <div id="messageLayer" style="display:none; position:fixed; top:16px; right:16px; z-index:999999; background:#fff; border-radius:12px; padding:24px 28px; min-width:320px; max-width:420px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
     <div style="display: table-row">
       <div style="display: table-cell; text-align: center;">&nbsp;</div>
     </div>
@@ -659,12 +659,12 @@ img[src*="/assets/"] {
         
         <!-- Clear Button -->
         <button type="button" onclick="document.getElementById('searchPackNo').value='0';"
-                style="padding:10px 24px; border:2px solid #6c757d; border-radius:8px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px;">Clear</button>
+                style="padding:12px 24px; border:2px solid #6c757d; border-radius:8px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px; display:flex; align-items:center; justify-content:center;">Clear</button>
       </div>
     </div>
     
     <button  onclick="searchAndPrintLabel()" 
-            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100; text-align:center;">
+            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100; text-align:center; display:flex; align-items:center; justify-content:center;">
       Print Single Pack
     </button>
   </div>
@@ -678,14 +678,14 @@ img[src*="/assets/"] {
     
     <!-- Print All Button -->
     <button onclick="printAllAvailableLabels()" 
-            style="padding:16px 32px; font-size:1.3rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; text-align:center;">
+            style="padding:16px 32px; font-size:1.3rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; text-align:center; display:flex; align-items:center; justify-content:center;">
       Print All Available Labels
     </button>
   </div>
   
   <!-- Cancel Button -->
   <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
-          style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%; text-align:center;">
+          style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center;">
     Cancel
   </button>
 </div>
@@ -1706,7 +1706,7 @@ function removePrepackFromList(id) {
     if (!flashEl || !modal || !overlay) return;
 
     const transient = options.transient === true;
-    const duration = Number(options.duration || 2000);
+    const duration = Number(options.duration || 1000);  // Default to 1 second
     flashEl.textContent = message;
 
     if (flashAutoHideTimer) clearTimeout(flashAutoHideTimer);
@@ -1894,30 +1894,78 @@ function removePrepackFromList(id) {
     
     const prepackIdToPrint = currentPrepackId;
     const frame = document.getElementById('prepackPrintFrame');
-    let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
     
-    console.log('Print All URL:', printUrl);
-    showFlashMessage('Printing all available labels ...', 'notice', { transient: true, duration: 5000 });
+    // First check if there are available labels for this prepack
+    // We need to get the bottle_id from the current prepack
+    const bottleId = document.getElementById('searchBottleId').value.trim();
+    let cleanBottleId = bottleId;
+    if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+      cleanBottleId = cleanBottleId.substring(3);
+    }
     
-    closePrinterModal();
-    
-    if (!frame) {
-      window.location = printUrl;
+    if (!cleanBottleId || !/^G\d+$/i.test(cleanBottleId)) {
+      showFlashMessage('Error: Invalid bottle ID', 'error', { transient: true, duration: 3000 });
       return;
     }
     
-    if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
-    prepackPrintFallbackTimer = setTimeout(function() {
-      hideFlashMessage();
-    }, 30000);
+    // Check the first available label to get prepack info
+    let labelIdentifier = 'PK-' + cleanBottleId + '-1';
     
-    frame.onload = function() {
-      if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
-      hideFlashMessage();
-      frame.onload = null;
-    };
+    showFlashMessage('Checking available labels...', 'notice', { transient: true, duration: 2000 });
     
-    frame.src = printUrl;
+    fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+      .then(response => response.json())
+      .then(data => {
+        console.log('Label check response:', data);
+        
+        if (!data.exists) {
+          showFlashMessage('No prepack labels found for this bottle', 'error', { transient: true, duration: 3000 });
+          return;
+        }
+        
+        if (!data.available_count || data.available_count === 0) {
+          showFlashMessage('No available labels to print. All labels have been dispensed.', 'error', { transient: true, duration: 3000 });
+          return;
+        }
+        
+        // There are available labels, proceed to print
+        let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
+        
+        console.log('Print All URL:', printUrl);
+        showFlashMessage('Printing ' + data.available_count + ' available labels...', 'notice', { transient: true, duration: 5000 });
+        
+        closePrinterModal();
+        
+        if (!frame) {
+          window.location = printUrl;
+          return;
+        }
+        
+        if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+        prepackPrintFallbackTimer = setTimeout(function() {
+          hideFlashMessage();
+        }, 30000);
+        
+        frame.onload = function() {
+          if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+          hideFlashMessage();
+          frame.onload = null;
+        };
+        
+        frame.src = printUrl;
+      })
+      .catch(error => {
+        console.error('Error checking labels:', error);
+        showFlashMessage('Error checking labels. Proceeding with print...', 'notice', { transient: true, duration: 2000 });
+        // Fall back to original behavior
+        let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
+        closePrinterModal();
+        if (frame) {
+          frame.src = printUrl;
+        } else {
+          window.location = printUrl;
+        }
+      });
   }
 
   // Open the printer modal
@@ -2103,30 +2151,62 @@ function removePrepackFromList(id) {
     
     console.log('Label Identifier:', labelIdentifier);
     
-    let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
-    console.log('Search Print URL:', printUrl);
-    showFlashMessage('Searching and reprinting label ...', 'notice', { transient: true, duration: 1000 });
+    // First check the label status in the database
+    showFlashMessage('Checking label status...', 'notice', { transient: true, duration: 2000 });
+    
+    fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+      .then(response => response.json())
+      .then(data => {
+        console.log('Label check response:', data);
+        
+        if (!data.exists) {
+          showFlashMessage('Label not found: ' + (data.error || 'Unknown error'), 'error', { transient: true, duration: 3000 });
+          return;
+        }
+        
+        if (!data.can_print) {
+          showFlashMessage('Cannot print: ' + data.message, 'error', { transient: true, duration: 3000 });
+          return;
+        }
+        
+        // Label is available, proceed to print
+        let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
+        console.log('Search Print URL:', printUrl);
+        showFlashMessage('Printing label...', 'notice', { transient: true, duration: 1000 });
 
-    // Close the modal AFTER building the URL
-    closePrinterModal();
+        // Close the modal AFTER building the URL
+        closePrinterModal();
 
-    if (!frame) {
-      window.location = printUrl;
-      return;
-    }
+        if (!frame) {
+          window.location = printUrl;
+          return;
+        }
 
-    if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
-    prepackPrintFallbackTimer = setTimeout(function() {
-      hideFlashMessage();
-    }, 30000);
+        if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+        prepackPrintFallbackTimer = setTimeout(function() {
+          hideFlashMessage();
+        }, 30000);
 
-    frame.onload = function() {
-      if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
-      hideFlashMessage();
-      frame.onload = null;
-    };
+        frame.onload = function() {
+          if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+          hideFlashMessage();
+          frame.onload = null;
+        };
 
-    frame.src = printUrl;
+        frame.src = printUrl;
+      })
+      .catch(error => {
+        console.error('Error checking label:', error);
+        showFlashMessage('Error checking label status. Proceeding with print...', 'notice', { transient: true, duration: 2000 });
+        // Fall back to original behavior
+        let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
+        closePrinterModal();
+        if (frame) {
+          frame.src = printUrl;
+        } else {
+          window.location = printUrl;
+        }
+      });
   }
 
   // Handle Enter key in the search fields
