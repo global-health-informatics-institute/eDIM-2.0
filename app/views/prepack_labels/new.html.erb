@@ -659,12 +659,12 @@ img[src*="/assets/"] {
         
         <!-- Clear Button -->
         <button type="button" onclick="document.getElementById('searchPackNo').value='0';"
-                style="padding:10px 24px; border:2px solid #6c757d; border-radius:8px; background:white; color:#6c757d; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px;">Clear</button>
+                style="padding:10px 24px; border:2px solid #6c757d; border-radius:8px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px;">Clear</button>
       </div>
     </div>
     
     <button  onclick="searchAndPrintLabel()" 
-            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100;">
+            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100; text-align:center;">
       Print Single Pack
     </button>
   </div>
@@ -678,14 +678,14 @@ img[src*="/assets/"] {
     
     <!-- Print All Button -->
     <button onclick="printAllAvailableLabels()" 
-            style="padding:16px 32px; font-size:1.3rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%;">
+            style="padding:16px 32px; font-size:1.3rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; text-align:center;">
       Print All Available Labels
     </button>
   </div>
   
   <!-- Cancel Button -->
   <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
-          style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%;">
+          style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%; text-align:center;">
     Cancel
   </button>
 </div>
