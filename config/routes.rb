@@ -49,8 +49,8 @@ Rails.application.routes.draw do
   post "/prescription/edit"
 
   ###################### Dispensation Controller ######################
-  get "/print_dispensation_label/:id" => "dispensation#print_dispensation_label"
   get "/print_dispensation_label/SEARCH" => "dispensation#search_and_print_label"
+  get "/print_dispensation_label/:id" => "dispensation#print_dispensation_label"
   get "/void_dispensation/:id" => "dispensation#destroy"
 
   ###################### Mobile Visit Controllers ######################
