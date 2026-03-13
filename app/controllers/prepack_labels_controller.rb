@@ -516,6 +516,62 @@ public
     render json: status
   end
 
+  # Get available label indexes for a bottle
+  def get_available_labels
+    bottle_id = params[:bottle_id]
+    
+    if bottle_id.blank?
+      render json: { error: "Bottle ID is required" }, status: :bad_request
+      return
+    end
+    
+    # Find the prepack by gn_identifier
+    prepack = Prepack.find_by(gn_identifier: bottle_id, deleted: false, voided: false)
+    
+    if prepack.nil?
+      render json: { error: "No prepack found for bottle #{bottle_id}" }, status: :not_found
+      return
+    end
+    
+    # Get all label indexes (both available and unavailable)
+    all_labels = prepack.prepack_labels.pluck(:label_identifier, :dispensed, :deleted, :voided)
+    
+    # Extract indexes and their status
+    indexes = []
+    all_labels.each do |label_id, dispensed, deleted, voided|
+      # Extract the pack index from label_identifier like "PK-G0000042-6"
+      match = label_id.match(/^PK-(?:G\d+)-(\d+)$/i)
+      if match
+        index = match[1].to_i
+        status = if deleted || voided
+          'unavailable'
+        elsif dispensed
+          'dispensed'
+        else
+          'available'
+        end
+        indexes << { index: index, status: status }
+      end
+    end
+    
+    # Sort by index
+    indexes.sort_by! { |h| h[:index] }
+    
+    # Get min and max available indexes
+    available_indexes = indexes.select { |h| h[:status] == 'available' }.map { |h| h[:index] }
+    min_available = available_indexes.min
+    max_available = available_indexes.max
+    
+    render json: {
+      prepack_id: prepack.id,
+      bottle_id: bottle_id,
+      gn_identifier: prepack.gn_identifier,
+      labels: indexes,
+      min_index: min_available || 0,
+      max_index: max_available || 0
+    }
+  end
+
   def destroy
     prepack = Prepack.find_by(id: params[:id])
 
