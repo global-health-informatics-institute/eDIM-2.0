@@ -444,6 +444,78 @@ public
     end
   end
 
+  # Check label status for printing
+  def check_label_status
+    label_identifier = params[:label_identifier]
+    
+    if label_identifier.blank?
+      render json: { error: "Label identifier is required" }, status: :bad_request
+      return
+    end
+    
+    # Parse the label identifier (format: PK-G0000042-4)
+    # Or just PK-G0000042 for the first label
+    match = label_identifier.match(/^PK-(G\d+)(?:-(\d+))?$/i)
+    
+    if match.nil?
+      render json: { error: "Invalid label identifier format" }, status: :bad_request
+      return
+    end
+    
+    bottle_id = match[1]
+    pack_index = match[2] ? match[2].to_i : 1
+    
+    # Find the prepack using gn_identifier (the string like G0000042)
+    prepack = Prepack.find_by(gn_identifier: bottle_id, deleted: false, voided: false)
+    
+    if prepack.nil?
+      render json: { 
+        exists: false, 
+        error: "No prepack found for bottle #{bottle_id}" 
+      }
+      return
+    end
+    
+    # Find the specific label
+    label = prepack.prepack_labels.find_by(label_identifier: label_identifier)
+    
+    if label.nil?
+      render json: { 
+        exists: false, 
+        error: "Label #{label_identifier} not found",
+        available_labels: prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false).pluck(:label_identifier)
+      }
+      return
+    end
+    
+    # Check status
+    status = {}
+    status[:exists] = true
+    status[:dispensed] = label.dispensed?
+    status[:deleted] = label.deleted?
+    status[:voided] = label.voided?
+    status[:label_identifier] = label.label_identifier
+    status[:pack_index] = pack_index
+    
+    if label.deleted? || label.voided?
+      status[:can_print] = false
+      status[:message] = "Label has been deleted or voided"
+    elsif label.dispensed?
+      status[:can_print] = false
+      status[:message] = "Label has already been dispensed"
+    else
+      status[:can_print] = true
+      status[:message] = "Label is available for printing"
+    end
+    
+    # Get all available labels for this prepack
+    available_labels = prepack.prepack_labels.where(deleted: false, voided: false, dispensed: false).pluck(:label_identifier)
+    status[:available_labels] = available_labels
+    status[:available_count] = available_labels.count
+    
+    render json: status
+  end
+
   def destroy
     prepack = Prepack.find_by(id: params[:id])
 
