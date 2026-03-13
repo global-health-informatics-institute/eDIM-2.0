@@ -313,16 +313,19 @@ class DispensationController < ApplicationController
       labels = PrepackLabel.where(prepack_id: prepack.id).order(:id)
       
       if print_all_undispensed
-        # Print all undispensed labels (dispensed = 0)
-        labels = labels.where(dispensed: 0)
+        # Print all undispensed labels - order by label index (last number in identifier)
+        # Only valid labels: not deleted, not voided, not dispensed
+        labels = labels.where(dispensed: 0, deleted: 0, voided: 0).order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED)"))
       elsif print_lowest_undispensed
-        # Print only the lowest undispensed label
-        labels = labels.where(dispensed: 0).order(:id).limit(1)
+        # Print only the lowest undispensed label - order by label index (last number in identifier)
+        # Only valid labels: not deleted, not voided, not dispensed
+        labels = labels.where(dispensed: 0, deleted: 0, voided: 0).order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED)")).limit(1)
         if labels.empty?
           return render plain: "No undispensed labels found", status: :not_found
         end
       elsif single
-        labels = labels.first(1)
+        # For single print, also filter to only valid labels
+        labels = labels.where(dispensed: 0, deleted: 0, voided: 0).order(Arel.sql("CAST(SUBSTRING_INDEX(label_identifier, '-', -1) AS UNSIGNED)")).limit(1)
       end
 
       labels.each_with_index do |label, index|
@@ -339,6 +342,16 @@ class DispensationController < ApplicationController
           bottle_id: prepack.gn_identifier,
           expiration_date: expiration_date
         )
+        
+        # Mark label as dispensed when printing from prepack_labels page
+        label.update!(dispensed: 1, date_dispensed: Time.current) if label.dispensed == 0
+      end
+      
+      # Update current_num_packs after marking labels as dispensed
+      if prepack
+        dispensed_count = prepack.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
+        remaining_packs = [prepack.num_packs.to_i - dispensed_count, 0].max
+        prepack.update!(current_num_packs: remaining_packs)
       end
 
     # Prescription-based dispensations
