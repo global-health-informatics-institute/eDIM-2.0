@@ -2282,6 +2282,9 @@ function removePrepackFromList(id) {
     document.getElementById('printerModal').style.display = 'block';
     document.getElementById('printerModalShadow').style.display = 'block';
     
+    // Fetch available label indexes and update UI
+    fetchAvailableLabelIndexes(bottleId);
+    
     setTimeout(function() {
       var packNoInput = document.getElementById('searchPackNo');
       if (packNoInput) {
@@ -2289,6 +2292,119 @@ function removePrepackFromList(id) {
         packNoInput.select();
       }
     }, 100);
+  }
+
+  // Fetch available label indexes and update quick select buttons
+  function fetchAvailableLabelIndexes(bottleId) {
+    if (!bottleId) return;
+    
+    fetch('/prepack_labels/available_labels?bottle_id=' + encodeURIComponent(bottleId))
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.log('Error fetching available labels:', data.error);
+          return;
+        }
+        
+        console.log('Available labels:', data.labels);
+        console.log('Min index:', data.min_index, 'Max index:', data.max_index);
+        
+        // Store min/max for +/- button constraints
+        window.availableMinIndex = data.min_index;
+        window.availableMaxIndex = data.max_index;
+        
+        // Update the quick select buttons
+        updateQuickSelectButtonsForReprint(data.labels);
+        
+        // Update +/- button constraints
+        updateIncrementDecrementButtons(data.min_index, data.max_index);
+      })
+      .catch(error => {
+        console.error('Error fetching available labels:', error);
+      });
+  }
+
+  // Update +/- button constraints based on available indexes
+  function updateIncrementDecrementButtons(minIndex, maxIndex) {
+    const decrementBtn = document.getElementById('decrementPackBtn');
+    const incrementBtn = document.getElementById('incrementPackBtn');
+    const packNoInput = document.getElementById('searchPackNo');
+    
+    if (decrementBtn) {
+      decrementBtn.onclick = function() {
+        var f = document.getElementById('searchPackNo');
+        var v = parseInt(f.value) || 0;
+        var step = parseInt(packNoStep) || 1;
+        v = v - step;
+        // Constrain to minimum available index
+        if (v < minIndex) v = minIndex;
+        f.value = v;
+        updateFullLabelDisplay();
+      };
+    }
+    
+    if (incrementBtn) {
+      incrementBtn.onclick = function() {
+        var f = document.getElementById('searchPackNo');
+        var v = parseInt(f.value) || 0;
+        var step = parseInt(packNoStep) || 1;
+        v = v + step;
+        // Constrain to maximum available index
+        if (v > maxIndex) v = maxIndex;
+        f.value = v;
+        updateFullLabelDisplay();
+      };
+    }
+    
+    // Also constrain manual input
+    if (packNoInput) {
+      packNoInput.onchange = function() {
+        var v = parseInt(packNoInput.value) || minIndex;
+        if (v < minIndex) v = minIndex;
+        if (v > maxIndex) v = maxIndex;
+        packNoInput.value = v;
+        updateFullLabelDisplay();
+      };
+    }
+  }
+  
+  // Update quick select buttons - keep all enabled but show validation on print
+  function updateQuickSelectButtonsForReprint(labelIndexes) {
+    const buttons = document.querySelectorAll('.quick-select-btn');
+    
+    buttons.forEach(btn => {
+      const value = parseInt(btn.getAttribute('data-value'));
+      
+      // Find if this index exists in the label list
+      const labelInfo = labelIndexes.find(l => l.index === value);
+      
+      // Keep all buttons enabled - user can try any
+      btn.disabled = false;
+      
+      if (labelInfo) {
+        if (labelInfo.status === 'available') {
+          // Available - full opacity
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+          btn.title = 'Print label ' + value;
+        } else if (labelInfo.status === 'dispensed') {
+          // Dispensed - slight dim
+          btn.style.opacity = '0.6';
+          btn.style.cursor = 'pointer';
+          btn.title = 'Label ' + value + ' already dispensed - will show error';
+        } else {
+          // Unavailable (deleted/voided) - more dim
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'pointer';
+          btn.title = 'Label ' + value + ' unavailable - will show error';
+        }
+      } else {
+        // Index doesn't exist - dim but still clickable
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'pointer';
+        btn.title = 'Label ' + value + ' does not exist - will show error';
+      }
+    });
   }
 
   // Close the printer modal and return focus to barcode input
@@ -2418,7 +2534,7 @@ function removePrepackFromList(id) {
         
         let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
         console.log('Search Print URL:', printUrl);
-        showFlashMessage('Printing label...', 'notice', { transient: true, duration: 1000 });
+        showFlashMessage('Printing label...', 'notice', { transient: true, duration: 500 });
 
         closePrinterModal();
 
@@ -2430,7 +2546,7 @@ function removePrepackFromList(id) {
         if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
         prepackPrintFallbackTimer = setTimeout(function() {
           hideFlashMessage();
-        }, 30000);
+        }, 2000);
 
         frame.onload = function() {
           if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
