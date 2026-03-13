@@ -342,7 +342,7 @@ img[src*="/assets/"] {
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
           <strong style="font-size:2rem; font-weight:bold;">Scan Barcode</strong>
           <img src="/assets/barcode.jpg" style="height:40px; vertical-align:middle;">
-          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;" autofocus>
+          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;">
         </div>
 
         <table style="width:50%; border-collapse:collapse; font-size:1.1em; margin-bottom:0;">
@@ -614,33 +614,30 @@ img[src*="/assets/"] {
       <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #006495; border-radius:12px; background:#006495; cursor:pointer; font-size:1.5rem; font-weight:600; color:white; min-height:60px;"
              onclick="switchPrintOption('single')">
         <input type="radio" name="printOption" value="single" checked style="display:none;">
-        Print Single Pack
+        Reprint Current Pack
       </label>
       <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:16px; border:2px solid #dee2e6; border-radius:12px; background:#f8f9fa; cursor:pointer; font-size:1.5rem; font-weight:600; color:#495057; min-height:60px;"
-             onclick="switchPrintOption('all')">
+             onmousedown="event.stopPropagation(); printAllAvailableLabels(); return false;">
         <input type="radio" name="printOption" value="all" style="display:none;">
-        Print All Available
+        Print All Available <span id="printAllRadioCount" style="margin-left:8px; font-weight:bold;"></span>
       </label>
     </div>
   </div>
   
-  <div id="singlePackSection" style="overflow:visible;">
-    <div style="margin-bottom:20px;">
-      <label style="font-weight:bold; font-size:1.3rem; display:block; margin-bottom:8px; color:#495057;">Bottle ID (Auto-filled)</label>
-      <input type="text" id="searchBottleId" autocomplete="off" readonly
-             style="width:100%; padding:14px; font-size:1.5rem; border:2px solid #006495; border-radius:8px; box-sizing:border-box; background:#e9ecef; color:#495057; font-weight:600;">
-    </div>
-    
+  <div id="singlePackSection" style="overflow:visible;">    
     <div style="margin-bottom:24px;">
       <label style="font-weight:bold; font-size:1.3rem; display:block; margin-bottom:12px; color:#495057;">Pack Number</label>
       <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div id="fullLabelDisplay" style="font-size:1.5rem; font-weight:bold; color:#006495; margin-bottom:12px; padding:10px 20px; background:#f8f9fa; border-radius:8px; border:2px solid #006495; min-width:200px; text-align:center;">PK-G001-0</div>
+        
         <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px;">
-          <button type="button" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; v=v-parseInt(packNoStep); if(v<0)v=0; f.value=v;"
+          <button type="button" id="decrementPackBtn" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; v=v-parseInt(packNoStep); if(v<0)v=0; f.value=v; updateFullLabelDisplay();"
                   style="width:60px; height:60px; border:none; border-radius:12px; background:#dc3545; color:white; font-size:2.5rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(220,53,69,0.3); line-height:1;">−</button>
           <input type="text" id="searchPackNo" value="0"
                  inputmode="numeric" pattern="[0-9]*"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); updateFullLabelDisplay();"
                  style="width:120px; height:60px; padding:0; font-size:2.2rem; font-weight:700; border-radius:12px; border:3px solid #006495; text-align:center; color:#495057; -moz-appearance:textfield; appearance:textfield; line-height:54px;">
-          <button type="button" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; v=v+parseInt(packNoStep); f.value=v;"
+          <button type="button" id="incrementPackBtn" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; v=v+parseInt(packNoStep); f.value=v; updateFullLabelDisplay();"
                   style="width:60px; height:60px; border:none; border-radius:12px; background:#28a745; color:white; font-size:2.5rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(40,167,69,0.3); line-height:1;">+</button>
         </div>
         
@@ -657,49 +654,32 @@ img[src*="/assets/"] {
         
         <div style="font-size:0.85rem; color:#6c757d; text-align:center; margin-bottom:8px;">Select step then use +/- buttons</div>
         
-        <!-- Clear Button -->
-        <button type="button" onclick="document.getElementById('searchPackNo').value='0';"
+        <button type="button" onclick="document.getElementById('searchPackNo').value='0'; updateFullLabelDisplay();"
                 style="padding:12px 24px; border:2px solid #6c757d; border-radius:8px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px; display:flex; align-items:center; justify-content:center;">Clear</button>
       </div>
     </div>
     
-    <button  onclick="searchAndPrintLabel()" 
+    <button id="printSinglePackBtn" onclick="searchAndPrintLabel()" 
             style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100; text-align:center; display:flex; align-items:center; justify-content:center;">
-      Print Single Pack
+      print a Pack
     </button>
   </div>
   
-  <!-- Print All Section (hidden by default) -->
   <div id="printAllSection" style="display:none;">
-    <div style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border:2px solid #dee2e6; padding:20px; border-radius:12px; margin-bottom:20px; text-align:center;">
-      <div style="font-size:1.2rem; color:#6c757d; margin-bottom:8px;">Available Labels</div>
-      <div id="availableLabelsCount" style="font-size:2rem; font-weight:bold; color:#28a745;">--</div>
-    </div>
-    
-    <!-- Print All Button -->
-    <button onclick="printAllAvailableLabels()" 
-            style="padding:16px 32px; font-size:1.3rem; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; text-align:center; display:flex; align-items:center; justify-content:center;">
-      Print All Available Labels
-    </button>
   </div>
   
-  <!-- Cancel Button -->
   <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
           style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center;">
     Cancel
   </button>
 </div>
 
-<!-- Shadow layer for printer modal -->
 <div id="printerModalShadow" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99998;" onclick="closePrinterModal()"></div>
 
 <%= form_for :prescription, method: 'POST', url: dispensation_index_path, html: { id: 'dispenseFormElement' } do |f| %>
   <%= hidden_field_tag :prepacking, true %>
-
-  <!-- DISPENSE FORM MODAL -->
   <div id="dispenseForm2" style="display:none; position:absolute; top:5vh; left:5vw; width:90vw; height:90vh; background-color:#eeeeff; border:3px outset black; overflow:auto; z-index:1000;">
       
-      <!-- Warning Message Overlay - Completely Outside Normal Flow -->
       <div style="position: absolute; top: 15px; right: 70px; z-index: 1001; pointer-events: none; max-width: 400px;">
         <span id="dispensationWarning" 
         style="display:none; color:red; font-weight:bold; font-size:1.8em;">
@@ -1540,6 +1520,13 @@ function removePrepackFromList(id) {
   }
 
   function handleBarcodeInput(event) {
+    // Ignore barcode input when modal is open - prevent scanner from interfering with modal
+    if (isModalOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    
     const inputEl = event.target;
 
     // debounce to allow the scanner to finish typing
@@ -1553,14 +1540,16 @@ function removePrepackFromList(id) {
   }
 
   function handleBarcodeBlur() {
-    // Refocus after a short delay unless modal is open
-    if (!isModalOpen) {
-      setTimeout(() => {
-        if (!isModalOpen && barcodeTxt) {
-          barcodeTxt.focus();
-        }
-      }, 100);
+    // Never refocus when any modal is open
+    if (isModalOpen) {
+      return; // Don't refocus when modal is open
     }
+    // When no modal is open, refocus after a short delay
+    setTimeout(() => {
+      if (!isModalOpen && barcodeTxt) {
+        barcodeTxt.focus();
+      }
+    }, 100);
   }
 
   function processBarcode(rawValue) {
@@ -1778,6 +1767,8 @@ function removePrepackFromList(id) {
 
   // Global variable to store the current prepack ID for the printer modal
   var currentPrepackId = null;
+  var currentPacksRemaining = 0;
+  var currentBottleId = '';
 
   // Helper function for touchscreen keypad
   function appendToField(fieldId, value) {
@@ -1804,6 +1795,46 @@ function removePrepackFromList(id) {
     if (newVal < 1) newVal = 1;
     if (newVal > 10000) newVal = 10000;
     field.value = newVal.toString();
+    updateFullLabelDisplay();
+  }
+
+  // Update the full label display (PK-G001-X)
+  function updateFullLabelDisplay() {
+    // Use global currentBottleId if available, otherwise fall back to input
+    var bottleId = currentBottleId || document.getElementById('searchBottleId').value.trim();
+    var packNo = document.getElementById('searchPackNo').value.trim();
+    var display = document.getElementById('fullLabelDisplay');
+    
+    if (!display) return;
+    
+    // Clean bottle ID
+    var cleanBottleId = bottleId;
+    if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+      cleanBottleId = cleanBottleId.substring(3);
+    }
+    
+    var packNum = parseInt(packNo) || 0;
+    display.textContent = 'PK-' + cleanBottleId + '-' + packNum;
+  }
+
+  // Enable/disable increment button based on available labels
+  function updateIncrementButtonState() {
+    var incBtn = document.getElementById('incrementPackBtn');
+    if (!incBtn) return;
+    
+    var packsRemaining = currentPacksRemaining;
+    
+    if (packsRemaining <= 1) {
+      incBtn.disabled = true;
+      incBtn.style.background = '#6c757d';
+      incBtn.style.cursor = 'not-allowed';
+      incBtn.title = 'Only 1 label remaining';
+    } else {
+      incBtn.disabled = false;
+      incBtn.style.background = '#28a745';
+      incBtn.style.cursor = 'pointer';
+      incBtn.title = 'Increment pack number';
+    }
   }
 
   // Set the step/interval for increment/decrement (same as Log Damages)
@@ -1873,6 +1904,11 @@ function removePrepackFromList(id) {
       allOption.style.background = '#f8f9fa';
       allOption.style.color = '#495057';
       allOption.style.borderColor = '#dee2e6';
+      // Focus on Print Single Pack button
+      setTimeout(function() {
+        var btn = document.getElementById('printSinglePackBtn');
+        if (btn) btn.focus();
+      }, 100);
     } else {
       singleSection.style.display = 'none';
       allSection.style.display = 'block';
@@ -1882,90 +1918,239 @@ function removePrepackFromList(id) {
       allOption.style.background = '#28a745';
       allOption.style.color = 'white';
       allOption.style.borderColor = '#28a745';
+      
+      // Fetch latest available count from database when switching to Print All
+      if (currentPrepackId && currentBottleId) {
+        let cleanBottleId = currentBottleId;
+        if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+          cleanBottleId = cleanBottleId.substring(3);
+        }
+        let labelIdentifier = 'PK-' + cleanBottleId + '-1';
+        
+        fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+          .then(response => response.json())
+          .then(data => {
+            if (data.available_count !== undefined) {
+              currentPacksRemaining = data.available_count;
+              var printAllBtnCount = document.getElementById('printAllButtonCount');
+              if (printAllBtnCount) {
+                printAllBtnCount.textContent = '(' + data.available_count + ' labels)';
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching available count:', error);
+          });
+      }
+      
+      // Focus on Print All Available button
+      setTimeout(function() {
+        var btn = document.getElementById('printAllAvailableBtn');
+        if (btn) btn.focus();
+      }, 100);
     }
   }
   
-  // Print all available labels
+  
+  // Print all available labels - with simple confirmation alert
   function printAllAvailableLabels() {
+    // Prevent any default behavior and stop propagation like log damages
+    event.stopPropagation();
+    
+    // Blur barcode input immediately to stop scanner
+    const barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+      barcodeInput.blur();
+    }
+    
     if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
-      showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 5000 });
+      showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 3000 });
       return;
     }
     
     const prepackIdToPrint = currentPrepackId;
     const frame = document.getElementById('prepackPrintFrame');
     
-    // First check if there are available labels for this prepack
-    // We need to get the bottle_id from the current prepack
-    const bottleId = document.getElementById('searchBottleId').value.trim();
-    let cleanBottleId = bottleId;
-    if (cleanBottleId.toUpperCase().startsWith('PK-')) {
-      cleanBottleId = cleanBottleId.substring(3);
-    }
+    // Use currentPacksRemaining which is already set when modal opened
+    const availableCount = currentPacksRemaining;
     
-    if (!cleanBottleId || !/^G\d+$/i.test(cleanBottleId)) {
-      showFlashMessage('Error: Invalid bottle ID', 'error', { transient: true, duration: 3000 });
+    if (!availableCount || availableCount === 0) {
+      showFlashMessage('No available labels to print. All labels have been dispensed.', 'error', { transient: true, duration: 3000 });
       return;
     }
     
-    // Check the first available label to get prepack info
-    let labelIdentifier = 'PK-' + cleanBottleId + '-1';
+    // Use custom modal instead of native confirm for better appearance
+    showPrintConfirmation(availableCount, function() {
+      proceedToPrintAll(prepackIdToPrint, frame);
+    });
+  }
+  
+  
+  // Show print confirmation in same window - auto-proceed after 1 second
+  function showPrintConfirmation(count, onConfirm) {
+    // Set modal state to prevent barcode scanner from refocusing
+    isModalOpen = true;
     
-    showFlashMessage('Checking available labels...', 'notice', { transient: true, duration: 2000 });
+    // Completely remove barcode event listeners to prevent any refocus attempts
+    const barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+      barcodeInput.blur();
+      // Remove the blur handler that tries to refocus
+      barcodeInput.removeEventListener('blur', handleBarcodeBlur);
+    }
     
-    fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
-      .then(response => response.json())
-      .then(data => {
-        console.log('Label check response:', data);
-        
-        if (!data.exists) {
-          showFlashMessage('No prepack labels found for this bottle', 'error', { transient: true, duration: 3000 });
-          return;
+    // Create confirmation overlay
+    const existing = document.getElementById('printConfirmOverlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'printConfirmOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999999;display:flex;align-items:center;justify-content:center;';
+    
+    const box = document.createElement('div');
+    box.style.cssText = 'background:white;border-radius:20px;padding:40px;max-width:420px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,0.4);font-family:Segoe UI, Arial, sans-serif;';
+    
+    // Icon
+    const icon = document.createElement('div');
+    icon.innerHTML = '🖨️';
+    icon.style.cssText = 'font-size:4rem;margin-bottom:16px;';
+    
+    const title = document.createElement('h2');
+    title.style.cssText = 'margin:0 0 12px 0;font-size:2rem;color:#1a1a2e;font-weight:600;';
+    title.textContent = 'Print All Available';
+    
+    const message = document.createElement('p');
+    message.style.cssText = 'margin:0 0 28px 0;font-size:1.3rem;color:#5a5a7a;line-height:1.5;';
+    message.innerHTML = 'Ready to print <strong style="color:#006495;font-size:1.5rem;">' + count + '</strong> labels?';
+    
+    const btnContainer = document.createElement('div');
+    btnContainer.style.cssText = 'display:flex;gap:16px;justify-content:center;';
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.style.cssText = 'padding:16px 32px;font-size:1.2rem;background:#f8f9fa;color:#495057;border:2px solid #dee2e6;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;';
+    cancelBtn.onmouseover = function() { this.style.background = '#e9ecef'; };
+    cancelBtn.onmouseout = function() { this.style.background = '#f8f9fa'; };
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = function() {
+      clearTimeout(confirmTimeout); 
+      overlay.remove();
+      // Re-enable scanner like damage modal does
+      isModalOpen = false;
+      // Re-add the blur handler
+      var barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.addEventListener('blur', handleBarcodeBlur);
+      }
+      setTimeout(() => { initializeBarcodeListener(); }, 100);
+    };
+    
+    const okBtn = document.createElement('button');
+    okBtn.style.cssText = 'padding:16px 32px;font-size:1.2rem;background:linear-gradient(135deg,#006495,#009ec3);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,100,149,0.3);';
+    okBtn.onmouseover = function() { this.style.transform = 'translateY(-2px);box-shadow:0 6px 20px rgba(0,100,149,0.4);' };
+    okBtn.onmouseout = function() { this.style.transform = 'translateY(0);box-shadow:0 4px 15px rgba(0,100,149,0.3);' };
+    okBtn.textContent = '✓ Print All';
+    okBtn.onclick = function() {
+      clearTimeout(confirmTimeout); 
+      overlay.remove();
+      // Re-enable scanner like damage modal does
+      isModalOpen = false;
+      // Re-add the blur handler
+      var barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.addEventListener('blur', handleBarcodeBlur);
+      }
+      setTimeout(() => { initializeBarcodeListener(); }, 100);
+      onConfirm();
+    };
+    
+    btnContainer.appendChild(cancelBtn);
+    btnContainer.appendChild(okBtn);
+    
+    box.appendChild(icon);
+    box.appendChild(title);
+    box.appendChild(message);
+    box.appendChild(btnContainer);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    
+    // Re-enable scanner when overlay is removed via clicking outside
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        clearTimeout(confirmTimeout); 
+        overlay.remove();
+        isModalOpen = false;
+        var barcodeInput = document.getElementById('barcode');
+        if (barcodeInput) {
+          barcodeInput.addEventListener('blur', handleBarcodeBlur);
         }
-        
-        if (!data.available_count || data.available_count === 0) {
-          showFlashMessage('No available labels to print. All labels have been dispensed.', 'error', { transient: true, duration: 3000 });
-          return;
+        setTimeout(() => { initializeBarcodeListener(); }, 100);
+      }
+    });
+    
+    // Handle Escape key
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        clearTimeout(confirmTimeout); 
+        overlay.remove();
+        isModalOpen = false;
+        var barcodeInput = document.getElementById('barcode');
+        if (barcodeInput) {
+          barcodeInput.addEventListener('blur', handleBarcodeBlur);
         }
-        
-        // There are available labels, proceed to print
-        let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
-        
-        console.log('Print All URL:', printUrl);
-        showFlashMessage('Printing ' + data.available_count + ' available labels...', 'notice', { transient: true, duration: 5000 });
-        
-        closePrinterModal();
-        
-        if (!frame) {
-          window.location = printUrl;
-          return;
+        setTimeout(() => { initializeBarcodeListener(); }, 100);
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+    
+    // Auto-proceed after 8 seconds (more time for user to decide)
+    var confirmTimeout = setTimeout(function() {
+      var overlayEl = document.getElementById('printConfirmOverlay');
+      if (overlayEl) {
+        overlayEl.remove();
+        isModalOpen = false;
+        var barcodeInput = document.getElementById('barcode');
+        if (barcodeInput) {
+          barcodeInput.addEventListener('blur', handleBarcodeBlur);
         }
-        
-        if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
-        prepackPrintFallbackTimer = setTimeout(function() {
-          hideFlashMessage();
-        }, 30000);
-        
-        frame.onload = function() {
-          if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
-          hideFlashMessage();
-          frame.onload = null;
-        };
-        
-        frame.src = printUrl;
-      })
-      .catch(error => {
-        console.error('Error checking labels:', error);
-        showFlashMessage('Error checking labels. Proceeding with print...', 'notice', { transient: true, duration: 2000 });
-        // Fall back to original behavior
-        let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
-        closePrinterModal();
-        if (frame) {
-          frame.src = printUrl;
-        } else {
-          window.location = printUrl;
-        }
-      });
+        setTimeout(() => { initializeBarcodeListener(); }, 100);
+        onConfirm(); // Auto-print
+      }
+    }, 8000);
+  }
+  
+  // Proceed to print all
+  function proceedToPrintAll(prepackIdToPrint, frame) {
+    let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
+    
+    console.log('Print All URL:', printUrl);
+    
+    // Show printing notification FIRST
+    showFlashMessage('Printing all available labels...', 'notice', { transient: true, duration: 1500 });
+    
+    // Store for later
+    const prepackIdForRefresh = currentPrepackId;
+    const bottleIdForRefresh = currentBottleId;
+    
+    // Close modal but keep flash message visible during printing
+    closePrinterModal();
+    
+    if (!frame) {
+      window.location = printUrl;
+      return;
+    }
+    
+    if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+    prepackPrintFallbackTimer = setTimeout(function() {
+      hideFlashMessage();
+    }, 1500);
+    
+    frame.onload = function() {
+      if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+      hideFlashMessage();
+      frame.onload = null;
+    };
+    
+    frame.src = printUrl;
   }
 
   // Open the printer modal
@@ -2006,6 +2191,9 @@ function removePrepackFromList(id) {
       packsRemaining = parseInt(prepackRow.getAttribute('data-packs-remaining')) || 0;
     }
     
+    // Store the bottle ID globally for print all functionality
+    currentBottleId = bottleId;
+    
     // If no bottle ID found, try to get from the view options menu
     if (!bottleId) {
       const viewOptions = document.getElementById('view_options_' + prepackId);
@@ -2018,38 +2206,111 @@ function removePrepackFromList(id) {
       }
     }
     
-    // Update the modal
-    document.getElementById('searchBottleId').value = bottleId || '';
-    document.getElementById('searchPackNo').value = '1';
-    document.getElementById('availableLabelsCount').textContent = packsRemaining + ' labels';
+    // If only 1 pack remaining, directly print
+    if (packsRemaining === 1) {
+      currentPacksRemaining = packsRemaining;
+      setTimeout(function() {
+        printLowestUndispensed();
+      }, 100);
+      return;
+    }
     
-    // Reset to single print option
+    // If 2 packs remaining, show simplified options (direct print buttons)
+    if (packsRemaining === 2) {
+      currentPacksRemaining = packsRemaining;
+      // Show modal with just Print All option
+      currentPacksRemaining = packsRemaining;
+    } else {
+      // More than 2 packs - show full modal
+      currentPacksRemaining = packsRemaining;
+    }
+    
+    // Update the modal
+    var searchBottleIdEl = document.getElementById('searchBottleId');
+    if (searchBottleIdEl) {
+      searchBottleIdEl.value = bottleId || '';
+    }
+    document.getElementById('searchPackNo').value = '0';
+    
+    // Update the Print All Available radio button with the count from database
+    var printAllRadioCount = document.getElementById('printAllRadioCount');
+    if (!printAllRadioCount) return;
+    
+    // Show count immediately from prepack data (while fetching from DB)
+    printAllRadioCount.textContent = '(' + packsRemaining + ' labels)';
+    console.log('currentBottleId:', currentBottleId, 'packsRemaining:', packsRemaining);
+    
+    if (currentBottleId) {
+      let cleanBottleId = currentBottleId;
+      if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+        cleanBottleId = cleanBottleId.substring(3);
+      }
+      let labelIdentifier = 'PK-' + cleanBottleId + '-1';
+      console.log('Fetching from:', '/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier));
+      
+      fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+        .then(response => response.json())
+        .then(data => {
+          if (data.available_count !== undefined) {
+            currentPacksRemaining = data.available_count;
+            printAllRadioCount.textContent = '(' + data.available_count + ' labels)';
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching available count:', error);
+        });
+    }
+    
+    // Update full label display and increment button state
+    setTimeout(function() {
+      updateFullLabelDisplay();
+      updateIncrementButtonState();
+    }, 100);
+    
+   
     switchPrintOption('single');
+    
+    var barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+      barcodeInput.blur();
+      barcodeInput.value = '';
+    }
+    
+    // Set modal state to prevent barcode scanner from refocusing
+    isModalOpen = true;
     
     document.getElementById('printerModal').style.display = 'block';
     document.getElementById('printerModalShadow').style.display = 'block';
+    
+    setTimeout(function() {
+      var packNoInput = document.getElementById('searchPackNo');
+      if (packNoInput) {
+        packNoInput.focus();
+        packNoInput.select();
+      }
+    }, 100);
   }
 
   // Close the printer modal and return focus to barcode input
   function closePrinterModal() {
     document.getElementById('printerModal').style.display = 'none';
     document.getElementById('printerModalShadow').style.display = 'none';
-    currentPrepackId = null;
-    // Return focus to barcode input
-    setTimeout(function() {
-      var barcodeInput = document.getElementById('barcode');
-      if (barcodeInput) {
-        barcodeInput.focus();
-        barcodeInput.select();
-      }
-    }, 100);
+
+    if (!isModalOpen) {
+      setTimeout(function() {
+        var barcodeInput = document.getElementById('barcode');
+        if (barcodeInput) {
+          barcodeInput.focus();
+          barcodeInput.select();
+        }
+      }, 100);
+    }
   }
 
-  // Print the lowest undispensed label
+
   function printLowestUndispensed() {
-    console.log('printLowestUndispensed called, currentPrepackId =', currentPrepackId, typeof currentPrepackId);
-    
-    // Additional validation
+    console.log('print Undispensed called, currentPrepackId =', currentPrepackId, typeof currentPrepackId);
+ 
     if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined' || currentPrepackId === 'NaN') {
       showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 5000 });
       console.log('Print error: currentPrepackId =', currentPrepackId);
@@ -2068,14 +2329,11 @@ function removePrepackFromList(id) {
     const prepackIdToPrint = currentPrepackId;
     
     const frame = document.getElementById('prepackPrintFrame');
-    // Print the lowest undispensed label for this prepack
     let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_lowest_undispensed=1&_ts=${Date.now()}`;
     console.log('Print URL:', printUrl);
-    showFlashMessage('Finding and printing lowest undispensed label ...', 'notice', { transient: true, duration: 5000 });
+    showFlashMessage('printing undispensed label ...', 'notice', { transient: true, duration: 5000 });
 
-    // Close the modal AFTER generating the URL
     closePrinterModal();
-
     if (!frame) {
       window.location = printUrl;
       return;
@@ -2095,11 +2353,10 @@ function removePrepackFromList(id) {
     frame.src = printUrl;
   }
 
-  // Search and reprint a specific label
+ 
   function searchAndPrintLabel() {
     console.log('searchAndPrintLabel called');
-    
-    const bottleId = document.getElementById('searchBottleId').value.trim();
+    const bottleId = currentBottleId || document.getElementById('searchBottleId').value.trim();
     const packNo = document.getElementById('searchPackNo').value.trim();
 
     console.log('Bottle ID:', bottleId, 'Pack No:', packNo);
@@ -2109,13 +2366,11 @@ function removePrepackFromList(id) {
       return;
     }
 
-    // Require pack number for search
     if (packNo === '') {
       showFlashMessage('Please enter a Pack Number', 'error', { transient: true, duration: 1000 });
       return;
     }
 
-    // Validate pack number is a valid number
     let packNum = parseInt(packNo);
     if (isNaN(packNum) || packNum < 0) {
       showFlashMessage('Pack Number must be 0 or higher', 'error', { transient: true, duration: 1000 });
@@ -2124,34 +2379,26 @@ function removePrepackFromList(id) {
 
     // Validate bottle ID format (should be G followed by digits, or PK-G followed by digits)
     let cleanBottleId = bottleId;
-    // Remove PK- prefix if user included it
     if (cleanBottleId.toUpperCase().startsWith('PK-')) {
       cleanBottleId = cleanBottleId.substring(3);
     }
-    
-    // Check if it's a valid format (should start with G and have enough digits)
     if (!/^G\d+$/i.test(cleanBottleId)) {
       showFlashMessage('Invalid Bottle ID format. Should be like G0000059 or PK-G0000059', 'error', { transient: true, duration: 1000 });
       return;
     }
     
-    // Check minimum length (should be at least 7 characters like G0000026)
     if (cleanBottleId.length < 7) {
       showFlashMessage('Bottle ID too short. Use full ID like G0000026', 'error', { transient: true, duration: 1000 });
       return;
     }
     
     const frame = document.getElementById('prepackPrintFrame');
-
-    // Combine: PK-G0000042 + 4 = PK-G0000042-4
     let labelIdentifier = 'PK-' + cleanBottleId;
     if (packNo !== '') {
       labelIdentifier += '-' + packNo;
     }
     
     console.log('Label Identifier:', labelIdentifier);
-    
-    // First check the label status in the database
     showFlashMessage('Checking label status...', 'notice', { transient: true, duration: 2000 });
     
     fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
@@ -2169,12 +2416,10 @@ function removePrepackFromList(id) {
           return;
         }
         
-        // Label is available, proceed to print
         let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
         console.log('Search Print URL:', printUrl);
         showFlashMessage('Printing label...', 'notice', { transient: true, duration: 1000 });
 
-        // Close the modal AFTER building the URL
         closePrinterModal();
 
         if (!frame) {
@@ -2211,12 +2456,15 @@ function removePrepackFromList(id) {
 
   // Handle Enter key in the search fields
   document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('searchBottleId').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('searchPackNo').focus();
-      }
-    });
+    var searchBottleIdEl = document.getElementById('searchBottleId');
+    if (searchBottleIdEl) {
+      searchBottleIdEl.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('searchPackNo').focus();
+        }
+      });
+    }
 
     document.getElementById('searchPackNo').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -3452,6 +3700,9 @@ function showDamageModal(prepackId, drugName, availablePacks, packSize, bottle_q
 function showDamageConfirmationModal(quantity, drugName, reason, prepackId, damageType) {
   // Close the damage modal first
   closeDamageModal();
+  
+  // Keep modal state true - we're just transitioning to confirmation modal
+  isModalOpen = true;
   
   // Small delay to ensure modal is closed
   setTimeout(() => {
