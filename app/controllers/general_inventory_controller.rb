@@ -430,7 +430,8 @@ def create
           quantity: prepack.quantity_per_pack,
           dispensation_id: disp.id,
           prescription_id: prescription.id,
-          currentQty: bottle.current_quantity
+          currentQty: bottle.current_quantity,
+          currentNumPacks: prepack.current_num_packs
         }
       end
 
