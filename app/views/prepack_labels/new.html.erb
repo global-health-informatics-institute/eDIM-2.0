@@ -2086,7 +2086,7 @@ function removePrepackFromList(id) {
     okBtn.style.cssText = 'padding:16px 32px;font-size:1.2rem;background:linear-gradient(135deg,#006495,#009ec3);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,100,149,0.3);';
     okBtn.onmouseover = function() { this.style.transform = 'translateY(-2px);box-shadow:0 6px 20px rgba(0,100,149,0.4);' };
     okBtn.onmouseout = function() { this.style.transform = 'translateY(0);box-shadow:0 4px 15px rgba(0,100,149,0.3);' };
-    okBtn.textContent = '✓ Print All';
+    okBtn.textContent = ' Print All';
     okBtn.onclick = function() {
       clearTimeout(confirmTimeout); 
       overlay.remove();
