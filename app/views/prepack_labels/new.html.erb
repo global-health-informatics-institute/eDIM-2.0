@@ -660,7 +660,7 @@ img[src*="/assets/"] {
     </div>
     
     <button id="printSinglePackBtn" type="button" onclick="searchAndPrintLabel();"
-            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:1000000; text-align:center; display:flex; align-items:center; justify-content:center;">
+            style="padding:18px 32px; font-size:1.6rem; background:#008000; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:1000000; text-align:center; display:flex; align-items:center; justify-content:center;">
       Print a Pack
     </button>
   </div>
@@ -669,7 +669,7 @@ img[src*="/assets/"] {
   </div>
   
   <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
-          style="padding:12px 24px; font-size:1rem; background:#dc3545; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center;">
+          style="padding:12px 24px; font-size:1rem; background:#FF2C2C; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:16px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center;">
     Cancel
   </button>
 </div>
@@ -2062,12 +2062,12 @@ function removePrepackFromList(id) {
     message.innerHTML = 'Ready to print <strong style="color:#006495;font-size:1.5rem;">' + count + '</strong> labels?';
     
     const btnContainer = document.createElement('div');
-    btnContainer.style.cssText = 'display:flex;gap:16px;justify-content:center;';
+    btnContainer.style.cssText = 'display:flex;gap:16px;justify-content:center;align-items:center;';
     
     const cancelBtn = document.createElement('button');
-    cancelBtn.style.cssText = 'padding:16px 32px;font-size:1.2rem;background:#f8f9fa;color:#495057;border:2px solid #dee2e6;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;';
-    cancelBtn.onmouseover = function() { this.style.background = '#e9ecef'; };
-    cancelBtn.onmouseout = function() { this.style.background = '#f8f9fa'; };
+    cancelBtn.style.cssText = 'padding:16px 32px;text-align:center;font-size:1.2rem;background:#e02222;color:#495057;border:2px solid #dee2e6;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;width:140px;display:flex;align-items:center;justify-content:center;';
+    cancelBtn.onmouseover = function() { this.style.background = '#e42828'; };
+    cancelBtn.onmouseout = function() { this.style.background = '#e02222'; };
     cancelBtn.textContent = 'Cancel';
     cancelBtn.onclick = function() {
       clearTimeout(confirmTimeout); 
@@ -2083,9 +2083,9 @@ function removePrepackFromList(id) {
     };
     
     const okBtn = document.createElement('button');
-    okBtn.style.cssText = 'padding:16px 32px;font-size:1.2rem;background:linear-gradient(135deg,#006495,#009ec3);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,100,149,0.3);';
-    okBtn.onmouseover = function() { this.style.transform = 'translateY(-2px);box-shadow:0 6px 20px rgba(0,100,149,0.4);' };
-    okBtn.onmouseout = function() { this.style.transform = 'translateY(0);box-shadow:0 4px 15px rgba(0,100,149,0.3);' };
+    okBtn.style.cssText = 'padding:16px 32px;text-align:center;font-size:1.2rem;background:#008000;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,128,0,0.3);width:140px;display:flex;align-items:center;justify-content:center;';
+    okBtn.onmouseover = function() { this.style.transform = 'translateY(-2px);box-shadow:0 6px 20px rgba(113, 189, 94, 0.4);' };
+    okBtn.onmouseout = function() { this.style.transform = 'translateY(0);box-shadow:0 4px 15px rgba(104, 216, 100, 0.3);' };
     okBtn.textContent = ' Print All';
     okBtn.onclick = function() {
       clearTimeout(confirmTimeout); 
@@ -2125,7 +2125,7 @@ function removePrepackFromList(id) {
       }
     });
     
-    // Handle Escape key
+
     document.addEventListener('keydown', function escHandler(e) {
       if (e.key === 'Escape') {
         clearTimeout(confirmTimeout); 
