@@ -512,7 +512,7 @@ img[src*="/assets/"] {
                         <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
                             src="/assets/print.png" 
                             title="Print prepack labels"
-                            onmousedown="event.stopPropagation(); openPrinterModal('<%= prepack_id %>');"
+                            onclick="var e = event || window.event; e.stopPropagation(); openPrinterModal('<%= prepack_id %>');"
                             onmouseover="this.style.transform='scale(1.1)'"
                             onmouseout="this.style.transform='scale(1)'">
                         <% else %>
@@ -631,37 +631,37 @@ img[src*="/assets/"] {
         <div id="fullLabelDisplay" style="font-size:1.5rem; font-weight:bold; color:#006495; margin-bottom:12px; padding:10px 20px; background:#f8f9fa; border-radius:8px; border:2px solid #006495; min-width:200px; text-align:center;">PK-G001-0</div>
         
         <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px;">
-          <button type="button" id="decrementPackBtn" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; var minIdx = window.availableMinIndex || 1; var step = parseInt(packNoStep) || 1; v=v-step; if(v<minIdx)v=minIdx; f.value=v; updateFullLabelDisplay();"
+          <button type="button" id="decrementPackBtn"
                   style="width:60px; height:60px; border:none; border-radius:12px; background:#dc3545; color:white; font-size:2.5rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(220,53,69,0.3); line-height:1;">−</button>
-          <input type="text" id="searchPackNo" value="1"
+          <input type="text" id="searchPackNo" value="0"
                  inputmode="numeric" pattern="[0-9]*"
                  oninput="this.value = this.value.replace(/[^0-9]/g, ''); updateFullLabelDisplay();"
                  style="width:120px; height:60px; padding:0; font-size:2.2rem; font-weight:700; border-radius:12px; border:3px solid #006495; text-align:center; color:#495057; -moz-appearance:textfield; appearance:textfield; line-height:54px;">
-          <button type="button" id="incrementPackBtn" onclick="var f=document.getElementById('searchPackNo'); var v=parseInt(f.value)||0; var maxIdx = window.availableMaxIndex || 9999; var step = parseInt(packNoStep) || 1; v=v+step; if(v>maxIdx)v=maxIdx; f.value=v; updateFullLabelDisplay();"
+          <button type="button" id="incrementPackBtn"
                   style="width:60px; height:60px; border:none; border-radius:12px; background:#28a745; color:white; font-size:2.5rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(40,167,69,0.3); line-height:1;">+</button>
         </div>
         
         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:12px;">
-          <button type="button" id="stepBtn1" onclick="if(this.disabled) return; packNoStep=1; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
-                  style="padding:16px 8px; border:2px solid #006495; border-radius:10px; background:#006495; color:white; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%;">1</button>
-          <button type="button" id="stepBtn10" onclick="if(this.disabled) return; packNoStep=10; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%;">10</button>
-          <button type="button" id="stepBtn100" onclick="if(this.disabled) return; packNoStep=100; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%;">100</button>
-          <button type="button" id="stepBtn1000" onclick="if(this.disabled) return; packNoStep=1000; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057';"
-                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%;">1000</button>
+          <button type="button" id="stepBtn1" onclick="packNoStep=1; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #006495; border-radius:10px; background:#006495; color:white; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%; display:flex; align-items:center; justify-content:center;">1</button>
+          <button type="button" id="stepBtn10" onclick="packNoStep=10; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%; display:flex; align-items:center; justify-content:center;">10</button>
+          <button type="button" id="stepBtn100" onclick="packNoStep=100; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%; display:flex; align-items:center; justify-content:center;">100</button>
+          <button type="button" id="stepBtn1000" onclick="packNoStep=1000; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057';"
+                  style="padding:16px 8px; border:2px solid #dee2e6; border-radius:10px; background:#f8f9fa; color:#495057; font-size:1.4rem; font-weight:600; cursor:pointer; min-height:55px; user-select:none; text-align:center; width:100%; display:flex; align-items:center; justify-content:center;">1000</button>
         </div>
         
         <div style="font-size:0.85rem; color:#6c757d; text-align:center; margin-bottom:8px;">Select step then use +/- buttons</div>
         
-        <button type="button" onclick="var minIdx = window.availableMinIndex || 1; document.getElementById('searchPackNo').value = minIdx; updateFullLabelDisplay();"
+        <button type="button" onclick="document.getElementById('searchPackNo').value='0'; updateFullLabelDisplay();"
                 style="padding:12px 24px; border:2px solid #6c757d; border-radius:8px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1.2rem; font-weight:600; cursor:pointer; min-height:45px; display:flex; align-items:center; justify-content:center;">Clear</button>
       </div>
     </div>
     
-    <button id="printSinglePackBtn" onclick="searchAndPrintLabel()" 
-            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:100; text-align:center; display:flex; align-items:center; justify-content:center;">
-      print a Pack
+    <button id="printSinglePackBtn" type="button" onclick="searchAndPrintLabel();"
+            style="padding:18px 32px; font-size:1.6rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:1000000; text-align:center; display:flex; align-items:center; justify-content:center;">
+      Print a Pack
     </button>
   </div>
   
@@ -675,6 +675,38 @@ img[src*="/assets/"] {
 </div>
 
 <div id="printerModalShadow" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99998;" onclick="closePrinterModal()"></div>
+
+<!-- Custom Alert Overlay -->
+<div id="customAlertOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:12px; padding:24px; max-width:400px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.4); text-align:center;">
+    <div id="customAlertIcon" style="font-size:48px; margin-bottom:16px;">⚠️</div>
+    <div id="customAlertMessage" style="font-size:1.4rem; color:#495057; margin-bottom:24px; font-weight:500;"></div>
+    <button type="button" onclick="closeCustomAlert()" style="padding:12px 48px; font-size:1.2rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;">OK</button>
+  </div>
+</div>
+
+<script>
+// Custom alert function
+function showCustomAlert(message, isError) {
+  var overlay = document.getElementById('customAlertOverlay');
+  var msgEl = document.getElementById('customAlertMessage');
+  var iconEl = document.getElementById('customAlertIcon');
+  
+  msgEl.textContent = message;
+  
+  if (isError) {
+    iconEl.textContent = '⚠️';
+  } else {
+    iconEl.textContent = '✅';
+  }
+  
+  overlay.style.display = 'flex';
+}
+
+function closeCustomAlert() {
+  document.getElementById('customAlertOverlay').style.display = 'none';
+}
+</script>
 
 <%= form_for :prescription, method: 'POST', url: dispensation_index_path, html: { id: 'dispenseFormElement' } do |f| %>
   <%= hidden_field_tag :prepacking, true %>
@@ -1797,12 +1829,10 @@ function removePrepackFromList(id) {
     var field = document.getElementById('searchPackNo');
     if (!field) return;
     
-    var minIdx = window.availableMinIndex || 1;
-    var maxIdx = window.availableMaxIndex || 10000;
-    var current = parseInt(field.value) || minIdx;
+    var current = parseInt(field.value) || 0;
     var newVal = current + (delta * packNoStep);
-    if (newVal < minIdx) newVal = minIdx;
-    if (newVal > maxIdx) newVal = maxIdx;
+    if (newVal < 0) newVal = 0;
+    if (newVal > 10000) newVal = 10000;
     field.value = newVal.toString();
     updateFullLabelDisplay();
   }
@@ -2200,9 +2230,6 @@ function removePrepackFromList(id) {
       packsRemaining = parseInt(prepackRow.getAttribute('data-packs-remaining')) || 0;
     }
     
-    // Store the bottle ID globally for print all functionality
-    currentBottleId = bottleId;
-    
     // If no bottle ID found, try to get from the view options menu
     if (!bottleId) {
       const viewOptions = document.getElementById('view_options_' + prepackId);
@@ -2214,6 +2241,9 @@ function removePrepackFromList(id) {
         }
       }
     }
+    
+    // Update currentBottleId with the found bottle ID (whether from row or view options)
+    currentBottleId = bottleId;
     
     // If only 1 pack remaining, directly print
     if (packsRemaining === 1) {
@@ -2239,7 +2269,7 @@ function removePrepackFromList(id) {
     if (searchBottleIdEl) {
       searchBottleIdEl.value = bottleId || '';
     }
-    document.getElementById('searchPackNo').value = window.availableMinIndex || '1';
+    document.getElementById('searchPackNo').value = '0';
     
     // Update the Print All Available radio button with the count from database
     var printAllRadioCount = document.getElementById('printAllRadioCount');
@@ -2455,41 +2485,6 @@ function removePrepackFromList(id) {
       }
     }
   }
-    
-    buttons.forEach(btn => {
-      const value = parseInt(btn.getAttribute('data-value'));
-      
-      // Find if this index exists in the label list
-      const labelInfo = labelIndexes.find(l => l.index === value);
-      
-      // Keep all buttons enabled - user can try any
-      btn.disabled = false;
-      
-      if (labelInfo) {
-        if (labelInfo.status === 'available') {
-          // Available - full opacity
-          btn.style.opacity = '1';
-          btn.style.cursor = 'pointer';
-          btn.title = 'Print label ' + value;
-        } else if (labelInfo.status === 'dispensed') {
-          // Dispensed - slight dim
-          btn.style.opacity = '0.6';
-          btn.style.cursor = 'pointer';
-          btn.title = 'Label ' + value + ' already dispensed - will show error';
-        } else {
-          // Unavailable (deleted/voided) - more dim
-          btn.style.opacity = '0.5';
-          btn.style.cursor = 'pointer';
-          btn.title = 'Label ' + value + ' unavailable - will show error';
-        }
-      } else {
-        // Index doesn't exist - dim but still clickable
-        btn.style.opacity = '0.4';
-        btn.style.cursor = 'pointer';
-        btn.title = 'Label ' + value + ' does not exist - will show error';
-      }
-    });
-  }
 
   // Close the printer modal and return focus to barcode input
   function closePrinterModal() {
@@ -2555,11 +2550,10 @@ function removePrepackFromList(id) {
 
  
   function searchAndPrintLabel() {
-    console.log('searchAndPrintLabel called');
-    const bottleId = currentBottleId || document.getElementById('searchBottleId').value.trim();
+    const searchBottleIdEl = document.getElementById('searchBottleId');
+    const inputBottleId = searchBottleIdEl ? searchBottleIdEl.value.trim() : '';
+    const bottleId = inputBottleId || currentBottleId;
     const packNo = document.getElementById('searchPackNo').value.trim();
-
-    console.log('Bottle ID:', bottleId, 'Pack No:', packNo);
 
     if (bottleId === '') {
       showFlashMessage('Please enter a Bottle ID', 'error', { transient: true, duration: 1000 });
@@ -2572,8 +2566,8 @@ function removePrepackFromList(id) {
     }
 
     let packNum = parseInt(packNo);
-    if (isNaN(packNum) || packNum < 0) {
-      showFlashMessage('Pack Number must be 0 or higher', 'error', { transient: true, duration: 1000 });
+    if (isNaN(packNum) || packNum < 1) {
+      showFlashMessage('Pack Number must be 1 or higher', 'error', { transient: true, duration: 1000 });
       return;
     }
 
@@ -2598,21 +2592,20 @@ function removePrepackFromList(id) {
       labelIdentifier += '-' + packNo;
     }
     
-    console.log('Label Identifier:', labelIdentifier);
-    showFlashMessage('Checking label status...', 'notice', { transient: true, duration: 2000 });
-    
     fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
       .then(response => response.json())
       .then(data => {
         console.log('Label check response:', data);
         
         if (!data.exists) {
-          showFlashMessage('Label not found: ' + (data.error || 'Unknown error'), 'error', { transient: true, duration: 3000 });
+          // Show custom alert (modal stays open behind it)
+          showCustomAlert('Label not found: ' + (data.error || 'Unknown error'), true);
           return;
         }
         
         if (!data.can_print) {
-          showFlashMessage('Cannot print: ' + data.message, 'error', { transient: true, duration: 3000 });
+          // Show custom alert (modal stays open behind it)
+          showCustomAlert('Cannot print: ' + data.message, true);
           return;
         }
         
