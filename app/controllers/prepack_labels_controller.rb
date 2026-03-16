@@ -561,6 +561,7 @@ public
     available_indexes = indexes.select { |h| h[:status] == 'available' }.map { |h| h[:index] }
     min_available = available_indexes.min
     max_available = available_indexes.max
+    available_count = available_indexes.count
     
     render json: {
       prepack_id: prepack.id,
@@ -568,7 +569,9 @@ public
       gn_identifier: prepack.gn_identifier,
       labels: indexes,
       min_index: min_available || 0,
-      max_index: max_available || 0
+      max_index: max_available || 0,
+      available_indexes: available_indexes,
+      available_count: available_count
     }
   end
 
