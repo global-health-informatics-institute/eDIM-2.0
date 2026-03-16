@@ -2490,16 +2490,15 @@ function removePrepackFromList(id) {
   function closePrinterModal() {
     document.getElementById('printerModal').style.display = 'none';
     document.getElementById('printerModalShadow').style.display = 'none';
-
-    if (!isModalOpen) {
-      setTimeout(function() {
-        var barcodeInput = document.getElementById('barcode');
-        if (barcodeInput) {
-          barcodeInput.focus();
-          barcodeInput.select();
-        }
-      }, 100);
-    }
+    
+    // Always return focus to barcode input when modal is closed
+    setTimeout(function() {
+      var barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.focus();
+        barcodeInput.select();
+      }
+    }, 100);
   }
 
 
