@@ -397,13 +397,17 @@ def create
             provider_id: User.current.id
           )
 
+          # Decrease bottle inventory quantity
+          bottle.update!(current_quantity: bottle.current_quantity - prepack.quantity_per_pack)
+
           disp = Dispensation.create!(
             rx_id: prescription.id,
             inventory_id: bottle.gn_inventory_id,
             patient_id: patient_id,
             quantity: prepack.quantity_per_pack,
             dispensation_date: Time.current,
-            dispensed_by: User.current.id
+            dispensed_by: User.current.id,
+            location_id: session[:location]
           )
 
           label.update!(
