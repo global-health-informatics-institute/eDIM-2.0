@@ -1631,6 +1631,13 @@ function removePrepackFromList(id) {
               document.getElementById('bottle_id').innerHTML = bottleId;
               document.getElementById('btl_field').value = bottleId;
               document.getElementById('btl_field').value = bottleId;
+              // Update current_num_packs if provided (for prepack dispensing)
+              if (result['currentNumPacks'] !== undefined) {
+                var numPacksEl = document.getElementById('numPacks');
+                if (numPacksEl) {
+                  numPacksEl.value = result['currentNumPacks'];
+                }
+              }
               showDispenseDiv('routesDiv');
             } catch(e){ 
               showFlashError(`Bottle ID ${bottleId} returned invalid data.`);

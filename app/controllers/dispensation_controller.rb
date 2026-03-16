@@ -344,14 +344,18 @@ class DispensationController < ApplicationController
         )
         
         # Mark label as dispensed when printing from prepack_labels page
+        Rails.logger.info "DEBUG: Marking label #{label.label_identifier} as dispensed, current state: #{label.dispensed}"
         label.update!(dispensed: 1, date_dispensed: Time.current) if label.dispensed == 0
+        Rails.logger.info "DEBUG: Label #{label.label_identifier} updated, new state: #{label.reload.dispensed}"
       end
       
       # Update current_num_packs after marking labels as dispensed
       if prepack
+        Rails.logger.info "DEBUG: Updating current_num_packs for prepack #{prepack.id}"
         dispensed_count = prepack.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
         remaining_packs = [prepack.num_packs.to_i - dispensed_count, 0].max
         prepack.update!(current_num_packs: remaining_packs)
+        Rails.logger.info "DEBUG: Prepack #{prepack.id} current_num_packs updated to #{prepack.reload.current_num_packs}"
       end
 
     # Prescription-based dispensations
@@ -492,7 +496,21 @@ class DispensationController < ApplicationController
       bottle_id: prepack.gn_identifier,
       expiration_date: expiration_date
     )
-
+    
+    # Mark label as dispensed and update current_num_packs
+    Rails.logger.info "DEBUG SEARCH: Marking label #{label.label_identifier} as dispensed, current state: #{label.dispensed}"
+    label.update!(dispensed: 1, date_dispensed: Time.current) if label.dispensed == 0
+    Rails.logger.info "DEBUG SEARCH: Label #{label.label_identifier} updated, new state: #{label.reload.dispensed}"
+    
+    # Update current_num_packs
+    if prepack
+      Rails.logger.info "DEBUG SEARCH: Updating current_num_packs for prepack #{prepack.id}"
+      dispensed_count = prepack.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
+      remaining_packs = [prepack.num_packs.to_i - dispensed_count, 0].max
+      prepack.update!(current_num_packs: remaining_packs)
+      Rails.logger.info "DEBUG SEARCH: Prepack #{prepack.id} current_num_packs updated to #{prepack.reload.current_num_packs}"
+    end
+    
     send_data(
       print_string,
       type: "application/label; charset=utf-8",
