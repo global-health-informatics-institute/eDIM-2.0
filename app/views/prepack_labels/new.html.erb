@@ -2491,7 +2491,10 @@ function removePrepackFromList(id) {
     document.getElementById('printerModal').style.display = 'none';
     document.getElementById('printerModalShadow').style.display = 'none';
     
-    // Always return focus to barcode input when modal is closed
+    // Allow barcode to be refocused by other functions
+    isModalOpen = false;
+    
+    // Return focus to barcode input when modal is closed
     setTimeout(function() {
       var barcodeInput = document.getElementById('barcode');
       if (barcodeInput) {
