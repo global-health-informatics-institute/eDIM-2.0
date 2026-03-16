@@ -73,6 +73,16 @@ class DispensationController < ApplicationController
               location_id: item.location_id
             )
 
+            # Update current_num_packs for the prepack
+            if prepack_label.present?
+              prepack_batch = prepack_label.prepack
+              if prepack_batch.present?
+                dispensed_count = prepack_batch.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
+                remaining_packs = [prepack_batch.num_packs.to_i - dispensed_count, 0].max
+                prepack_batch.update!(current_num_packs: remaining_packs)
+              end
+            end
+
             flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
             print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
           end
@@ -218,7 +228,8 @@ class DispensationController < ApplicationController
               patient_id:        @patient&.id || session[:patient_id],
               quantity:          dispensed_item[:quantity],
               dispensation_date: Time.current,
-              dispensed_by:      User.current.id
+              dispensed_by:      User.current.id,
+              location_id:      session[:location]
             )
           end
 
@@ -538,7 +549,8 @@ class DispensationController < ApplicationController
 
         @dispensation = Dispensation.create({:rx_id => @prescription.id, :inventory_id => item.bottle_id,
                                              :patient_id => @prescription.patient_id, :quantity => amount_dispensed,
-                                             :dispensation_date => Time.current, :dispensed_by => User.current.id})
+                                             :dispensation_date => Time.current, :dispensed_by => User.current.id,
+                                             :location_id => session[:location]})
 
         if @dispensation.errors.blank?
           if @prescription.quantity <= @prescription.amount_dispensed
