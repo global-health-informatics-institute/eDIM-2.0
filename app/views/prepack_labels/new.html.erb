@@ -584,7 +584,7 @@ img[src*="/assets/"] {
               <!-- Fill empty cell if we have an odd number in this pair -->
               <% if prepack_pair.length == 1 %>
                 <div style="display: table-cell; width: 47vw; padding: 5px;">
-                  <!-- Empty cell to maintain layout -->
+                  <!-- Empty cell to maintain layout -->Modal
                 </div>
               <% end %>
             </div>
@@ -600,67 +600,66 @@ img[src*="/assets/"] {
       </div>
     </div>
   </div>
+
 <!-- Modal for printing prepack labels -->
-
 <div id="modalOverlay" style="display:none !important;"></div>
-<div id="printerModal" style="display:none !important; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90vw; max-width:500px; max-height:85vh; background:white; border:2px solid #006495; border-radius:12px; padding:16px; z-index:99999; box-shadow:0 20px 60px rgba(0,0,0,0.3); box-sizing: border-box; overflow:hidden; display:flex; flex-direction:column;">
+<div id="printerModal" style="display:none !important; position:fixed !important; top:50% !important; left:50% !important; transform:translate(-50%, -50%) !important; width:620px !important; max-width:95vw !important; height:780px !important; max-height:92vh !important; background:white !important; border:2px solid #006495 !important; border-radius:16px !important; padding:30px !important; z-index:99999 !important; box-shadow:0 20px 60px rgba(0,0,0,0.3) !important; box-sizing:border-box !important; display:flex !important; flex-direction:column !important;">
 
-  <div style="text-align:center; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid #e9ecef;">
-    <h2 style="color:#006495; margin:0; font-size:clamp(1.1rem, 3vw, 1.4rem); font-weight:bold;">Print Prepack Labels</h2>
+  <div style="text-align:center; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid #e9ecef; flex-shrink:0;">
+    <h2 style="color:#006495; margin:0; font-size:1.5rem; font-weight:bold;">Print Prepack Labels</h2>
   </div>
-  
-  <div style="margin-bottom:16px;">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-      <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:clamp(6px, 2vw, 10px); border:2px solid #006495; border-radius:8px; background:#006495; cursor:pointer; font-size:clamp(0.8rem, 2vw, 1.1rem); font-weight:600; color:white; min-height:clamp(35px, 8vw, 45px); box-sizing: border-box;"
+  <div style="margin-bottom:20px; flex-shrink:0;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:14px 10px; border:2px solid #006495; border-radius:8px; background:#006495; cursor:pointer; font-size:1.1rem; font-weight:600; color:white; min-height:50px; box-sizing: border-box;"
              onclick="switchPrintOption('single')">
         <input type="radio" name="printOption" value="single" checked style="display:none;">
         Reprint Current Pack
       </label>
-      <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:clamp(6px, 2vw, 10px); border:2px solid #dee2e6; border-radius:8px; background:#f8f9fa; cursor:pointer; font-size:clamp(0.8rem, 2vw, 1.1rem); font-weight:600; color:#495057; min-height:clamp(35px, 8vw, 45px); box-sizing: border-box;"
-             onmousedown="event.stopPropagation(); printAllAvailableLabels(); return false;">
+      <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:14px 10px; border:2px solid #dee2e6; border-radius:8px; background:#f8f9fa; cursor:pointer; font-size:1.1rem; font-weight:600; color:#495057; min-height:50px; box-sizing: border-box;"
+             onclick="printAllAvailableLabels();">
         <input type="radio" name="printOption" value="all" style="display:none;">
         Print All Available <span id="printAllRadioCount" style="margin-left:4px; font-weight:bold;"></span>
       </label>
     </div>
   </div>
   
-  <div id="singlePackSection">    
-    <div style="margin-bottom:16px;">
-      <label style="font-weight:bold; font-size:clamp(0.9rem, 2.5vw, 1.2rem); display:block; margin-bottom:6px; color:#495057;">Pack Number</label>
-      <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-        <div id="fullLabelDisplay" style="font-size:clamp(1rem, 3vw, 1.3rem); font-weight:bold; color:#006495; margin-bottom:8px; padding:6px 12px; background:#f8f9fa; border-radius:6px; border:2px solid #006495; min-width:100px; text-align:center; box-sizing: border-box;">PK-G001-0</div>
+  <div id="singlePackSection" style="flex:1; margin-bottom:20px;">    
+    <div style="margin-bottom:20px;">
+      <label style="font-weight:bold; font-size:1.2rem; display:block; margin-bottom:8px; color:#495057;">Pack Number</label>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div id="fullLabelDisplay" style="font-size:1.5rem; font-weight:bold; color:#006495; margin-bottom:10px; padding:10px 16px; background:#f8f9fa; border-radius:6px; border:2px solid #006495; min-width:120px; text-align:center; box-sizing: border-box;">PK-G001-0</div>
         
-        <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px;">
           <button type="button" id="decrementPackBtn"
-                  style="width:clamp(35px, 8vw, 45px); height:clamp(35px, 8vw, 45px); border:none; border-radius:8px; background:#dc3545; color:white; font-size:clamp(1.2rem, 3vw, 1.8rem); font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(220,53,69,0.3); line-height:1; box-sizing: border-box;">−</button>
+                  style="width:50px; height:50px; border:none; border-radius:8px; background:#dc3545; color:white; font-size:1.6rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(220,53,69,0.3); line-height:1; box-sizing: border-box;">−</button>
           <input type="text" id="searchPackNo" value="0"
                  inputmode="numeric" pattern="[0-9]*"
                  oninput="this.value = this.value.replace(/[^0-9]/g, ''); updateFullLabelDisplay();"
-                 style="width:clamp(50px, 15vw, 80px); height:clamp(35px, 8vw, 45px); padding:0; font-size:clamp(1rem, 2.5vw, 1.6rem); font-weight:700; border-radius:8px; border:2px solid #006495; text-align:center; color:#495057; -moz-appearance:textfield; appearance:textfield; box-sizing: border-box;">
+                 style="width:80px; height:50px; padding:0; font-size:1.5rem; font-weight:700; border-radius:8px; border:2px solid #006495; text-align:center; color:#495057; -moz-appearance:textfield; appearance:textfield; box-sizing: border-box;">
           <button type="button" id="incrementPackBtn"
-                  style="width:clamp(35px, 8vw, 45px); height:clamp(35px, 8vw, 45px); border:none; border-radius:8px; background:#28a745; color:white; font-size:clamp(1.2rem, 3vw, 1.8rem); font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(40,167,69,0.3); line-height:1; box-sizing: border-box;">+</button>
+                  style="width:50px; height:50px; border:none; border-radius:8px; background:#28a745; color:white; font-size:1.6rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(40,167,69,0.3); line-height:1; box-sizing: border-box;">+</button>
         </div>
         
         <div style="display:flex; width:100%;">
           <button type="button" id="stepBtn1" onclick="packNoStep=1; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
-                  style="width:22%; height:clamp(28px, 5vw, 36px); border:2px solid #006495; border-radius:6px; background:#006495; color:white; font-size:clamp(0.6rem, 1.5vw, 0.8rem); font-weight:600; cursor:pointer; user-select:none; margin:1px;">1</button>
+                  style="width:22%; height:42px; border:2px solid #006495; border-radius:6px; background:#006495; color:white; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">1</button>
           <button type="button" id="stepBtn10" onclick="packNoStep=10; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
-                  style="width:25%; height:clamp(28px, 5vw, 36px); border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:clamp(0.6rem, 1.5vw, 0.8rem); font-weight:600; cursor:pointer; user-select:none; margin:1px;">10</button>
+                  style="width:25%; height:42px; border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">10</button>
           <button type="button" id="stepBtn100" onclick="packNoStep=100; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
-                  style="width:25%; height:clamp(28px, 5vw, 36px); border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:clamp(0.6rem, 1.5vw, 0.8rem); font-weight:600; cursor:pointer; user-select:none; margin:1px;">100</button>
+                  style="width:25%; height:42px; border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">100</button>
           <button type="button" id="stepBtn1000" onclick="packNoStep=1000; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057';"
-                  style="width:25%; height:clamp(28px, 5vw, 36px); border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:clamp(0.6rem, 1.5vw, 0.8rem); font-weight:600; cursor:pointer; user-select:none; margin:1px;">1000</button>
+                  style="width:25%; height:42px; border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">1000</button>
         </div>
         
-        <div style="font-size:0.75rem; color:#6c757d; text-align:center; margin-bottom:6px;">Select step then use +/- buttons</div>
+        <div style="font-size:0.85rem; color:#6c757d; text-align:center; margin-bottom:8px;">Select step then use +/- buttons</div>
         
         <button type="button" onclick="document.getElementById('searchPackNo').value='0'; updateFullLabelDisplay();"
-                style="padding:8px 16px; border:2px solid #6c757d; border-radius:6px; background:#FFDBBB; text-align:center; color:#40464b; font-size:clamp(0.8rem, 2vw, 1rem); font-weight:600; cursor:pointer; min-height:35px; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">Clear</button>
+                style="padding:10px 20px; border:2px solid #6c757d; border-radius:6px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1rem; font-weight:600; cursor:pointer; min-height:40px; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">Clear</button>
       </div>
     </div>
     
     <button id="printSinglePackBtn" type="button" onclick="searchAndPrintLabel();"
-            style="padding:clamp(10px, 3vw, 14px) clamp(16px, 4vw, 24px); font-size:clamp(0.9rem, 2.5vw, 1.2rem); background:#008000; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:1000000; text-align:center; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">
+            style="padding:14px 24px; font-size:1.2rem; background:#008000; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:1000000; text-align:center; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">
       Print a Pack
     </button>
   </div>
@@ -669,12 +668,12 @@ img[src*="/assets/"] {
   </div>
   
   <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
-          style="padding:clamp(8px, 2vw, 10px) clamp(14px, 3vw, 20px); font-size:clamp(0.8rem, 2vw, 1rem); background:#FF2C2C; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:10px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">
+          style="padding:14px 24px; font-size:1.1rem; background:#FF2C2C; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:15px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center; box-sizing:border-box; flex-shrink:0;">
     Cancel
   </button>
 </div>
 
-<div id="printerModalShadow" style="display:none !important; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99998;" onclick="closePrinterModal()"></div>
+<div id="printerModalShadow" style="display:none !important; position:fixed !important; top:0 !important; left:0 !important; width:100% !important; height:100% !important; background:rgba(0,0,0,0.5) !important; z-index:99998 !important;" onclick="closePrinterModal()"></div>
 
 
 <div id="customAlertOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999999; align-items:center; justify-content:center;">
@@ -686,6 +685,22 @@ img[src*="/assets/"] {
 </div>
 
 <script>
+// Ensure modal is closed on page load (fixes back button issue)
+window.addEventListener('pageshow', function(event) {
+  var modal = document.getElementById('printerModal');
+  var shadow = document.getElementById('printerModalShadow');
+  if (modal) modal.style.setProperty('display', 'none', 'important');
+  if (shadow) shadow.style.setProperty('display', 'none', 'important');
+});
+
+// Also close on regular page load
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('printerModal');
+  var shadow = document.getElementById('printerModalShadow');
+  if (modal) modal.style.setProperty('display', 'none', 'important');
+  if (shadow) shadow.style.setProperty('display', 'none', 'important');
+});
+
 function showCustomAlert(message, isError) {
   var overlay = document.getElementById('customAlertOverlay');
   var msgEl = document.getElementById('customAlertMessage');
@@ -1993,7 +2008,12 @@ function removePrepackFromList(id) {
   // Print all available labels - with simple confirmation alert
   function printAllAvailableLabels() {
     // Prevent any default behavior and stop propagation like log damages
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    // Debug: log current state
+    console.log('printAllAvailableLabels called, currentPrepackId:', currentPrepackId);
     
     // Blur barcode input immediately to stop scanner
     const barcodeInput = document.getElementById('barcode');
@@ -2001,8 +2021,10 @@ function removePrepackFromList(id) {
       barcodeInput.blur();
     }
     
-    if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
-      showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 3000 });
+    // More lenient validation - allow string '0' or numeric 0 as valid
+    if (currentPrepackId == null || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
+      showFlashMessage('Error: No valid prepack selected. Please click on a prepack first.', 'error', { transient: true, duration: 3000 });
+      console.log('Print error: currentPrepackId =', currentPrepackId);
       return;
     }
     
@@ -2300,8 +2322,8 @@ function removePrepackFromList(id) {
     // Set modal state to prevent barcode scanner from refocusing
     isModalOpen = true;
     
-    document.getElementById('printerModal').style.display = 'block';
-    document.getElementById('printerModalShadow').style.display = 'block';
+    document.getElementById('printerModal').style.setProperty('display', 'block', 'important');
+    document.getElementById('printerModalShadow').style.setProperty('display', 'block', 'important');
     
     // Fetch available label indexes and update UI
     fetchAvailableLabelIndexes(bottleId);
@@ -2469,8 +2491,8 @@ function removePrepackFromList(id) {
 
   // Close the printer modal and return focus to barcode input
   function closePrinterModal() {
-    document.getElementById('printerModal').style.display = 'none';
-    document.getElementById('printerModalShadow').style.display = 'none';
+    document.getElementById('printerModal').style.setProperty('display', 'none', 'important');
+    document.getElementById('printerModalShadow').style.setProperty('display', 'none', 'important');
     isModalOpen = false;
 
     setTimeout(function() {
