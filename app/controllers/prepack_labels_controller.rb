@@ -539,7 +539,7 @@ public
     # Extract indexes and their status
     indexes = []
     all_labels.each do |label_id, dispensed, deleted, voided|
-      # Extract the pack index from label_identifier like "PK-G0000042-6"
+      # Extract the pack at from label_identifier like "PK-G0000042-6"
       match = label_id.match(/^PK-(?:G\d+)-(\d+)$/i)
       if match
         index = match[1].to_i
