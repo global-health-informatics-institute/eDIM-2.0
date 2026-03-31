@@ -397,13 +397,17 @@ def create
             provider_id: User.current.id
           )
 
+          # Decrease bottle inventory quantity
+          bottle.update!(current_quantity: bottle.current_quantity - prepack.quantity_per_pack)
+
           disp = Dispensation.create!(
             rx_id: prescription.id,
             inventory_id: bottle.gn_inventory_id,
             patient_id: patient_id,
             quantity: prepack.quantity_per_pack,
             dispensation_date: Time.current,
-            dispensed_by: User.current.id
+            dispensed_by: User.current.id,
+            location_id: session[:location]
           )
 
           label.update!(
@@ -413,12 +417,15 @@ def create
             date_dispensed: Time.current
           )
 
-          if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
-            prepack.update!(
-              status: 'dispensed',
-              location_id: prepack.location_id || session[:location]
-            )
-          end
+          dispensed_count = prepack.prepack_labels.where(dispensed:1, deleted: 0, voided: 0).count
+          remaining_packs = [prepack.num_packs.to_i - dispensed_count,0].max
+
+          prepack.update!(
+            current_num_packs:  remaining_packs,
+            status: (remaining_packs.zero? ? 'dispensed' : prepack.status),
+            location_id: prepack.location_id || session[:location]
+          )
+
         end
 
         return render json: {
@@ -427,7 +434,8 @@ def create
           quantity: prepack.quantity_per_pack,
           dispensation_id: disp.id,
           prescription_id: prescription.id,
-          currentQty: bottle.current_quantity
+          currentQty: bottle.current_quantity,
+          currentNumPacks: prepack.current_num_packs
         }
       end
 
