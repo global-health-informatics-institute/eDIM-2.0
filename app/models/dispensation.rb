@@ -58,10 +58,11 @@ class Dispensation < ActiveRecord::Base
   def update_patient_departure_time
     return unless patient_id && dispensation_date
 
-    # Find the most recent visit for this patient on the dispensation date
+    # Find the most recent open visit for this patient on the dispensation date
     visit = EdimVisit.where(
       edim_patient_id: patient_id,
-      visit_date: dispensation_date.to_date
+      visit_date: dispensation_date.to_date,
+      departure_time: nil
     ).order(arrival_time: :desc).first
 
     if visit
