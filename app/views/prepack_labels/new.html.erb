@@ -316,14 +316,16 @@ img[src*="/assets/"] {
 
 </head>
 <body style="margin:0; padding:0; display: flex; flex-direction: column; min-height: 100vh;">
-  <div id="shadowLayer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.35); z-index:10000;"></div>
-  <div id="messageLayer" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); z-index:10001; background:#fff; border-radius:12px; padding:24px 28px; min-width:320px; max-width:70vw; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+<!-- Immediately hide printer modal to prevent flash on page load (including back button) -->
+<script>(function(){var m=document.getElementById('printerModal'),s=document.getElementById('printerModalShadow');if(m)m.style.display='none';if(s)s.style.display='none';})();</script>
+  <div id="shadowLayer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.35); z-index:999998;"></div>
+  <div id="messageLayer" style="display:none; position:fixed; top:16px; right:16px; z-index:999999; background:#fff; border-radius:12px; padding:24px 28px; min-width:320px; max-width:420px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
     <div style="display: table-row">
       <div style="display: table-cell; text-align: center;">&nbsp;</div>
     </div>
     <div style="display: table-row">
       <div style="display: table-cell; text-align: center;">
-        <h2 id="flashMessage" style="margin:0; font-size:3rem !important; line-height:1.3;"></h2>
+        <h2 id="flashMessage" style="margin:0; font-size:2.2rem; line-height:1.3;"></h2>
       </div>
     </div>
     <div id="flashMessageActions" style="display: table-row">
@@ -342,7 +344,7 @@ img[src*="/assets/"] {
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
           <strong style="font-size:2rem; font-weight:bold;">Scan Barcode</strong>
           <img src="/assets/barcode.jpg" style="height:40px; vertical-align:middle;">
-          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;" autofocus>
+          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;">
         </div>
 
         <table style="width:50%; border-collapse:collapse; font-size:1.1em; margin-bottom:0;">
@@ -380,7 +382,9 @@ img[src*="/assets/"] {
               <% next if prepack.blank? %>
                 <div id="prepack_row_<%= prepack[:id] %>" 
                   style="display: table-cell; width: 49vw; padding: 5px;" 
-                  data-prepack-id="<%= prepack[:id] %>">
+                  data-prepack-id="<%= prepack[:id] %>"
+                  data-gn-identifier="<%= prepack[:gn_identifier] %>"
+                  data-packs-remaining="<%= prepack[:packs_remaining] %>">
                   <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
                       padding: 8px; margin: 3px; 
                       background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
@@ -445,17 +449,18 @@ img[src*="/assets/"] {
                               <!-- Tray "handle" indicator -->
                               <div class="tray-handle" style="width: 4px; height: 60px; background: #e5e7eb; border-radius: 2px; margin-right: 16px; opacity: 0; align-self: center;"></div>
                               
-                              <!-- Edit Button (disabled for now) -->
+                              <!-- Edit Button -->
+                              <% can_edit = prepack[:packs_remaining].to_i > 0 %>
                               <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.1s;">
-                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
-                                          opacity: 0; transform: scale(0.8) translateX(10px); 
+                                <img style="cursor: <%= can_edit ? 'pointer' : 'not-allowed' %>; width: 48px; height: 48px; transition: all 0.3s ease; 
+                                          opacity: <%= can_edit ? '1' : '0.4' %>; transform: scale(0.8) translateX(10px); 
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/edit.png" 
-                                    title="Edit Prepack"
-                                    onmousedown="event.stopPropagation(); window.location='/prepack_labels/<%= prepack[:id] %>/edit'"
-                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+                                    title="<%= can_edit ? 'Edit Prepack': 'Cannot edit - all packs have been dispensed' %>"
+                                  onmousedown="event.stopPropagation(); <%= can_edit ? "window.editPrepackInline(#{prepack[:id]})" : "showFlashMessage('Cannot edit: All packs for this prepack have been dispensed', 'errors', { transient: true, duration: 1000 })" %>"
+                                    onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor=\"not-allowed\"' %>"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
-                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: <%= can_edit ? '#333' : '#999' %>; text-align: center; 
                                       white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.2s;">
                                   Edit
                                 </div>
@@ -504,12 +509,19 @@ img[src*="/assets/"] {
                         </div>                        
                         
                         <!-- Print Button -->
+                        <% prepack_id = prepack[:id] || prepack['id'] rescue nil %>
+                        <% if prepack_id && prepack[:packs_remaining].to_i > 0 %>
                         <img style="cursor: pointer; width: 40px; height: 40px; transition: transform 0.2s ease;" 
                             src="/assets/print.png" 
                             title="Print prepack labels"
-                            onmousedown="event.stopPropagation(); printPrepackLabel('<%= prepack[:id] %>');"
+                            onclick="var e = event || window.event; e.stopPropagation(); openPrinterModal('<%= prepack_id %>');"
                             onmouseover="this.style.transform='scale(1.1)'"
                             onmouseout="this.style.transform='scale(1)'">
+                        <% else %>
+                        <img style="cursor: not-allowed; width: 40px; height: 40px; opacity: 0.5;" 
+                            src="/assets/print.png" 
+                            title="<%= prepack_id ? 'All packs dispensed - cannot print' : 'No prepack ID' %>">
+                        <% end %>
                         
                         <!-- Delete/Cancel Button -->
                         
@@ -591,15 +603,131 @@ img[src*="/assets/"] {
     </div>
   </div>
 
-<!-- Modal Overlay -->
-<div id="modalOverlay" style="display:none;"></div>
+<!-- Modal for printing prepack labels -->
+<div id="modalOverlay" style="display:none !important;"></div>
+<div id="printerModal" style="display:none !important; position:fixed !important; top:50% !important; left:50% !important; transform:translate(-50%, -50%) !important; width:620px !important; max-width:95vw !important; height:780px !important; max-height:92vh !important; background:white !important; border:2px solid #006495 !important; border-radius:16px !important; padding:30px !important; z-index:99999 !important; box-shadow:0 20px 60px rgba(0,0,0,0.3) !important; box-sizing:border-box !important; flex-direction:column !important;">
+
+  <div style="text-align:center; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid #e9ecef; flex-shrink:0;">
+    <h2 style="color:#006495; margin:0; font-size:1.5rem; font-weight:bold;">Print Prepack Labels</h2>
+  </div>
+  <div style="margin-bottom:20px; flex-shrink:0;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <label id="printSingleOption" style="display:flex; align-items:center; justify-content:center; padding:14px 10px; border:2px solid #006495; border-radius:8px; background:#006495; cursor:pointer; font-size:1.1rem; font-weight:600; color:white; min-height:50px; box-sizing: border-box;"
+             onclick="switchPrintOption('single')">
+        <input type="radio" name="printOption" value="single" checked style="display:none;">
+        Reprint Current Pack
+      </label>
+      <label id="printAllOption" style="display:flex; align-items:center; justify-content:center; padding:14px 10px; border:2px solid #dee2e6; border-radius:8px; background:#f8f9fa; cursor:pointer; font-size:1.1rem; font-weight:600; color:#495057; min-height:50px; box-sizing: border-box;"
+             onclick="printAllAvailableLabels();">
+        <input type="radio" name="printOption" value="all" style="display:none;">
+        Print All Available <span id="printAllRadioCount" style="margin-left:4px; font-weight:bold;"></span>
+      </label>
+    </div>
+  </div>
+  
+  <div id="singlePackSection" style="flex:1; margin-bottom:20px;">    
+    <div style="margin-bottom:20px;">
+      <label style="font-weight:bold; font-size:1.2rem; display:block; margin-bottom:8px; color:#495057;">Pack Number</label>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div id="fullLabelDisplay" style="font-size:1.5rem; font-weight:bold; color:#006495; margin-bottom:10px; padding:10px 16px; background:#f8f9fa; border-radius:6px; border:2px solid #006495; min-width:120px; text-align:center; box-sizing: border-box;">PK-G001-0</div>
+        
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px;">
+          <button type="button" id="decrementPackBtn"
+                  style="width:50px; height:50px; border:none; border-radius:8px; background:#dc3545; color:white; font-size:1.6rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(220,53,69,0.3); line-height:1; box-sizing: border-box;">−</button>
+          <input type="text" id="searchPackNo" value="0"
+                 inputmode="numeric" pattern="[0-9]*"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); updateFullLabelDisplay();"
+                 style="width:80px; height:50px; padding:0; font-size:1.5rem; font-weight:700; border-radius:8px; border:2px solid #006495; text-align:center; color:#495057; -moz-appearance:textfield; appearance:textfield; box-sizing: border-box;">
+          <button type="button" id="incrementPackBtn"
+                  style="width:50px; height:50px; border:none; border-radius:8px; background:#28a745; color:white; font-size:1.6rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(40,167,69,0.3); line-height:1; box-sizing: border-box;">+</button>
+        </div>
+        
+        <div style="display:flex; width:100%;">
+          <button type="button" id="stepBtn1" onclick="packNoStep=1; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="width:22%; height:42px; border:2px solid #006495; border-radius:6px; background:#006495; color:white; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">1</button>
+          <button type="button" id="stepBtn10" onclick="packNoStep=10; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="width:25%; height:42px; border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">10</button>
+          <button type="button" id="stepBtn100" onclick="packNoStep=100; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn1000').style.border='2px solid #dee2e6';document.getElementById('stepBtn1000').style.background='#f8f9fa';document.getElementById('stepBtn1000').style.color='#495057';"
+                  style="width:25%; height:42px; border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">100</button>
+          <button type="button" id="stepBtn1000" onclick="packNoStep=1000; this.style.border='2px solid #006495';this.style.background='#006495';this.style.color='white'; document.getElementById('stepBtn1').style.border='2px solid #dee2e6';document.getElementById('stepBtn1').style.background='#f8f9fa';document.getElementById('stepBtn1').style.color='#495057'; document.getElementById('stepBtn10').style.border='2px solid #dee2e6';document.getElementById('stepBtn10').style.background='#f8f9fa';document.getElementById('stepBtn10').style.color='#495057'; document.getElementById('stepBtn100').style.border='2px solid #dee2e6';document.getElementById('stepBtn100').style.background='#f8f9fa';document.getElementById('stepBtn100').style.color='#495057';"
+                  style="width:25%; height:42px; border:2px solid #dee2e6; border-radius:6px; background:#f8f9fa; color:#495057; font-size:0.9rem; font-weight:600; cursor:pointer; user-select:none; margin:2px; text-align:center; display:flex; align-items:center; justify-content:center;">1000</button>
+        </div>
+        
+        <div style="font-size:0.85rem; color:#6c757d; text-align:center; margin-bottom:8px;">Select step then use +/- buttons</div>
+        
+        <button type="button" onclick="document.getElementById('searchPackNo').value='0'; updateFullLabelDisplay();"
+                style="padding:10px 20px; border:2px solid #6c757d; border-radius:6px; background:#FFDBBB; text-align:center; color:#40464b; font-size:1rem; font-weight:600; cursor:pointer; min-height:40px; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">Clear</button>
+      </div>
+    </div>
+    
+    <button id="printSinglePackBtn" type="button" onclick="searchAndPrintLabel();"
+            style="padding:14px 24px; font-size:1.2rem; background:#008000; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; position:relative; z-index:1000000; text-align:center; display:flex; align-items:center; justify-content:center; box-sizing: border-box;">
+      Print a Pack
+    </button>
+  </div>
+  
+  <div id="printAllSection" style="display:none;">
+  </div>
+  
+  <button onclick="closePrinterModal(); setTimeout(function(){ var b=document.getElementById('barcode'); if(b){b.focus(); b.select(); }},100);" 
+          style="padding:14px 24px; font-size:1.1rem; background:#FF2C2C; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:15px; width:100%; text-align:center; display:flex; align-items:center; justify-content:center; box-sizing:border-box; flex-shrink:0;">
+    Cancel
+  </button>
+</div>
+
+<div id="printerModalShadow" style="display:none !important; position:fixed !important; top:0 !important; left:0 !important; width:100% !important; height:100% !important; background:rgba(0,0,0,0.5) !important; z-index:99998 !important;" onclick="closePrinterModal()"></div>
+
+
+<div id="customAlertOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:12px; padding:24px; max-width:400px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.4); text-align:center;">
+    <div id="customAlertIcon" style="font-size:48px; margin-bottom:16px;">⚠️</div>
+    <div id="customAlertMessage" style="font-size:1.4rem; color:#495057; margin-bottom:24px; font-weight:500;"></div>
+    <button type="button" onclick="closeCustomAlert()" style="padding:12px 48px; font-size:1.2rem; background:#006495; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;">OK</button>
+  </div>
+</div>
+
+<script>
+// Ensure modal is closed on page load (fixes back button issue)
+window.addEventListener('pageshow', function(event) {
+  var modal = document.getElementById('printerModal');
+  var shadow = document.getElementById('printerModalShadow');
+  if (modal) modal.style.setProperty('display', 'none', 'important');
+  if (shadow) shadow.style.setProperty('display', 'none', 'important');
+});
+
+// Also close on regular page load
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('printerModal');
+  var shadow = document.getElementById('printerModalShadow');
+  if (modal) modal.style.setProperty('display', 'none', 'important');
+  if (shadow) shadow.style.setProperty('display', 'none', 'important');
+});
+
+function showCustomAlert(message, isError) {
+  var overlay = document.getElementById('customAlertOverlay');
+  var msgEl = document.getElementById('customAlertMessage');
+  var iconEl = document.getElementById('customAlertIcon');
+  
+  msgEl.textContent = message;
+  
+  if (isError) {
+    iconEl.textContent = '⚠️';
+  } else {
+    iconEl.textContent = '✅';
+  }
+  
+  overlay.style.display = 'flex';
+}
+
+function closeCustomAlert() {
+  document.getElementById('customAlertOverlay').style.display = 'none';
+}
+</script>
+
 <%= form_for :prescription, method: 'POST', url: dispensation_index_path, html: { id: 'dispenseFormElement' } do |f| %>
   <%= hidden_field_tag :prepacking, true %>
-
-  <!-- DISPENSE FORM MODAL -->
   <div id="dispenseForm2" style="display:none; position:absolute; top:5vh; left:5vw; width:90vw; height:90vh; background-color:#eeeeff; border:3px outset black; overflow:auto; z-index:1000;">
       
-      <!-- Warning Message Overlay - Completely Outside Normal Flow -->
       <div style="position: absolute; top: 15px; right: 70px; z-index: 1001; pointer-events: none; max-width: 400px;">
         <span id="dispensationWarning" 
         style="display:none; color:red; font-weight:bold; font-size:1.8em;">
@@ -645,6 +773,8 @@ img[src*="/assets/"] {
 
           <div style="display: table-cell; border-left:2px solid black; height:70vh; position:relative;">
             <!-- ROUTES DIV -->
+
+
             <div class="mobi-div" id="routesDiv">
              <div class="section-wrapper">
               <h3 style="font-weight:bold; font-size:1.5rem;">Select Administration Route</h3>
@@ -850,6 +980,14 @@ img[src*="/assets/"] {
 
       <div id="nextBtn" onmousedown="handleNextButton()">Next</div>
     <% end %>
+    <input type="hidden" id="prepack_id" value="">
+    <input type="hidden" name="quantity_per_pack" id="quantity_per_pack" value="">
+    <input type="hidden" name="num_packs" id="numPacksField" value="">
+
+    <input type="hidden" id="prepack_id" value="">
+    <input type="hidden" name="quantity_per_pack" id="quantity_per_pack" value="">
+    <input type="hidden" name="num_packs" id="numPacksField" value="">
+
   </div>
 
   <!-- FOOTER -->
@@ -1300,6 +1438,38 @@ function clearCurrentTab() {
     // Remove completed status for labels tab
     completedTabs.delete('labelsTab');
   } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
 
   }
 
@@ -1324,8 +1494,8 @@ function clearCurrentTab() {
 function updateClearButtonVisibility(activeDivId) {
   const clearBtn = document.getElementById("dispClear");
   if (!clearBtn) return;
-  const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
-  clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+  const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
+  clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
 }
 </script>
 
@@ -1356,6 +1526,8 @@ function removePrepackFromList(id) {
   var barcodeTxt = null;
   const tabOrder = ['routesDiv', 'doseDiv', 'directionsDiv', 'qtyDiv', 'labelsDiv'];
   let currentStep = 0;
+  let prepackEditMode = false;
+  let editingPrepackId = null;
 
   // Track completed tabs
   let completedTabs = new Set();
@@ -1396,6 +1568,13 @@ function removePrepackFromList(id) {
   }
 
   function handleBarcodeInput(event) {
+    // Ignore barcode input when modal is open - prevent scanner from interfering with modal
+    if (isModalOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    
     const inputEl = event.target;
 
     // debounce to allow the scanner to finish typing
@@ -1409,14 +1588,16 @@ function removePrepackFromList(id) {
   }
 
   function handleBarcodeBlur() {
-    // Refocus after a short delay unless modal is open
-    if (!isModalOpen) {
-      setTimeout(() => {
-        if (!isModalOpen && barcodeTxt) {
-          barcodeTxt.focus();
-        }
-      }, 100);
+    // Never refocus when any modal is open
+    if (isModalOpen) {
+      return; // Don't refocus when modal is open
     }
+    // When no modal is open, refocus after a short delay
+    setTimeout(() => {
+      if (!isModalOpen && barcodeTxt) {
+        barcodeTxt.focus();
+      }
+    }, 100);
   }
 
   function processBarcode(rawValue) {
@@ -1441,13 +1622,14 @@ function removePrepackFromList(id) {
   }
 
   // Main modal display functions
-  function showDispenseForm() {
+  function showDispenseForm(preserveEditState = false) {
     const f = document.getElementById('dispenseForm2'); 
     const overlay = document.getElementById('modalOverlay');
     if (f) f.style.display = 'block';
     if (overlay) overlay.style.display = 'block';
-    currentStep = 0;
-    completedTabs.clear();
+
+    // Always start from a clean modal state (prevents stale values between opens)
+    resetDispenseModal(preserveEditState);
 
     // Set modal state
     isModalOpen = true;
@@ -1464,6 +1646,10 @@ function removePrepackFromList(id) {
     if (overlay) overlay.style.display = 'none';
     
     resetDispenseModal(); // This now properly resets everything
+    prepackEditMode = false;
+    editingPrepackId = null;
+    prepackEditMode = false;
+    editingPrepackId = null;
     
     // Reset modal state and reinitialize scanner
     isModalOpen = false;
@@ -1486,11 +1672,20 @@ function removePrepackFromList(id) {
           } else {
             try {
               const result = JSON.parse(results);
+              showDispenseForm();
+              showDispenseForm();
               document.getElementById('item').innerHTML = result['name'];
               document.getElementById('currQty').innerHTML = result['currentQty'];
               document.getElementById('bottle_id').innerHTML = bottleId;
-              
-              showDispenseForm();
+              document.getElementById('btl_field').value = bottleId;
+              document.getElementById('btl_field').value = bottleId;
+              // Update current_num_packs if provided (for prepack dispensing)
+              if (result['currentNumPacks'] !== undefined) {
+                var numPacksEl = document.getElementById('numPacks');
+                if (numPacksEl) {
+                  numPacksEl.value = result['currentNumPacks'];
+                }
+              }
               showDispenseDiv('routesDiv');
             } catch(e){ 
               showFlashError(`Bottle ID ${bottleId} returned invalid data.`);
@@ -1555,7 +1750,7 @@ function removePrepackFromList(id) {
     if (!flashEl || !modal || !overlay) return;
 
     const transient = options.transient === true;
-    const duration = Number(options.duration || 2000);
+    const duration = Number(options.duration || 1000);  // Default to 1 second
     flashEl.textContent = message;
 
     if (flashAutoHideTimer) clearTimeout(flashAutoHideTimer);
@@ -1584,10 +1779,27 @@ function removePrepackFromList(id) {
   }
 
   function printPrepackLabel(prepackId) {
+    console.log('printPrepackLabel called with:', prepackId, typeof prepackId);
+    
+    // Validate prepackId
+    if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined' || prepackId === 'NaN') {
+      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 800 });
+      console.log('printPrepackLabel error: invalid prepackId =', prepackId);
+      return;
+    }
+    
+    // Validate it's a valid number
+    const prepackNum = Number(prepackId);
+    if (isNaN(prepackNum) || prepackNum === 0) {
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 800 });
+      console.log('printPrepackLabel error: prepackId is not valid:', prepackId);
+      return;
+    }
+    
     const frame = document.getElementById('prepackPrintFrame');
     const printUrl = `/print_dispensation_label/PREPACK-${prepackId}?single=1&_ts=${Date.now()}`;
 
-    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 2500 });
+    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 800 });
 
     if (!frame) {
       window.location = printUrl;
@@ -1607,6 +1819,854 @@ function removePrepackFromList(id) {
 
     frame.src = printUrl;
   }
+
+  // Global variable to store the current prepack ID for the printer modal
+  var currentPrepackId = null;
+  var currentPacksRemaining = 0;
+  var currentBottleId = '';
+
+  // Helper function for touchscreen keypad
+  function appendToField(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    
+    if (value === 'del') {
+      field.value = field.value.slice(0, -1);
+    } else {
+      field.value += value;
+    }
+  }
+
+  // Current step/interval for pack number adjustment
+  var packNoStep = 1;
+
+  // Adjust pack number by increment/decrement using packNoStep
+  function adjustPackNumber(delta) {
+    var field = document.getElementById('searchPackNo');
+    if (!field) return;
+    
+    var current = parseInt(field.value) || 0;
+    var newVal = current + (delta * packNoStep);
+    if (newVal < 0) newVal = 0;
+    if (newVal > 10000) newVal = 10000;
+    field.value = newVal.toString();
+    updateFullLabelDisplay();
+  }
+
+  // Update the full label display (PK-G001-X)
+  function updateFullLabelDisplay() {
+    // Use global currentBottleId if available, otherwise fall back to input
+    var bottleId = currentBottleId || document.getElementById('searchBottleId').value.trim();
+    var packNo = document.getElementById('searchPackNo').value.trim();
+    var display = document.getElementById('fullLabelDisplay');
+    
+    if (!display) return;
+    
+    // Clean bottle ID
+    var cleanBottleId = bottleId;
+    if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+      cleanBottleId = cleanBottleId.substring(3);
+    }
+    
+    var packNum = parseInt(packNo) || 0;
+    display.textContent = 'PK-' + cleanBottleId + '-' + packNum;
+  }
+
+  // Enable/disable increment button based on available labels
+  function updateIncrementButtonState() {
+    var incBtn = document.getElementById('incrementPackBtn');
+    if (!incBtn) return;
+    
+    var packsRemaining = currentPacksRemaining;
+    
+    if (packsRemaining <= 1) {
+      incBtn.disabled = true;
+      incBtn.style.background = '#6c757d';
+      incBtn.style.cursor = 'not-allowed';
+      incBtn.title = 'Only 1 label remaining';
+    } else {
+      incBtn.disabled = false;
+      incBtn.style.background = '#28a745';
+      incBtn.style.cursor = 'pointer';
+      incBtn.title = 'Increment pack number';
+    }
+  }
+
+  // Set the step/interval for increment/decrement (same as Log Damages)
+  function setStep(step) {
+    packNoStep = parseInt(step);
+    
+    // Update button styles to show selected step
+    var buttons = [
+      {id: 'stepBtn0', value: 0},
+      {id: 'stepBtn10', value: 10},
+      {id: 'stepBtn100', value: 100},
+      {id: 'stepBtn1000', value: 1000}
+    ];
+    
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      var el = document.getElementById(btn.id);
+      if (el) {
+        if (btn.value === packNoStep) {
+          el.style.border = '2px solid #006495';
+          el.style.background = '#006495';
+          el.style.color = 'white';
+        } else {
+          el.style.border = '2px solid #dee2e6';
+          el.style.background = '#f8f9fa';
+          el.style.color = '#495057';
+        }
+      }
+    }
+  }
+
+  // Allow direct typing in pack number field - filter non-numeric input
+  (function() {
+    var packNoField = document.getElementById('searchPackNo');
+    if (packNoField) {
+      packNoField.addEventListener('input', function(e) {
+        // Remove any non-numeric characters
+        this.value = this.value.replace(/[^0-9]/g, '');
+        // Ensure value is at least 0
+        var val = parseInt(this.value);
+        if (isNaN(val) || val < 0) val = 0;
+        this.value = val;
+      });
+      
+      packNoField.addEventListener('blur', function() {
+        // Ensure value is set on blur
+        if (this.value === '' || parseInt(this.value) < 0) {
+          this.value = '0';
+        }
+      });
+    }
+  })();
+  
+  // Switch between print options
+  function switchPrintOption(option) {
+    const singleSection = document.getElementById('singlePackSection');
+    const allSection = document.getElementById('printAllSection');
+    const singleOption = document.getElementById('printSingleOption');
+    const allOption = document.getElementById('printAllOption');
+    
+    if (option === 'single') {
+      singleSection.style.display = 'block';
+      allSection.style.display = 'none';
+      singleOption.style.background = '#006495';
+      singleOption.style.color = 'white';
+      singleOption.style.borderColor = '#006495';
+      allOption.style.background = '#f8f9fa';
+      allOption.style.color = '#495057';
+      allOption.style.borderColor = '#dee2e6';
+      // Focus on Print Single Pack button
+      setTimeout(function() {
+        var btn = document.getElementById('printSinglePackBtn');
+        if (btn) btn.focus();
+      }, 100);
+    } else {
+      singleSection.style.display = 'none';
+      allSection.style.display = 'block';
+      singleOption.style.background = '#f8f9fa';
+      singleOption.style.color = '#495057';
+      singleOption.style.borderColor = '#dee2e6';
+      allOption.style.background = '#28a745';
+      allOption.style.color = 'white';
+      allOption.style.borderColor = '#28a745';
+      
+      // Fetch latest available count from database when switching to Print All
+      if (currentPrepackId && currentBottleId) {
+        let cleanBottleId = currentBottleId;
+        if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+          cleanBottleId = cleanBottleId.substring(3);
+        }
+        let labelIdentifier = 'PK-' + cleanBottleId + '-1';
+        
+        fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+          .then(response => response.json())
+          .then(data => {
+            if (data.available_count !== undefined) {
+              currentPacksRemaining = data.available_count;
+              var printAllBtnCount = document.getElementById('printAllButtonCount');
+              if (printAllBtnCount) {
+                printAllBtnCount.textContent = '(' + data.available_count + ' labels)';
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching available count:', error);
+          });
+      }
+      
+      // Focus on Print All Available button
+      setTimeout(function() {
+        var btn = document.getElementById('printAllAvailableBtn');
+        if (btn) btn.focus();
+      }, 100);
+    }
+  }
+  
+  
+  // Print all available labels - with simple confirmation alert
+  function printAllAvailableLabels() {
+    // Prevent any default behavior and stop propagation like log damages
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    // Debug: log current state
+    console.log('printAllAvailableLabels called, currentPrepackId:', currentPrepackId);
+    
+    // Blur barcode input immediately to stop scanner
+    const barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+      barcodeInput.blur();
+    }
+    
+    // More lenient validation - allow string '0' or numeric 0 as valid
+    if (currentPrepackId == null || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined') {
+      showFlashMessage('Error: No valid prepack selected. Please click on a prepack first.', 'error', { transient: true, duration: 3000 });
+      console.log('Print error: currentPrepackId =', currentPrepackId);
+      return;
+    }
+    
+    const prepackIdToPrint = currentPrepackId;
+    const frame = document.getElementById('prepackPrintFrame');
+    
+    // Use currentPacksRemaining which is already set when modal opened
+    const availableCount = currentPacksRemaining;
+    
+    if (!availableCount || availableCount === 0) {
+      showFlashMessage('No available labels to print. All labels have been dispensed.', 'error', { transient: true, duration: 3000 });
+      return;
+    }
+    
+    // Use custom modal instead of native confirm for better appearance
+    showPrintConfirmation(availableCount, function() {
+      proceedToPrintAll(prepackIdToPrint, frame);
+    });
+  }
+  
+  
+  // Show print confirmation in same window - auto-proceed after 1 second
+  function showPrintConfirmation(count, onConfirm) {
+    // Set modal state to prevent barcode scanner from refocusing
+    isModalOpen = true;
+    
+    // Completely remove barcode event listeners to prevent any refocus attempts
+    const barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+      barcodeInput.blur();
+      // Remove the blur handler that tries to refocus
+      barcodeInput.removeEventListener('blur', handleBarcodeBlur);
+    }
+    
+    // Create confirmation overlay
+    const existing = document.getElementById('printConfirmOverlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'printConfirmOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999999;display:flex;align-items:center;justify-content:center;';
+    
+    const box = document.createElement('div');
+    box.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:90vw;width:350px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,0.4);font-family:Segoe UI, Arial, sans-serif;box-sizing:border-box;';
+    
+    // Icon
+    const icon = document.createElement('div');
+    icon.innerHTML = '🖨️';
+    icon.style.cssText = 'font-size:3rem;margin-bottom:10px;';
+    
+    const title = document.createElement('h2');
+    title.style.cssText = 'margin:0 0 8px 0;font-size:1.5rem;color:#1a1a2e;font-weight:600;';
+    title.textContent = 'Print All Available';
+    
+    const message = document.createElement('p');
+    message.style.cssText = 'margin:0 0 16px 0;font-size:1.1rem;color:#5a5a7a;line-height:1.4;';
+    message.innerHTML = 'Ready to print <strong style="color:#006495;font-size:1.1rem;">' + count + '</strong> labels?';
+    
+    const btnContainer = document.createElement('div');
+    btnContainer.style.cssText = 'display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;';
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.style.cssText = 'padding:10px 20px;text-align:center;font-size:1rem;background:#e02222;color:#fff;border:2px solid #dee2e6;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;min-width:100px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;';
+    cancelBtn.onmouseover = function() { this.style.background = '#e42828'; };
+    cancelBtn.onmouseout = function() { this.style.background = '#e02222'; };
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = function() {
+      overlay.remove();
+      // Re-enable scanner like damage modal does
+      isModalOpen = false;
+      // Re-add the blur handler
+      var barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.addEventListener('blur', handleBarcodeBlur);
+      }
+      setTimeout(() => { initializeBarcodeListener(); }, 100);
+    };
+    
+    const okBtn = document.createElement('button');
+    okBtn.style.cssText = 'padding:10px 20px;text-align:center;font-size:1rem;background:#008000;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:500;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,128,0,0.3);min-width:100px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;';
+    okBtn.onmouseover = function() { this.style.transform = 'translateY(-2px);box-shadow:0 6px 20px rgba(113, 189, 94, 0.4);' };
+    okBtn.onmouseout = function() { this.style.transform = 'translateY(0);box-shadow:0 4px 15px rgba(104, 216, 100, 0.3);' };
+    okBtn.textContent = ' Print All';
+    okBtn.onclick = function() {
+      overlay.remove();
+      // Re-enable scanner like damage modal does
+      isModalOpen = false;
+      // Re-add the blur handler
+      var barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.addEventListener('blur', handleBarcodeBlur);
+      }
+      setTimeout(() => { initializeBarcodeListener(); }, 100);
+      onConfirm();
+    };
+    
+    btnContainer.appendChild(cancelBtn);
+    btnContainer.appendChild(okBtn);
+    
+    box.appendChild(icon);
+    box.appendChild(title);
+    box.appendChild(message);
+    box.appendChild(btnContainer);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    
+    // Re-enable scanner when overlay is removed via clicking outside
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.remove();
+        isModalOpen = false;
+        var barcodeInput = document.getElementById('barcode');
+        if (barcodeInput) {
+          barcodeInput.addEventListener('blur', handleBarcodeBlur);
+        }
+        setTimeout(() => { initializeBarcodeListener(); }, 100);
+      }
+    });
+    
+
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        isModalOpen = false;
+        var barcodeInput = document.getElementById('barcode');
+        if (barcodeInput) {
+          barcodeInput.addEventListener('blur', handleBarcodeBlur);
+        }
+        setTimeout(() => { initializeBarcodeListener(); }, 100);
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+    
+    // NOTE: Auto-proceed has been removed. User must manually click the Print All button to proceed.
+  }
+  
+  // Proceed to print all
+  function proceedToPrintAll(prepackIdToPrint, frame) {
+    let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_all_undispensed=1&_ts=${Date.now()}`;
+    
+    console.log('Print All URL:', printUrl);
+    
+    // Show printing notification FIRST
+    showFlashMessage('Printing all available labels...', 'notice', { transient: true, duration: 1500 });
+    
+    // Store for later
+    const prepackIdForRefresh = currentPrepackId;
+    const bottleIdForRefresh = currentBottleId;
+    
+    // Close modal but keep flash message visible during printing
+    closePrinterModal();
+    
+    if (!frame) {
+      window.location = printUrl;
+      return;
+    }
+    
+    if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+    prepackPrintFallbackTimer = setTimeout(function() {
+      hideFlashMessage();
+    }, 1500);
+    
+    frame.onload = function() {
+      if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+      hideFlashMessage();
+      frame.onload = null;
+    };
+    
+    frame.src = printUrl;
+  }
+
+  // Open the printer modal
+  function openPrinterModal(prepackId) {
+    // Handle case where prepackId might be null, undefined, or empty string
+    // Also handle case where it might be the string "null"
+    console.log('openPrinterModal called with:', prepackId, typeof prepackId);
+    
+    if (prepackId == null || prepackId === 'null' || prepackId === '' || prepackId === 'undefined' || prepackId === 'NaN') {
+      showFlashMessage('Error: No valid prepack ID', 'error', { transient: true, duration: 5000 });
+      console.log('Print error: prepackId =', prepackId);
+      return;
+    }
+    
+    // Try to convert to number and back to ensure it's valid
+    const prepackNum = Number(prepackId);
+    if (isNaN(prepackNum) || prepackNum === 0) {
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 5000 });
+      console.log('Print error: prepackId is not a valid number:', prepackId);
+      return;
+    }
+    
+    console.log('Opening printer modal for prepack:', prepackId);
+    
+    currentPrepackId = prepackId;
+    
+    // Get prepack data from the DOM
+    const prepackRow = document.getElementById('prepack_row_' + prepackId);
+    let bottleId = '';
+    let packsRemaining = 0;
+    
+    if (prepackRow) {
+      // Try to get gn_identifier from the prepack data
+      const gnIdentifier = prepackRow.getAttribute('data-gn-identifier');
+      if (gnIdentifier) {
+        bottleId = gnIdentifier;
+      }
+      packsRemaining = parseInt(prepackRow.getAttribute('data-packs-remaining')) || 0;
+    }
+    
+    // If no bottle ID found, try to get from the view options menu
+    if (!bottleId) {
+      const viewOptions = document.getElementById('view_options_' + prepackId);
+      if (viewOptions) {
+        // Try to find bottle ID in the view options
+        const bottleMatch = viewOptions.textContent.match(/Bottle:\s*(G\d+)/i);
+        if (bottleMatch) {
+          bottleId = bottleMatch[1];
+        }
+      }
+    }
+    
+    // Update currentBottleId with the found bottle ID (whether from row or view options)
+    currentBottleId = bottleId;
+    
+    // If only 1 pack remaining, directly print
+    if (packsRemaining === 1) {
+      currentPacksRemaining = packsRemaining;
+      setTimeout(function() {
+        printLowestUndispensed();
+      }, 100);
+      return;
+    }
+    
+    // If 2 packs remaining, show simplified options (direct print buttons)
+    if (packsRemaining === 2) {
+      currentPacksRemaining = packsRemaining;
+      // Show modal with just Print All option
+      currentPacksRemaining = packsRemaining;
+    } else {
+      // More than 2 packs - show full modal
+      currentPacksRemaining = packsRemaining;
+    }
+    
+    // Update the modal
+    var searchBottleIdEl = document.getElementById('searchBottleId');
+    if (searchBottleIdEl) {
+      searchBottleIdEl.value = bottleId || '';
+    }
+    document.getElementById('searchPackNo').value = '0';
+    
+    // Update the Print All Available radio button with the count from database
+    var printAllRadioCount = document.getElementById('printAllRadioCount');
+    if (!printAllRadioCount) return;
+    
+    // Show count immediately from prepack data (while fetching from DB)
+    printAllRadioCount.textContent = '(' + packsRemaining + ' labels)';
+    console.log('currentBottleId:', currentBottleId, 'packsRemaining:', packsRemaining);
+    
+    if (currentBottleId) {
+      let cleanBottleId = currentBottleId;
+      if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+        cleanBottleId = cleanBottleId.substring(3);
+      }
+      let labelIdentifier = 'PK-' + cleanBottleId + '-1';
+      console.log('Fetching from:', '/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier));
+      
+      fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+        .then(response => response.json())
+        .then(data => {
+          if (data.available_count !== undefined) {
+            currentPacksRemaining = data.available_count;
+            printAllRadioCount.textContent = '(' + data.available_count + ' labels)';
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching available count:', error);
+        });
+    }
+    
+    // Update full label display and increment button state
+    setTimeout(function() {
+      updateFullLabelDisplay();
+      updateIncrementButtonState();
+    }, 100);
+    
+   
+    switchPrintOption('single');
+    
+    var barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+      barcodeInput.blur();
+      barcodeInput.value = '';
+    }
+    
+    // Set modal state to prevent barcode scanner from refocusing
+    isModalOpen = true;
+    
+    document.getElementById('printerModal').style.setProperty('display', 'block', 'important');
+    document.getElementById('printerModalShadow').style.setProperty('display', 'block', 'important');
+    
+    // Fetch available label indexes and update UI
+    fetchAvailableLabelIndexes(bottleId);
+    
+    setTimeout(function() {
+      var packNoInput = document.getElementById('searchPackNo');
+      if (packNoInput) {
+        packNoInput.focus();
+        packNoInput.select();
+      }
+    }, 100);
+  }
+
+  // Fetch available label indexes and update quick select buttons
+  function fetchAvailableLabelIndexes(bottleId) {
+    if (!bottleId) return;
+    
+    fetch('/prepack_labels/available_labels?bottle_id=' + encodeURIComponent(bottleId))
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.log('Error fetching available labels:', data.error);
+          return;
+        }
+        
+        console.log('Available labels:', data.labels);
+        console.log('Min index:', data.min_index, 'Max index:', data.max_index, 'Available count:', data.available_count);
+        
+        // Store min/max for +/- button constraints
+        window.availableMinIndex = data.min_index;
+        window.availableMaxIndex = data.max_index;
+        window.availableCount = data.available_count;
+        window.availableIndexes = data.available_indexes || [];
+        
+        // Set initial pack number to min_index
+        const packNoInput = document.getElementById('searchPackNo');
+        if (packNoInput && data.min_index > 0) {
+          packNoInput.value = data.min_index;
+          updateFullLabelDisplay();
+        }
+        
+        // Update the quick select buttons - disable based on available count
+        updateQuickSelectButtonsForReprint(data.labels, data.available_count, data.min_index);
+        
+        // Update +/- button constraints
+        updateIncrementDecrementButtons(data.min_index, data.max_index);
+      })
+      .catch(error => {
+        console.error('Error fetching available labels:', error);
+      });
+  }
+
+  // Update +/- button constraints based on available indexes
+  function updateIncrementDecrementButtons(minIndex, maxIndex) {
+    const decrementBtn = document.getElementById('decrementPackBtn');
+    const incrementBtn = document.getElementById('incrementPackBtn');
+    const packNoInput = document.getElementById('searchPackNo');
+    
+    if (decrementBtn) {
+      decrementBtn.onclick = function() {
+        var f = document.getElementById('searchPackNo');
+        var v = parseInt(f.value) || 0;
+        var step = parseInt(packNoStep) || 1;
+        v = v - step;
+        // Constrain to minimum available index
+        if (v < minIndex) v = minIndex;
+        f.value = v;
+        updateFullLabelDisplay();
+      };
+    }
+    
+    if (incrementBtn) {
+      incrementBtn.onclick = function() {
+        var f = document.getElementById('searchPackNo');
+        var v = parseInt(f.value) || 0;
+        var step = parseInt(packNoStep) || 1;
+        v = v + step;
+        // Constrain to maximum available index
+        if (v > maxIndex) v = maxIndex;
+        f.value = v;
+        updateFullLabelDisplay();
+      };
+    }
+    
+    // Also constrain manual input
+    if (packNoInput) {
+      packNoInput.onchange = function() {
+        var v = parseInt(packNoInput.value) || minIndex;
+        if (v < minIndex) v = minIndex;
+        if (v > maxIndex) v = maxIndex;
+        packNoInput.value = v;
+        updateFullLabelDisplay();
+      };
+    }
+  }
+  
+  // Update quick select buttons - disable buttons based on available count
+  function updateQuickSelectButtonsForReprint(labelIndexes, availableCount, minIndex) {
+    // Get available count from global or use parameter
+    var count = window.availableCount || availableCount || 0;
+    var minIdx = window.availableMinIndex || minIndex || 1;
+    
+    console.log('Updating quick select buttons - available count:', count, 'min index:', minIdx);
+    
+    // Get step buttons
+    var btn1 = document.getElementById('stepBtn1');
+    var btn10 = document.getElementById('stepBtn10');
+    var btn100 = document.getElementById('stepBtn100');
+    var btn1000 = document.getElementById('stepBtn1000');
+    
+    // Disable buttons based on available count from minIndex
+    var effectiveCount = count;
+    
+    // Button 1 is always enabled if there's at least 1 available pack
+    if (btn1) {
+      if (effectiveCount >= 1) {
+        btn1.disabled = false;
+        btn1.style.opacity = '1';
+        btn1.style.cursor = 'pointer';
+      } else {
+        btn1.disabled = true;
+        btn1.style.opacity = '0.5';
+        btn1.style.cursor = 'not-allowed';
+      }
+    }
+    
+    // Button 10 - disable if less than 10 available from current position
+    if (btn10) {
+      if (effectiveCount >= 10) {
+        btn10.disabled = false;
+        btn10.style.opacity = '1';
+        btn10.style.cursor = 'pointer';
+      } else {
+        btn10.disabled = true;
+        btn10.style.opacity = '0.5';
+        btn10.style.cursor = 'not-allowed';
+      }
+    }
+    
+    // Button 100 - disable if less than 100 available
+    if (btn100) {
+      if (effectiveCount >= 100) {
+        btn100.disabled = false;
+        btn100.style.opacity = '1';
+        btn100.style.cursor = 'pointer';
+      } else {
+        btn100.disabled = true;
+        btn100.style.opacity = '0.5';
+        btn100.style.cursor = 'not-allowed';
+      }
+    }
+    
+    if (btn1000) {
+      if (effectiveCount >= 1000) {
+        btn1000.disabled = false;
+        btn1000.style.opacity = '1';
+        btn1000.style.cursor = 'pointer';
+      } else {
+        btn1000.disabled = true;
+        btn1000.style.opacity = '0.5';
+        btn1000.style.cursor = 'not-allowed';
+      }
+    }
+  }
+
+  // Close the printer modal and return focus to barcode input
+  function closePrinterModal() {
+    document.getElementById('printerModal').style.setProperty('display', 'none', 'important');
+    document.getElementById('printerModalShadow').style.setProperty('display', 'none', 'important');
+    isModalOpen = false;
+
+    setTimeout(function() {
+      var barcodeInput = document.getElementById('barcode');
+      if (barcodeInput) {
+        barcodeInput.focus();
+        barcodeInput.select();
+      }
+    }, 100);
+  }
+
+
+  function printLowestUndispensed() {
+    console.log('print Undispensed called, currentPrepackId =', currentPrepackId, typeof currentPrepackId);
+ 
+    if (!currentPrepackId || currentPrepackId === 'null' || currentPrepackId === '' || currentPrepackId === 'undefined' || currentPrepackId === 'NaN') {
+      showFlashMessage('Error: No valid prepack selected', 'error', { transient: true, duration: 5000 });
+      console.log('Print error: currentPrepackId =', currentPrepackId);
+      return;
+    }
+    
+    // Validate it's a valid number
+    const prepackNum = Number(currentPrepackId);
+    if (isNaN(prepackNum) || prepackNum === 0) {
+      showFlashMessage('Error: Invalid prepack ID', 'error', { transient: true, duration: 5000 });
+      console.log('Print error: currentPrepackId is not valid:', currentPrepackId);
+      return;
+    }
+    
+    // Save the prepack ID before closing modal
+    const prepackIdToPrint = currentPrepackId;
+    
+    const frame = document.getElementById('prepackPrintFrame');
+    let printUrl = `/print_dispensation_label/PREPACK-${prepackIdToPrint}?print_lowest_undispensed=1&_ts=${Date.now()}`;
+    console.log('Print URL:', printUrl);
+    showFlashMessage('printing undispensed label ...', 'notice', { transient: true, duration: 5000 });
+
+    closePrinterModal();
+    if (!frame) {
+      window.location = printUrl;
+      return;
+    }
+
+    if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+    prepackPrintFallbackTimer = setTimeout(function() {
+      hideFlashMessage();
+    }, 30000);
+
+    frame.onload = function() {
+      if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+      hideFlashMessage();
+      frame.onload = null;
+    };
+
+    frame.src = printUrl;
+  }
+
+ 
+  function searchAndPrintLabel() {
+    const searchBottleIdEl = document.getElementById('searchBottleId');
+    const inputBottleId = searchBottleIdEl ? searchBottleIdEl.value.trim() : '';
+    const bottleId = inputBottleId || currentBottleId;
+    const packNo = document.getElementById('searchPackNo').value.trim();
+
+    if (bottleId === '') {
+      showFlashMessage('Please enter a Bottle ID', 'error', { transient: true, duration: 1000 });
+      return;
+    }
+
+    if (packNo === '') {
+      showFlashMessage('Please enter a Pack Number', 'error', { transient: true, duration: 1000 });
+      return;
+    }
+
+    let packNum = parseInt(packNo);
+    if (isNaN(packNum) || packNum < 1) {
+      showFlashMessage('Pack Number must be 1 or higher', 'error', { transient: true, duration: 1000 });
+      return;
+    }
+
+    // Validate bottle ID format (should be G followed by digits, or PK-G followed by digits)
+    let cleanBottleId = bottleId;
+    if (cleanBottleId.toUpperCase().startsWith('PK-')) {
+      cleanBottleId = cleanBottleId.substring(3);
+    }
+    if (!/^G\d+$/i.test(cleanBottleId)) {
+      showFlashMessage('Invalid Bottle ID format. Should be like G0000059 or PK-G0000059', 'error', { transient: true, duration: 1000 });
+      return;
+    }
+    
+    if (cleanBottleId.length < 7) {
+      showFlashMessage('Bottle ID too short. Use full ID like G0000026', 'error', { transient: true, duration: 1000 });
+      return;
+    }
+    
+    const frame = document.getElementById('prepackPrintFrame');
+    let labelIdentifier = 'PK-' + cleanBottleId;
+    if (packNo !== '') {
+      labelIdentifier += '-' + packNo;
+    }
+    
+    fetch('/prepack_labels/check_label?label_identifier=' + encodeURIComponent(labelIdentifier))
+      .then(response => response.json())
+      .then(data => {
+        console.log('Label check response:', data);
+        
+        if (!data.exists) {
+          showCustomAlert('Label not found: ' + (data.error || 'Unknown error'), true);
+          return;
+        }
+        
+        if (!data.can_print) {
+          showCustomAlert('Cannot print: ' + data.message, true);
+          return;
+        }
+        
+        let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
+        console.log('Search Print URL:', printUrl);
+        showFlashMessage('Printing label...', 'notice', { transient: true, duration: 500 });
+
+        closePrinterModal();
+
+        if (!frame) {
+          window.location = printUrl;
+          return;
+        }
+
+        if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+        prepackPrintFallbackTimer = setTimeout(function() {
+          hideFlashMessage();
+        }, 2000);
+
+        frame.onload = function() {
+          if (prepackPrintFallbackTimer) clearTimeout(prepackPrintFallbackTimer);
+          hideFlashMessage();
+          frame.onload = null;
+        };
+
+        frame.src = printUrl;
+      })
+      .catch(error => {
+        console.error('Error checking label:', error);
+        showFlashMessage('Error checking label status. Proceeding with print...', 'notice', { transient: true, duration: 2000 });
+        let printUrl = `/print_dispensation_label/SEARCH?label_identifier=${encodeURIComponent(labelIdentifier)}&_ts=${Date.now()}`;
+        closePrinterModal();
+        if (frame) {
+          frame.src = printUrl;
+        } else {
+          window.location = printUrl;
+        }
+      });
+  }
+
+  // Handle Enter key in the search fields
+  document.addEventListener('DOMContentLoaded', function() {
+    var searchBottleIdEl = document.getElementById('searchBottleId');
+    if (searchBottleIdEl) {
+      searchBottleIdEl.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('searchPackNo').focus();
+        }
+      });
+    }
+
+    document.getElementById('searchPackNo').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchAndPrintLabel();
+      }
+    });
+  });
 
   <% if flash[:notice].present? || flash[:alert].present? || flash[:errors].present? %>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1666,10 +2726,15 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        // Reset all tabs to blue except completed ones
+        // Reset all tabs to neutral except completed ones
         if (!completedTabs.has(tabId)) {
-          tab.style.backgroundColor = '#2196F3';  // Blue
-          tab.style.color = 'white';
+          if (prepackEditMode) {
+            tab.style.backgroundColor = '#e5e7eb';
+            tab.style.color = '#111827';
+          } else {
+            tab.style.backgroundColor = '#2196F3';
+            tab.style.color = 'white';
+          }
           tab.style.border = '1px outset silver';
         } else {
           // Completed tabs stay green
@@ -1681,8 +2746,11 @@ function removePrepackFromList(id) {
     });
 
     // Current active tab gets red border
-    const currentTab = document.getElementById(option.replace('Div','Tab'));
+    const currentTabId = option.replace('Div','Tab');
+    const currentTab = document.getElementById(currentTabId);
     if (currentTab) {
+      currentTab.style.backgroundColor = completedTabs.has(currentTabId) ? '#28a745' : '#2196F3';
+      currentTab.style.color = 'white';
       currentTab.style.border = '5px solid #de0404';
     }
 
@@ -1690,7 +2758,11 @@ function removePrepackFromList(id) {
     currentStep = tabOrder.indexOf(option);
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) {
-      nextBtn.textContent = (option === 'labelsDiv') ? 'Print Labels' : 'Next';
+      nextBtn.textContent = (option === 'labelsDiv')
+        ? (prepackEditMode ? 'Save & Print Labels' : 'Print Labels')
+        : 'Next';
+      nextBtn.style.whiteSpace = 'nowrap';
+      nextBtn.style.minWidth = (option === 'labelsDiv' && prepackEditMode) ? '220px' : '140px';
       
       // If showing the final tab (labelsDiv), recalculate and check stock
       if (option === 'labelsDiv') {
@@ -1717,15 +2789,14 @@ function removePrepackFromList(id) {
     if (currentStep < tabOrder.length - 1) {
       currentStep++;
       showDispenseDiv(tabOrder[currentStep]);
-      if (currentStep === tabOrder.length - 1) nextBtn.textContent = 'Print Labels';
     } else {
       validateDisp();
     }
   }
 
   function handleNextButton() {
-    const nextBtn = document.getElementById('nextBtn');
-    if (nextBtn.textContent === 'Print Labels') validateDispWithStockCheck();
+    if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
+    if (currentStep >= tabOrder.length - 1) validateDispWithStockCheck();
     else nextStep();
   }
 
@@ -1750,6 +2821,40 @@ function removePrepackFromList(id) {
       document.getElementById("numPacks").value = "";
       // Remove completed status for labels tab
       completedTabs.delete('labelsTab');
+    } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
+    } else if (visibleTab.id === "directionsDiv") {
+      // Clear frequency selection
+      const frequencyRadios = document.querySelectorAll('input[name="frequency"]');
+      frequencyRadios.forEach(radio => radio.checked = false);
+      // Clear times checkboxes
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => checkbox.checked = false);
+      setDirections();
+      // Remove completed status for directions tab
+      completedTabs.delete('directionsTab');
+    } else if (visibleTab.id === "routesDiv") {
+      // Clear route/administration selection
+      const routeRadios = document.querySelectorAll('input[name="administration"]');
+      routeRadios.forEach(radio => radio.checked = false);
+      setRoute('oral');
+      // Remove completed status for routes tab
+      completedTabs.delete('routesTab');
     }
 
     // Revert the tab styling to blue and remove checkmark
@@ -1772,8 +2877,8 @@ function removePrepackFromList(id) {
   function updateClearButtonVisibility(activeDivId) {
     const clearBtn = document.getElementById("dispClear");
     if (!clearBtn) return;
-    const keypadTabs = ["doseDiv", "qtyDiv", "labelsDiv"];
-    clearBtn.style.display = keypadTabs.includes(activeDivId) ? "flex" : "none";
+    const allTabs = ["routesDiv", "doseDiv", "directionsDiv", "qtyDiv", "labelsDiv"];
+    clearBtn.style.display = allTabs.includes(activeDivId) ? "flex" : "none";
   }
 
   // Global function to check stock and update button state
@@ -1782,7 +2887,7 @@ function removePrepackFromList(id) {
     if (!button) return;
     
     // Only apply stock validation when on the final tab (Print Labels button)
-    if (button.textContent === 'Print Labels') {
+    if (button.textContent === 'Print Labels' || button.textContent === 'Save & Print Labels') {
       // Recalculate the original quantity to check against stock
       var dose = parseFloat(document.getElementById('dose').value) || 0;
       var duration = parseFloat(document.getElementById('qty').value) || 0;
@@ -1950,7 +3055,8 @@ function removePrepackFromList(id) {
     const numPacks = document.getElementById('numPacks').value;
     if (!numPacks || parseFloat(numPacks) <= 0) {
       alert("Please enter number of packs to print");
-      showDispenseDiv('labelsDiv');
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
+      showDispenseDiv('routesDiv'); // Show routes tab first when editing
       return;
     }
 
@@ -1988,10 +3094,78 @@ function removePrepackFromList(id) {
     }
 
     updateQuantity();
-    
+
+    if (prepackEditMode) {
+      saveEditedPrepackAndPrint();
+      return;
+    }
+
     // Before submitting, clear modal state so focus returns after submit
     isModalOpen = false;
     document.forms[0].submit();
+  }
+
+  function saveEditedPrepackAndPrint() {
+    const prepackIdEl = document.getElementById('prepack_id');
+    const prepackId = editingPrepackId || (prepackIdEl ? prepackIdEl.value : null);
+    if (!prepackId) {
+      showFlashError('Missing prepack id for edit.');
+      return;
+    }
+
+    const numPacksEl = document.getElementById('numPacks');
+    const doseEl = document.getElementById('dose');
+    const durationEl = document.getElementById('qty');
+    const frequencyChecked = document.querySelector("input[name='frequency']:checked");
+    const administrationChecked = document.querySelector("input[name='administration']:checked");
+    const quantityPerPackEl = document.getElementById('dispensed_quantity');
+    const numPacks = (numPacksEl && numPacksEl.value) || '1';
+    const dose = (doseEl && doseEl.value) || '1';
+    const duration = (durationEl && durationEl.value) || '1';
+    const frequency = (frequencyChecked && frequencyChecked.value) || 'BD';
+    const administration = (administrationChecked && administrationChecked.value) || 'oral';
+    const quantityPerPack = (quantityPerPackEl && quantityPerPackEl.value) || '0';
+    // Get selected times of day
+    const selectedTimes = [];
+    document.querySelectorAll('input[name="times[]"]:checked').forEach(checkbox => {
+      selectedTimes.push(checkbox.value);
+    });
+
+    const formData = new URLSearchParams();
+    formData.append('num_packs', numPacks);
+    formData.append('quantity_per_pack', quantityPerPack);
+    formData.append('dose', dose);
+    formData.append('duration', duration);
+    formData.append('frequency', frequency);
+    formData.append('administration', administration);
+    formData.append('times', JSON.stringify(selectedTimes));
+    formData.append('format', 'json');
+
+    showFlashMessage('Saving prepack changes ...', 'notice', { transient: true, duration: 1000 });
+
+    fetch(`/prepack_labels/${prepackId}`, {
+      method: 'PATCH',
+      headers: {
+        'X-CSRF-Token': (document.querySelector('meta[name="csrf-token"]') || {}).content,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: formData.toString(),
+      credentials: 'same-origin'
+    })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        if (!data.success) throw new Error(data.error || 'Update failed');
+        showFlashMessage('Prepack updated. Printing label ...', 'notice', { transient: true, duration: 2000 });
+        printPrepackLabel(prepackId);
+        setTimeout(() => { window.location.reload(); }, 1800);
+      })
+      .catch(error => {
+        showFlashError(`Failed to save edits: ${error.message}`);
+      });
   }
 
   function checkRadio(list) {
@@ -2016,8 +3190,12 @@ function removePrepackFromList(id) {
   });
 
   // ResetDispenseModal function - UPDATED
-  function resetDispenseModal() {
+  function resetDispenseModal(preserveEditState = false) {
     // Reset all modal fields to initial state
+    document.getElementById('item').innerHTML = '&nbsp;';
+    document.getElementById('bottle_id').innerHTML = '&nbsp;';
+    document.getElementById('currQty').innerHTML = '&nbsp;';
+    document.getElementById('btl_field').value = '';
     document.getElementById('dose').value = '';
     document.getElementById('qty').value = '';
     document.getElementById('numPacks').value = '';
@@ -2025,6 +3203,12 @@ function removePrepackFromList(id) {
     document.getElementById('dispensed_quantity').value = '0';
     document.getElementById('route_type').innerHTML = '';
     document.getElementById('directionsDisp').innerHTML = '';
+    document.getElementById('prepack_id').value = '';
+    if (!preserveEditState) {
+      prepackEditMode = false;
+      editingPrepackId = null;
+    }
+    hideDispensationWarning();
     
     // Uncheck radio buttons
     ['administration', 'frequency'].forEach(name => {
@@ -2039,8 +3223,13 @@ function removePrepackFromList(id) {
     ['routesTab','doseTab','directionsTab','qtyTab','labelsTab'].forEach(tabId => {
       const tab = document.getElementById(tabId);
       if (tab) {
-        tab.style.backgroundColor = '#2196F3';  // Blue (default)
-        tab.style.color = 'white';
+        if (prepackEditMode) {
+          tab.style.backgroundColor = '#e5e7eb';
+          tab.style.color = '#111827';
+        } else {
+          tab.style.backgroundColor = '#2196F3';
+          tab.style.color = 'white';
+        }
         tab.style.border = '1px outset silver';
         
         // Remove checkmark if present
@@ -2706,6 +3895,9 @@ function showDamageConfirmationModal(quantity, drugName, reason, prepackId, dama
   // Close the damage modal first
   closeDamageModal();
   
+  // Keep modal state true - we're just transitioning to confirmation modal
+  isModalOpen = true;
+  
   // Small delay to ensure modal is closed
   setTimeout(() => {
     // Create confirmation modal
@@ -3034,8 +4226,8 @@ function submitDamageWithValidation(prepackId, drugName, maxQuantity, packSize, 
   }
 
   // Determine damage type
-  const damageType = [...document.getElementsByName('damageType')]
-    .find(r => r.checked)?.value || 'pack';
+  const selectedDamageRadio = [...document.getElementsByName('damageType')].find(r => r.checked);
+  const damageType = (selectedDamageRadio && selectedDamageRadio.value) || 'pack';
 
   const maxQty = damageType === 'pack' ? maxQuantity : bottle_quantity;
   if (quantity > maxQty) {
@@ -3142,7 +4334,8 @@ function updateQuickSelectButtons() {
   const input = document.getElementById('damageQuantity');
   if (!buttons.length || !input) return;
 
-  const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+  const selectedDamageTypeEl = document.querySelector('input[name="damageType"]:checked');
+  const selectedType = selectedDamageTypeEl ? selectedDamageTypeEl.value : null;
 
   let maxAllowed = 0;
   if (selectedType === 'pack') {
@@ -3245,7 +4438,8 @@ function setupQuantityControls(maxPacks, bottle_quantity) {
   let holdDirection = 0;
 
   function getCurrentMax() {
-    const selectedType = document.querySelector('input[name="damageType"]:checked')?.value;
+    const selectedDamageTypeEl = document.querySelector('input[name="damageType"]:checked');
+    const selectedType = selectedDamageTypeEl ? selectedDamageTypeEl.value : null;
     if (selectedType === 'pack') return maxPacks;
     return bottle_quantity; // bottle
   }
@@ -3358,7 +4552,7 @@ function closeDamageModal() {
   }
 }
 
-// Close modal on escape key
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeDamageModal();
@@ -3411,6 +4605,62 @@ document.addEventListener('keydown', function(e) {
   transform: scale(1.3);
 }
 </style>
+<script>
+window.editPrepackInline = function(id) {
+  prepackEditMode = true;
+  editingPrepackId = id;
 
+
+  fetch(`/prepack_labels/${id}/edit.json?t=${Date.now()}`, {
+    headers: { 'Accept': 'application/json' },
+    cache: 'no-store',
+    credentials: 'same-origin'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      showDispenseForm(true);
+      document.getElementById('prepack_id').value = data.id || '';
+      document.getElementById('item').textContent = data.drug_name || '';
+      document.getElementById('bottle_id').textContent = data.gn_identifier || '';
+      document.getElementById('btl_field').value = data.gn_identifier || '';
+      document.getElementById('currQty').textContent = data.bottle_quantity || 0;
+      document.getElementById('numPacks').value = data.current_num_packs || '';
+      document.getElementById('dose').value = data.dose || '';
+      document.getElementById('qty').value = data.duration || '';
+
+      const routeValue = data.administration || 'oral';
+      const routeRadio = document.querySelector(`input[name='administration'][value='${routeValue}']`);
+      if (routeRadio) routeRadio.checked = true;
+      setRoute(routeValue);
+
+      const frequencyValue = data.frequency || 'BD';
+      // Populate times checkboxes from loaded data
+      const timesData = data.times || [];
+      const timesCheckboxes = document.querySelectorAll('input[name="times[]"]');
+      timesCheckboxes.forEach(checkbox => {
+        checkbox.checked = timesData.includes(checkbox.value);
+      });
+
+      const frequencyRadio = document.querySelector(`input[name='frequency'][value='${frequencyValue}']`);
+      if (frequencyRadio) frequencyRadio.checked = true;
+      setDirections();
+      if (parseFloat(data.num_packs) > 0) {
+        markTabCompleted('labelsTab');
+      }
+
+      showDispenseDiv('routesDiv'); 
+      updateQuantity();
+    })
+    .catch(error => {
+      prepackEditMode = false;
+      editingPrepackId = null;
+      showFlashError(`Unable to load edit values: ${error.message}`);
+    });
+};
+</script>
 </body>
 </html>
+

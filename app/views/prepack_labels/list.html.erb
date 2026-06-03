@@ -311,6 +311,11 @@ $(document).ready(function () {
       const $input = $('.dataTables_filter input');
       activeInput = $input[0];
 
+      const label = document.createElement('label');
+      label.textContent = 'Search: ';
+      label.style.cssText = 'font-size: 1.4rem; font-weight: bold; margin-right: 10px; color: #333;';
+      $input.before(label);
+
       $input.css({
         fontSize: '1.3rem',
         padding: '12px 15px',

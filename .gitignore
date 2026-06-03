@@ -73,3 +73,4 @@ capybara-*.html
 
 # Ignore Python scripts
 insert_records.py
+seeds.rb
