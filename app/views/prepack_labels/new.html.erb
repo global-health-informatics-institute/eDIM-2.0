@@ -337,35 +337,29 @@ img[src*="/assets/"] {
     </div>
   </div>
   <iframe id="prepackPrintFrame" title="Prepack label print frame" style="display:none;"></iframe>
-  <div style="width: 99vw; margin: auto; flex: 0 0 auto;">
+  <div style="width: 99vw; margin: 1vh auto 0; flex: 0 0 auto;">
     <!-- HEADER -->
-    <div style="display: table-row;">
-      <div style="width: 83vw; float:left; margin-top:1vh; padding:10px; height:10vh; border: 1px solid #d1d5db; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);" class="header-cell">
-        <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
-          <strong style="font-size:2rem; font-weight:bold;">Scan Barcode</strong>
-          <img src="/assets/barcode.jpg" style="height:40px; vertical-align:middle;">
-          <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;">
-        </div>
+    <div style="width: 98.8vw; margin-top:2vh; padding:10px; height:10vh; border: 1px solid #d1d5db; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); box-sizing: border-box;" class="header-cell">
+      <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
+        <strong style="font-size:2rem; font-weight:bold;">Scan Barcode</strong>
+        <img src="/assets/barcode.jpg" style="height:40px; vertical-align:middle;">
+        <input type="text" id="barcode" class="scanner" style="flex:1; max-width:400px; height:60px;">
+      </div>
 
-        <table style="width:50%; border-collapse:collapse; font-size:1.1em; margin-bottom:0;">
-          <tr>
-            <td style="font-weight:bold; width:120px; font-size:1.8rem; padding-bottom:4px;">Facility</td>
-            <td style="padding-left:15px; font-size:1.8rem; padding-bottom:4px;"><%= facility_name rescue '—' %></td>
-          </tr>
-          <tr>
-            <td style="font-weight:bold; font-size:1.8rem;">Location</td>
-            <td style="padding-left:15px; font-size:1.8rem;"><%= current_location.name.titleize rescue '—' %></td>
-          </tr>
-        </table>
-      </div>
-      <div class="brand-section-compact">
-        <img src="/assets/edim-logo.png" class="brand-logo-image" alt="eDIM Logo">
-        <span class="current-date-compact"><%= l(Date.today, format: '%d %b %Y') %></span>
-      </div>
+      <table style="width:50%; border-collapse:collapse; font-size:1.1em; margin-bottom:0;">
+        <tr>
+          <td style="font-weight:bold; width:120px; font-size:1.8rem; padding-bottom:4px;">Facility</td>
+          <td style="padding-left:15px; font-size:1.8rem; padding-bottom:4px;"><%= facility_name rescue '—' %></td>
+        </tr>
+        <tr>
+          <td style="font-weight:bold; font-size:1.8rem;">Location</td>
+          <td style="padding-left:15px; font-size:1.8rem;"><%= current_location.name.titleize rescue '—' %></td>
+        </tr>
+      </table>
     </div>
   
   <!-- MAIN CONTENT -->
-  <div style="border:3px solid #06425C; border-radius: 12px 12px 12px 12px; margin-top:1vh; height:68vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="border:3px solid #06425C; border-radius: 12px 12px 12px 12px; margin-top:1vh; height:68vh; padding: 0; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
 
   <!-- PREPACK LISTING SECTION -->
   <div style="width: 100%; background: linear-gradient(135deg, #006495 0%, #004d73 100%); height: 4vh; text-align: center; color: white; padding-top: 1vh; flex-shrink: 0; /* NO border-radius here */ box-shadow: 0 4px 12px rgba(0, 100, 149, 0.3);">
