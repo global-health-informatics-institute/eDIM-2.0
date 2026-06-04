@@ -173,7 +173,7 @@ def render_prepack_json(prepack = @prepack)
     drug_name: prepack.drug&.name,
     bottle_id: prepack.bottle_id,
     gn_identifier: prepack.gn_identifier,
-    bottle_quantity: GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)&.current_quantity.to_i,
+    bottle_quantity: GeneralInventory.where(gn_identifier: prepack.gn_identifier, voided: false).sum(:current_quantity).to_i,
     directions: prepack.directions,
     num_packs: prepack.current_num_packs.nonzero? || prepack.num_packs,
     quantity_per_pack: prepack.quantity_per_pack,
@@ -668,7 +668,7 @@ public
         packs_dispensed: labels.where(dispensed: true).count,
         status: prepack.status,
         created_at: prepack.created_at,
-        bottle_quantity: GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)&.current_quantity || 0
+        bottle_quantity: GeneralInventory.where(gn_identifier: prepack.gn_identifier, voided: false).sum(:current_quantity).to_i
       }
     end
 
