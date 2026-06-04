@@ -58,8 +58,8 @@
   barcode = document.getElementById("search");
   if (barcode) {
   barcode.focus();
-  barcode.style.borderColor = "#4361ee";
-  barcode.style.boxShadow = "0 0 0 3px rgba(66, 153, 225, 0.15)";
+  barcode.style.borderColor = "#006495";
+  barcode.style.boxShadow = "0 0 0 3px rgba(0, 100, 149, 0.18)";
 
   timerHand = setTimeout(function () {
   if (barcode.value) {
@@ -98,7 +98,7 @@
             end
             end %>
         <tr>
-          <td><input type="checkbox" class="custom-checkbox item" data-id="<%= item.gn_inventory_id %>          "></td>          <td style="text-align: left; padding-left: 112px; font-size: 42px; font-weight:800;"><%= Misc.dash_formatter(item.gn_identifier) %></td>          <td style="text-align: left; padding-left: 124px; font-size: 42px; font-weight:800; color:#38a169 "><%= number_with_delimiter(item.current_quantity) %></td>          <td class="<%= expiration_class %>          " style="text-align: center; font-size: 42px; font-weight:500; color:#4361ee;">
+          <td><input type="checkbox" class="custom-checkbox item" data-id="<%= item.gn_inventory_id %>          "></td>          <td style="text-align: left; padding-left: 112px; font-size: 42px; font-weight:800;"><%= Misc.dash_formatter(item.gn_identifier) %></td>          <td style="text-align: left; padding-left: 124px; font-size: 42px; font-weight:800; color:#38a169 "><%= number_with_delimiter(item.current_quantity) %></td>          <td class="<%= expiration_class %>          " style="text-align: center; font-size: 42px; font-weight:500; color:#006495;">
           <%= l(item.expiration_date, format: '%b-%Y') rescue "" %>
         </td>
         <td style="text-align: center;">
@@ -1080,18 +1080,18 @@
     }
 
     body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fa;
+    font-family: "Nimbus Sans L", "Arial Narrow", sans-serif;
+    background: #f8f9fa;
     margin: 0;
     padding: 0;
     }
 
     /* Header styling */
     .page-header {
-    background: linear-gradient(to right, #4361ee, #3a56d4);
+    background: #006495;
     color: white;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     margin-bottom: 15px;
     border: none;
     height: auto;
@@ -1101,7 +1101,7 @@
     margin: 0;
     font-size: 48px;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    text-shadow: none;
     margin-bottom: 8px;
     margin-left: 0;
     }
@@ -1121,8 +1121,9 @@
     width: 98vw;
     margin: 0 auto;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid #d8dde2;
+    border-radius: 0;
+    box-shadow: none;
     }
 
     /* Main table */
@@ -1134,7 +1135,7 @@
 
     /* Table header */
     #generalInventory thead {
-    background: linear-gradient(to right, #4361ee, #3a56d4);
+    background: #006495;
     color: white;
     position: sticky;
     top: 0;
@@ -1180,7 +1181,7 @@
     width: 28px;
     height: 28px;
     cursor: pointer;
-    accent-color: #4361ee;
+    accent-color: #006495;
     display: block;
     margin: 0 auto;
     }
@@ -1241,7 +1242,7 @@
     vertical-align: middle !important;
     }
 
-    #generalInventory tbody td:l ast-child div[style*="display: table-cell"] img {
+    #generalInventory tbody td:last-child div[style*="display: table-cell"] img {
     width: 48px !important;
     height: 48px !important;
     object-fit: contain !important;
@@ -1262,8 +1263,8 @@
 
     .dataTables_filter input:focus {
     outline: none;
-    border-color: #4361ee;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+    border-color: #006495;
+    box-shadow: 0 0 0 3px rgba(0, 100, 149, 0.18);
     }
 
     /* Pagination styling */
@@ -1278,9 +1279,9 @@
     cursor: pointer;
     }
     .dataTables_paginate .paginate_button.current {
-    background: #4361ee;
+    background: #006495;
     color: white;
-    border-color: #4361ee;
+    border-color: #006495;
     font-weight: 700;
     }
 
@@ -1289,7 +1290,7 @@
     font-size: 24px !important;
     color: #718096;
     padding: 24px 0 !important;
-    mmargin-left: 12px !important;
+    margin-left: 12px !important;
     font-weight: 500;
     }
 
@@ -1299,36 +1300,21 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
+    background: #333333;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     z-index: 100;
     margin: 0;
     }
 
-    .nav-bttn {
-    padding: 14px 28px;
-    border: none;
-    border-radius: 8px;
-    font-size: 48px !important;
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 60px;
-    min-width: 180px;
-    }
-
-    .nav-bttn.blue {
-    background: linear-gradient(to right, #4361ee, #3a56d4);
-    color: white;
+    .footer .nav-bttn.blue {
     margin-left: 20px;
     }
 
-    .nav-bttn.green {
-    background: linear-gradient(to right, #38a169, #2f855a);
-    color: white;
+    .footer .nav-bttn.green {
     margin-right: 20px;
     }
 
@@ -1374,15 +1360,15 @@
     position: relative;
     }
 
-    .nav-bttn {
+    .footer .nav-bttn {
     width: 100%;
     min-width: 100%;
     font-size: 22px;
     padding: 12px 20px;
     }
 
-    .nav-bttn.blue,
-    .nav-bttn.green {
+    .footer .nav-bttn.blue,
+    .footer .nav-bttn.green {
     margin: 0;
     }
 
