@@ -134,8 +134,11 @@
 
 <!-- Footer -->
 <div class="footer">
+  <button onmousedown="window.location = '/general_inventory'" class="nav-bttn red" style="margin-left: 1vw; font-size: 30px !important;">
+    <%= t('forms.buttons.back') %>
+  </button>
   <% if !current_location.name.match(/store/i) %>
-    <button onmousedown="merge()" class="nav-bttn blue" style="margin-left: 1vw; font-size: 30px !important;">
+    <button onmousedown="merge()" class="nav-bttn blue" style="margin-right: 1vw; float: right; font-size: 30px !important;">
         Merge Items
     </button>
   <% else %>
@@ -143,9 +146,6 @@
         Stock Card
     </button>
   <% end %>
-  <button onmousedown="window.location = '/general_inventory'" class="nav-bttn green" style="margin-right: 1vw; float: right; font-size: 30px !important;">
-    <%= t('forms.buttons.back') %>
-  </button>
 </div>
 
 <!-- IMPROVED DAMAGE MODAL FOR TOUCHSCREENS -->
