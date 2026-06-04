@@ -133,31 +133,32 @@ def create
 
     if params[:general_inventory] && params[:general_inventory][:amount_requested].present?
       requested = params[:general_inventory][:amount_requested].to_i
-      drug_name = params[:general_inventory][:drug_name].to_s.strip
-      category_name = params[:general_inventory][:drug_category].to_s.strip
+      temp_drug_name = params[:general_inventory][:drug_name].to_s.strip
+      temp_category_name = params[:general_inventory][:drug_category].to_s.strip
 
       # lookup to find drug - normalize strings for lookup
-      # Check if category_name is numeric (ID) or text (name)
-      if category_name.match?(/^\d+$/)
+      # Check if temp_category_name is numeric (ID) or text (name)
+      if temp_category_name.match?(/^\d+$/)
         # It's a category ID
-        drug = Drug.joins(:drug_category)
-                  .where("TRIM(drugs.name) = ? AND drug_categories.drug_category_id = ?", drug_name.strip, category_name.to_i)
+        temp_drug = Drug.joins(:drug_category)
+                  .where("TRIM(drugs.name) = ? AND drug_categories.drug_category_id = ?", temp_drug_name, temp_category_name.to_i)
                   .first
       else
         # It's a category name
-        drug = Drug.joins(:drug_category)
-                  .where("TRIM(drugs.name) = ? AND TRIM(drug_categories.category) = ?", drug_name.strip, category_name.strip)
+        temp_drug = Drug.joins(:drug_category)
+                  .where("TRIM(drugs.name) = ? AND TRIM(drug_categories.category) = ?", temp_drug_name, temp_category_name)
                   .first
       end
 
-      if drug
+      if temp_drug
         backstore_id = Location.find_by_name("Backstore")&.id || 5
-        available = GeneralInventory.where(drug_id: drug.id, location_id: backstore_id, voided: false)
+        available = GeneralInventory.where(drug_id: temp_drug.id, location_id: backstore_id, voided: false)
                                     .sum(:current_quantity).to_i
 
         if requested > available
           flash[:errors] = "You cannot request more than #{available} units."
-          redirect_to new_general_inventory_path and return
+          redirect_to new_general_inventory_path
+          return
         end
       end
     end
@@ -177,7 +178,7 @@ def create
       drug = Drug.joins(:drug_category)
                 .where(
                   "TRIM(drugs.name) = ? AND drug_categories.drug_category_id = ?",
-                  drug_name.strip,
+                  drug_name,
                   drug_category.to_i
                 )
                 .first
@@ -186,15 +187,17 @@ def create
       drug = Drug.joins(:drug_category)
                 .where(
                   "TRIM(drugs.name) = ? AND TRIM(drug_categories.category) = ?",
-                  drug_name.strip,
-                  drug_category.strip
+                  drug_name,
+                  drug_category
                 )
                 .first
     end
 
     if drug.nil?
-      flash[:errors] = "The selected drug could not be found"
-      redirect_to("/") and return
+      Rails.logger.error "Drug not found - Name: '#{drug_name}', Category: '#{drug_category}' (stripped)"
+      flash[:errors] = "The selected drug '#{drug_name}' could not be found in category '#{drug_category}'"
+      redirect_to("/")
+      return
     end
 
     drug_id = drug.drug_id
@@ -262,31 +265,59 @@ def create
     end
 
     ids = []
-    GeneralInventory.transaction do
-      (0..count).each do |_i|
-        new_stock_entry = GeneralInventory.new(
-          drug_id:           drug_id,
-          current_quantity:  received_qty,
-          received_quantity: received_qty,
-          expiration_date:   expiry_date,
-          date_received:     Date.current,
-          location_id:       session[:location],
-        )
+    begin
+      GeneralInventory.transaction do
+        # Temporarily skip the reorder callback to avoid N+1 updates
+        GeneralInventory.skip_callback(:after_create, :reorder_gn_sequence_for_drug)
+        
+        (0..count).each do |_i|
+          new_stock_entry = GeneralInventory.new(
+            drug_id:           drug_id,
+            current_quantity:  received_qty,
+            received_quantity: received_qty,
+            expiration_date:   expiry_date,
+            date_received:     Date.current,
+            location_id:       session[:location],
+          )
 
-        if new_stock_entry.save
-          ids << new_stock_entry.id
-        else
-          flash[:errors] = new_stock_entry.errors.full_messages.join(", ")
-          redirect_to "/" and return
+          if new_stock_entry.save
+            ids << new_stock_entry.id
+          else
+            flash[:errors] = new_stock_entry.errors.full_messages.join(", ")
+            GeneralInventory.set_callback(:after_create, :reorder_gn_sequence_for_drug)
+            raise ActiveRecord::Rollback
+          end
+        end
+        
+        # Re-enable the callback
+        GeneralInventory.set_callback(:after_create, :reorder_gn_sequence_for_drug)
+        
+        # Manually reorder sequences once at the end for this drug
+        if ids.any?
+          entries = GeneralInventory.where(drug_id: drug_id)
+                                    .order(:expiration_date, :gn_inventory_id)
+          entries.each_with_index do |entry, index|
+            entry.update_column(:gn_sequence, format('%04d', index + 1))
+          end
         end
       end
+    rescue => e
+      GeneralInventory.set_callback(:after_create, :reorder_gn_sequence_for_drug)
+      Rails.logger.error "Failed to create inventory entries: #{e.message}"
+      flash[:errors] = "Failed to create inventory entries: #{e.message}"
+      redirect_to "/" and return
+    end
+
+    if ids.empty?
+      flash[:errors] = "No inventory entries were created"
+      redirect_to "/" and return
     end
 
     if ids.length > 1
-      flash[:success] = "#{ids.length} #{t('messages.items_of')} #{drug_name} #{t('messages.add_items_success')}."
+      flash[:success] = "#{ids.length} #{t('messages.items_of')} #{drug.name} #{t('messages.add_items_success')}."
       print_and_redirect("/general_inventory/print_bottle_barcode?ids=#{ids.join(',')}", "/")
     else
-      flash[:success] = "#{drug_name} #{t('messages.add_item_success')}."
+      flash[:success] = "#{drug.name} #{t('messages.add_item_success')}."
       print_and_redirect("/print_bottle_barcode/#{ids.first}", "/")
     end
   end
@@ -317,15 +348,30 @@ def create
 
   def print_bottle_barcode
     #This function prints bottle barcode labels for both inventory types
-    id = params[:ids].split(',') rescue params[:id]
-    entry = GeneralInventory.find(id)
-    if entry.is_a?(Array)
-      print_string = ""
-      (entry || []).each do |bottle|
-        print_string += "#{Misc.create_bottle_label(bottle.drug_name,bottle.gn_identifier,bottle.expiration_date)}\n"
+    if params[:ids].present?
+      # Multiple bottles
+      id_array = params[:ids].split(',').map(&:strip).map(&:to_i)
+      entries = GeneralInventory.where(id: id_array).to_a
+      
+      if entries.empty?
+        render plain: "No bottles found", status: :not_found and return
       end
+      
+      print_string = ""
+      entries.each do |bottle|
+        print_string += "#{Misc.create_bottle_label(bottle.drug_name, bottle.gn_identifier, bottle.expiration_date)}\n"
+      end
+    elsif params[:id].present?
+      # Single bottle
+      entry = GeneralInventory.find_by(id: params[:id])
+      
+      if entry.nil?
+        render plain: "Bottle not found", status: :not_found and return
+      end
+      
+      print_string = Misc.create_bottle_label(entry.drug_name, entry.gn_identifier, entry.expiration_date)
     else
-      print_string = Misc.create_bottle_label(entry.drug_name,entry.gn_identifier,entry.expiration_date)
+      render plain: "No bottle ID provided", status: :bad_request and return
     end
 
     chars = ("a".."z").to_a  + ("0".."9").to_a
