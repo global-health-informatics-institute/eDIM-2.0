@@ -444,8 +444,7 @@ def create
             date_dispensed: Time.current
           )
 
-          dispensed_count = prepack.prepack_labels.where(dispensed:1, deleted: 0, voided: 0).count
-          remaining_packs = [prepack.num_packs.to_i - dispensed_count,0].max
+          remaining_packs = prepack.prepack_labels.where(dispensed: [false, nil], deleted: 0, voided: 0).count
 
           prepack.update!(
             current_num_packs:  remaining_packs,
@@ -650,6 +649,19 @@ def create
 
       unless prepack
         render json: { success: false, message: "Prepack not found" }, status: 404 and return
+      end
+
+      active_pack_count = PrepackLabel.where(
+        prepack_id: prepack.id,
+        voided: 0,
+        deleted: 0,
+      ).where(dispensed: [false, nil]).count
+
+      if active_pack_count <= 0
+        render json: {
+          success: false,
+          message: "Only active packs can be marked as damaged"
+        }, status: :forbidden and return
       end
 
       # Load the general inventory via the prepack
