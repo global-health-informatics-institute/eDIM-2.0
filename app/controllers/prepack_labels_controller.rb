@@ -137,12 +137,12 @@ def can_edit_prepack?(prepack)
   return false if prepack.nil?
 
   # Primary rule: editable when at least one label has not been dispensed yet.
-  undispensed_count = prepack.prepack_labels.where(dispensed: [false, nil]).count
+  undispensed_count = active_prepack_labels(prepack).where(dispensed: [false, nil]).count
   return true if undispensed_count > 0
 
   # Fallback for inconsistent legacy records:
   # if total dispensed labels is still less than intended packs, keep editable.
-  dispensed_count = prepack.prepack_labels.where(dispensed: true).count
+  dispensed_count = active_prepack_labels(prepack).where(dispensed: true).count
   prepack.num_packs.to_i > dispensed_count
 end
 
@@ -655,7 +655,11 @@ public
                       .order(created_at: :desc)
 
     inventory = prepacks.map do |prepack|
-      labels = prepack.prepack_labels
+      all_labels = prepack.prepack_labels
+      labels = active_prepack_labels(prepack)
+      packs_remaining = labels.where(dispensed: [false, nil]).count
+      packs_dispensed = labels.where(dispensed: true).count
+      packs_damaged = all_labels.where(deleted: false, voided: true).count
 
       {
         id: prepack.id,
@@ -663,9 +667,11 @@ public
         gn_identifier: prepack.gn_identifier,
         drug_name: prepack.drug.name,
         total_packs_created: prepack.num_packs,
+        active_packs_total: packs_remaining + packs_dispensed,
         quantity_per_pack: prepack.quantity_per_pack,
-        packs_remaining: labels.where(dispensed: [false, nil]).count,
-        packs_dispensed: labels.where(dispensed: true).count,
+        packs_remaining: packs_remaining,
+        packs_dispensed: packs_dispensed,
+        packs_damaged: packs_damaged,
         status: prepack.status,
         created_at: prepack.created_at,
         bottle_quantity: GeneralInventory.where(gn_identifier: prepack.gn_identifier, voided: false).sum(:current_quantity).to_i
@@ -678,6 +684,10 @@ public
   # Ensure user location exists
   def ensure_location
     session[:location] ||= Location.current.id rescue nil
+  end
+
+  def active_prepack_labels(prepack)
+    prepack.prepack_labels.where(deleted: false, voided: false)
   end
 
   def set_pending_requests_count
