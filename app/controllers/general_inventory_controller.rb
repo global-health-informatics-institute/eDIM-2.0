@@ -696,8 +696,8 @@ def create
 
         labels.update_all(voided: 1, updated_at: Time.current)
         total_units_lost = prepack.quantity_per_pack * qty
-        current_num_packs_value = prepack.current_num_packs.nonzero? || prepack.num_packs
-        prepack.update!(current_num_packs: current_num_packs_value - qty,
+        remaining_packs = prepack.prepack_labels.where(dispensed: [false, nil], deleted: false, voided: false).count
+        prepack.update!(current_num_packs: remaining_packs,
                         total_quantity: prepack.total_quantity - total_units_lost)
       else
         # Bottle damage - reduce inventory quantity
