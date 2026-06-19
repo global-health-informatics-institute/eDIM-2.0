@@ -394,7 +394,7 @@ public
       return
     end
 
-    prepack.update(deleted: true)
+    prepack.update(deleted: true, current_num_packs: 0)
     PrepackLabel.where(prepack_id: prepack.id).update_all(deleted: true)
 
     redirect_to general_inventory_prepack_labels_path, notice: "Prepack removed successfully."
@@ -584,7 +584,7 @@ public
     end
 
     # Delete the batch and all labels
-    prepack.update(deleted: true)
+    prepack.update(deleted: true, current_num_packs: 0)
     prepack.prepack_labels.update_all(deleted: true)
 
     flash[:notice] = "Prepack removed successfully"
