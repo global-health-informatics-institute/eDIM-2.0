@@ -37,12 +37,11 @@ end
   end
 
   def workstation_location
-    location = Location.find(params[:location]) rescue nil
-    location ||= Location.find_by_id(params[:location]) rescue nil
+    location_id = params[:location_id] || params[:location]
+    location = Location.find_by(location_id: location_id)
 
-    Rails.logger.info "Params location: #{params[:location].inspect}"
+    Rails.logger.info "Params location: #{params.inspect}"
     Rails.logger.info "Found location: #{location.inspect}"
-    Rails.logger.info "Is a workstation? #{location.is_a_workstation? if location}"
 
     if location.blank? || location.is_a_workstation?
       Rails.logger.warn "Invalid workstation location"
@@ -50,11 +49,10 @@ end
       redirect_to '/sessions/add_location' and return
     else
       Rails.logger.info "Valid workstation location, proceeding"
-      session[:location] = location.id
+      session[:location] = location.location_id
       redirect_to root_path
     end
   end
-
 
   def destroy
     reset_session

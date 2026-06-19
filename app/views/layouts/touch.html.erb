@@ -44,18 +44,24 @@
 </div>
 </div>
 <script>
-  let idleTime = 0;
-  const IDLE_LIMIT = <%= ((request.session_options[:expire_after] || 2.minutes).to_i * 1000) %>;
-  ['mousedown', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach((e) => {
-    document.addEventListener(e, () => {
-      idleTime = 0;
-    }, { passive: true });
-  });
+  const isLoginPage = window.location.pathname === '/sessions/new';
+  const hasSessionUser = <%= session[:user_id].present? ? 'true' : 'false' %>;
 
-  setInterval(() => {
-    idleTime += 30000;
-    if (idleTime >= IDLE_LIMIT) window.location.href = '/sessions/logout';
-  }, 30000);
+  if (!isLoginPage && hasSessionUser) {
+    let idleTime = 0;
+    const IDLE_LIMIT = <%= ((request.session_options[:expire_after] || 2.minutes).to_i * 1000) %>;
+
+    ['mousedown', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach((e) => {
+      document.addEventListener(e, () => {
+        idleTime = 0;
+      }, { passive: true });
+    });
+
+    setInterval(() => {
+      idleTime += 30000;
+      if (idleTime >= IDLE_LIMIT) window.location.href = '/sessions/logout';
+    }, 30000);
+  }
 </script>
 
 </body>

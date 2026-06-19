@@ -12,10 +12,11 @@ class PrepackLabel < ActiveRecord::Base
   def update_patient_departure_time
     return unless dispensed? && patient_id && date_dispensed
 
-    # Find the most recent visit for this patient on the dispensed date
+    # Find the most recent open visit for this patient on the dispensed date
     visit = EdimVisit.where(
       edim_patient_id: patient_id,
-      visit_date: date_dispensed.to_date
+      visit_date: date_dispensed.to_date,
+      departure_time: nil
     ).order(arrival_time: :desc).first
 
     if visit

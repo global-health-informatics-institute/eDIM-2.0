@@ -127,9 +127,13 @@ class RequestsController < ApplicationController
     when t('forms.options.daily')
       [params[:start_date].to_date.beginning_of_day, params[:start_date].to_date.end_of_day]
     when t('forms.options.weekly')
-      [params[:start_date].to_date.beginning_of_week, params[:start_date].to_date.end_of_week]
+      start_date = params[:start_date].to_date
+      end_date   = params[:start_date].to_date + 6.days
+      [start_date.beginning_of_day, end_date.end_of_day]
     when t('forms.options.monthly')
-      [params[:start_date].to_date.beginning_of_month, params[:start_date].to_date.end_of_month]
+      start_date = params[:start_date].to_date
+      end_date   = params[:start_date].to_date + 1.month - 1.day
+      [start_date.beginning_of_day, end_date.end_of_day]
     when t('forms.options.range')
       [params[:start_date].to_date.beginning_of_day, params[:end_date].to_date.end_of_day]
     else
@@ -166,9 +170,9 @@ class RequestsController < ApplicationController
                    when t('forms.options.daily')
                      "Requests Report for #{l(start_date.to_date, format:'%d %B, %Y')}"
                    when t('forms.options.weekly')
-                     "Requests Report from #{l(start_date.to_date.beginning_of_week, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date.end_of_week, format:'%d %B, %Y')}"
+                     "Requests Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format:'%d %B, %Y')}"
                    when t('forms.options.monthly')
-                     "Requests Report for #{l(start_date.to_date, format:'%B %Y')}"
+                     "Requests Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format:'%d %B, %Y')}"
                    when t('forms.options.range')
                      "Requests Report from #{l(start_date.to_date, format:'%d %B, %Y')} #{t('menu.terms.to')} #{l(end_date.to_date, format:'%d %B, %Y')}"
                    else
