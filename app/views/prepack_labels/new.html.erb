@@ -379,9 +379,12 @@ img[src*="/assets/"] {
                 packs_dispensed = prepack[:packs_dispensed].to_i
                 packs_damaged = prepack[:packs_damaged].to_i
                 total_packs_created = prepack[:total_packs_created].to_i
+                completed_packs = packs_dispensed + packs_damaged
+                all_packs_damaged = total_packs_created.positive? && packs_damaged == total_packs_created
+                all_packs_completed = total_packs_created.positive? && completed_packs >= total_packs_created
                 status_label = if packs_remaining.positive?
                                  'ACTIVE'
-                               elsif packs_damaged.positive?
+                               elsif all_packs_damaged
                                  'DAMAGED'
                                else
                                  'DONE'
@@ -401,7 +404,7 @@ img[src*="/assets/"] {
                                      elsif packs_damaged.positive? && packs_dispensed.zero?
                                        "#{packs_damaged}/#{total_packs_created} Damaged"
                                      elsif packs_dispensed.positive? && packs_damaged.positive?
-                                       "0/#{total_packs_created} Available"
+                                       "#{completed_packs}/#{total_packs_created} Done"
                                      else
                                        "0/#{total_packs_created} Available"
                                      end
@@ -411,9 +414,9 @@ img[src*="/assets/"] {
                   data-prepack-id="<%= prepack[:id] %>"
                   data-gn-identifier="<%= prepack[:gn_identifier] %>"
                   data-packs-remaining="<%= prepack[:packs_remaining] %>">
-                  <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
+                  <div style="border: 1px solid <%= all_packs_completed ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
                       padding: 8px; margin: 3px; 
-                      background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
+                      background-color: <%= all_packs_completed ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
                       position: relative; border-radius: 8px; min-height: 90px; cursor: pointer; transition: all 0.2s ease;"
                       onclick="showPrepackDetailModal('<%= prepack[:id] %>', '<%= j(prepack[:drug_name]) %>', '<%= prepack[:packs_dispensed] %>', '<%= prepack[:total_packs_created] %>', '<%= prepack[:quantity_per_pack] %>', '<%= prepack[:gn_identifier] %>', '<%= prepack[:status] %>', '<%= prepack[:created_at].present? ? l(prepack[:created_at].to_date, format: "%d/%m/%Y") : "N/A" %>', '<%= prepack[:packs_remaining] %>', '<%= prepack[:active_packs_total] %>', '<%= prepack[:packs_damaged] %>')"
                       onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'">
@@ -3481,12 +3484,17 @@ function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSi
   switch(status) {
     case 'created':
     case 'active':
+    case 'available':
       statusColor = '#28a745';
       statusText = 'ACTIVE';
       break;
     case 'dispensed':
       statusColor = '#a10e0e';
       statusText = 'DONE';
+      break;
+    case 'damaged':
+      statusColor = '#dc3545';
+      statusText = 'DAMAGED';
       break;
     case 'cancelled':
       statusColor = '#dc3545';
