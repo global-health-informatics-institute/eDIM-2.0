@@ -254,6 +254,7 @@ def sync_prepack_labels!(prepack, _target_num_packs)
          .update_all(bottle_id: prepack.bottle_id, updated_at: now)
 
   prepack.update!(current_num_packs: remaining_undispensed)
+  prepack.sync_pack_status!
 end
 
 def next_label_index_for(gn_identifier)
@@ -543,7 +544,9 @@ public
       match = label_id.match(/^PK-(?:G\d+)-(\d+)$/i)
       if match
         index = match[1].to_i
-        status = if deleted || voided
+        status = if voided
+          'damaged'
+        elsif deleted
           'unavailable'
         elsif dispensed
           'dispensed'
@@ -672,7 +675,7 @@ public
         packs_remaining: packs_remaining,
         packs_dispensed: packs_dispensed,
         packs_damaged: packs_damaged,
-        status: prepack.status,
+        status: prepack.pack_status,
         created_at: prepack.created_at,
         bottle_quantity: GeneralInventory.where(gn_identifier: prepack.gn_identifier, voided: false).sum(:current_quantity).to_i
       }
