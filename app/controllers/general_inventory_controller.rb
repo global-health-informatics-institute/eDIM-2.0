@@ -444,13 +444,8 @@ def create
             date_dispensed: Time.current
           )
 
-          remaining_packs = prepack.prepack_labels.where(dispensed: [false, nil], deleted: 0, voided: 0).count
-
-          prepack.update!(
-            current_num_packs:  remaining_packs,
-            status: (remaining_packs.zero? ? 'dispensed' : prepack.status),
-            location_id: prepack.location_id || session[:location]
-          )
+          prepack.update!(location_id: prepack.location_id || session[:location])
+          prepack.sync_pack_status!
 
         end
 
@@ -696,9 +691,8 @@ def create
 
         labels.update_all(voided: 1, updated_at: Time.current)
         total_units_lost = prepack.quantity_per_pack * qty
-        remaining_packs = prepack.prepack_labels.where(dispensed: [false, nil], deleted: false, voided: false).count
-        prepack.update!(current_num_packs: remaining_packs,
-                        total_quantity: prepack.total_quantity - total_units_lost)
+        prepack.update!(total_quantity: prepack.total_quantity - total_units_lost)
+        prepack.sync_pack_status!
       else
         # Bottle damage - reduce inventory quantity
         if qty > item.current_quantity
