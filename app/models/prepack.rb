@@ -18,6 +18,35 @@ class Prepack < ActiveRecord::Base
 
   after_initialize :set_default_status, if: :new_record?
 
+  def pack_status
+    labels = prepack_labels.where(deleted: false)
+    total_packs = labels.count
+    return status if total_packs.zero?
+
+    damaged_packs = labels.where(voided: true).count
+    remaining_packs = labels.where(voided: false).where(dispensed: [false, nil]).count
+
+    if damaged_packs == total_packs
+      'damaged'
+    elsif remaining_packs.zero?
+      'dispensed'
+    else
+      'active'
+    end
+  end
+
+  def sync_pack_status!
+    remaining_packs = prepack_labels
+                      .where(deleted: false, voided: false)
+                      .where(dispensed: [false, nil])
+                      .count
+
+    update!(
+      current_num_packs: remaining_packs,
+      status: pack_status
+    )
+  end
+
   private
 
   def set_default_status

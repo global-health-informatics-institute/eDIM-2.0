@@ -73,15 +73,14 @@ class DispensationController < ApplicationController
               location_id: item.location_id
             )
 
-            # Update current_num_packs for the prepack
-            if prepack_label.present?
-              prepack_batch = prepack_label.prepack
-              if prepack_batch.present?
-                dispensed_count = prepack_batch.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
-                remaining_packs = [prepack_batch.num_packs.to_i - dispensed_count, 0].max
-                prepack_batch.update!(current_num_packs: remaining_packs)
-              end
-            end
+            prepack_label.update!(
+              dispensed: true,
+              dispensed_by: User.current.id,
+              date_dispensed: Time.current,
+              patient_id: @patient&.id || session[:patient_id]
+            ) unless prepack_label.dispensed?
+
+            prepack.sync_pack_status!
 
             flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
             print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
@@ -363,9 +362,7 @@ class DispensationController < ApplicationController
       # Update current_num_packs after marking labels as dispensed
       if prepack
         Rails.logger.info "DEBUG: Updating current_num_packs for prepack #{prepack.id}"
-        dispensed_count = prepack.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
-        remaining_packs = [prepack.num_packs.to_i - dispensed_count, 0].max
-        prepack.update!(current_num_packs: remaining_packs)
+        prepack.sync_pack_status!
         Rails.logger.info "DEBUG: Prepack #{prepack.id} current_num_packs updated to #{prepack.reload.current_num_packs}"
       end
 
@@ -516,9 +513,7 @@ class DispensationController < ApplicationController
     # Update current_num_packs
     if prepack
       Rails.logger.info "DEBUG SEARCH: Updating current_num_packs for prepack #{prepack.id}"
-      dispensed_count = prepack.prepack_labels.where(dispensed: 1, deleted: 0, voided: 0).count
-      remaining_packs = [prepack.num_packs.to_i - dispensed_count, 0].max
-      prepack.update!(current_num_packs: remaining_packs)
+      prepack.sync_pack_status!
       Rails.logger.info "DEBUG SEARCH: Prepack #{prepack.id} current_num_packs updated to #{prepack.reload.current_num_packs}"
     end
     
