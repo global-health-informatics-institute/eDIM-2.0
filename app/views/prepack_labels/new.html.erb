@@ -585,7 +585,7 @@ img[src*="/assets/"] {
                       <!-- Progress Bar -->
                       <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
                           <div style="height: 100%; background: #28a745; border-radius: 10px; 
-                                  width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
+                                  width: <%= total_packs_created.positive? ? (completed_packs.to_f / total_packs_created * 100).round(1) : 0 %>%"></div>
                       </div>
 
                       <!-- Status Badge Only -->
@@ -3477,7 +3477,9 @@ function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSi
   const remainingPacks = parseInt(packsRemaining) || 0;
   const dispensedPacks = parseInt(packsDispensed) || 0;
   const damagedPacks = parseInt(packsDamaged) || 0;
-  const availablePercent = usableTotal > 0 ? ((remainingPacks / usableTotal) * 100).toFixed(1) : '0.0';
+  const completedPacks = dispensedPacks + damagedPacks;
+  const progressTotal = totalCreated || usableTotal;
+  const completedPercent = progressTotal > 0 ? ((completedPacks / progressTotal) * 100).toFixed(1) : '0.0';
   
   // Determine status color and text
   let statusColor, statusText;
@@ -3551,14 +3553,14 @@ function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSi
             <!-- Progress -->
             <div style="flex: 1;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 1.4rem; color: #666;">Available Packs</span>
+                <span style="font-size: 1.4rem; color: #666;">Pack Progress</span>
                 <span style="font-size: 1.6rem; font-weight: bold; color: #006495;">
-                  ${remainingPacks} of ${usableTotal} usable packs (${availablePercent}%)
+                  ${completedPacks} of ${progressTotal} completed (${completedPercent}%)
                 </span>
               </div>
               <div style="background: #e9ecef; border-radius: 4px; height: 10px; overflow: hidden;">
                 <div style="height: 100%; background: #28a745; border-radius: 4px; 
-                            width: ${availablePercent}%; transition: width 0.3s ease;"></div>
+                            width: ${completedPercent}%; transition: width 0.3s ease;"></div>
               </div>
             </div>
           </div>
@@ -3579,7 +3581,7 @@ function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSi
               <div style="font-size: 2rem; font-weight: bold; color: #28a745;">
                 ${remainingPacks}
               </div>
-              <div style="font-size: 1.1rem; color: #666;">of ${usableTotal} usable</div>
+              <div style="font-size: 1.1rem; color: #666;">of ${progressTotal} created</div>
             </div>
 
             <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
