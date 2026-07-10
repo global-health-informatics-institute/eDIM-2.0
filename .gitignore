@@ -32,10 +32,14 @@
 
 # Ignore environment variables
 .env
+.env.*
+!.env.example
+!.env.*.example
 
 # Ignore IDE files
 .idea/*
 .vscode/
+.ruby-lsp/
 .kiro/
 *.rbc
 .byebug_history
