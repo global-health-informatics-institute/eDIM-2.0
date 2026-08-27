@@ -51,6 +51,32 @@
   }, duration);
   }
 </script>
+
+<script>
+  (function() {
+    var attempts = 0;
+    function patchShowMessage() {
+      if (typeof showMessage === 'function') {
+        var originalShowMessage = showMessage;
+        showMessage = function(message) {
+          if (message && message.indexOf("Value smaller than minimum") !== -1) {
+            try {
+              var el = tstFormElements[tstPages[tstCurrentPage]];
+              if (el && el.id === 'expiry_date') {
+                message = "Expiry date cannot be today or in the past";
+              }
+            } catch(e) {}
+          }
+          return originalShowMessage(message);
+        };
+      } else if (attempts < 50) {
+        attempts++;
+        setTimeout(patchShowMessage, 100);
+      }
+    }
+    patchShowMessage();
+  })();
+</script>
 <%= form_for :general_inventory, url: general_inventory_index_path, html: { id: 'inventory-form' } do |f| %>
   <%= hidden_field_tag "general_inventory[mode]", "add" %>
 
@@ -77,7 +103,7 @@
     <tr>
       <td>Expiry Date</td>
       <td>
-        <%= text_field_tag "general_inventory[expiry_date]", Date.today.strftime("%Y-%m-%d"), id: 'expiry_date', field_type: 'date', helpText: t('forms.labels.expiry_date'), maxDate: Date.today + 20 * 365, minDate: Date.today, tt_pageStyleClass: "Date DatesOnly" %>
+        <%= text_field_tag "general_inventory[expiry_date]", Date.current.strftime("%Y-%m-%d"), id: 'expiry_date', field_type: 'date', helpText: t('forms.labels.expiry_date'), maxDate: Date.current + 20 * 365, minDate: Date.current + 1, min: Date.current + 1, absoluteMin: Date.current + 1, tt_pageStyleClass: "Date DatesOnly" %>
       </td>
     </tr>
 

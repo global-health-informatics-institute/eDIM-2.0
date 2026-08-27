@@ -1,6 +1,6 @@
 <script>
   var tt_cancel_destination = "/general_inventory";
-  var tstCurrentDate = <%= Date.today.strftime("%d-%m-%Y") %>;
+  var tstCurrentDate = <%= Date.current.strftime("%d-%m-%Y") %>;
 
   function set_ajaxURL_for_suggestions(url, filter_value) {
     $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', url + filter_value + "&search_string=");
@@ -8,7 +8,31 @@
   }
 </script>
 
-
+<script>
+  (function() {
+    var attempts = 0;
+    function patchShowMessage() {
+      if (typeof showMessage === 'function') {
+        var originalShowMessage = showMessage;
+        showMessage = function(message) {
+          if (message && message.indexOf("Value smaller than minimum") !== -1) {
+            try {
+              var el = tstFormElements[tstPages[tstCurrentPage]];
+              if (el && el.id === 'expiry_date') {
+                message = "Expiry date cannot be today or in the past";
+              }
+            } catch(e) {}
+          }
+          return originalShowMessage(message);
+        };
+      } else if (attempts < 50) {
+        attempts++;
+        setTimeout(patchShowMessage, 100);
+      }
+    }
+    patchShowMessage();
+  })();
+</script>
 <%= form_for :general_inventory,  :url => "/edit_general_inventory"  do |f| %>
     <table cellpadding=10>
       <tr>
@@ -16,13 +40,15 @@
           Expiry Date:
         </td>
         <td>
-          <%= text_field_tag 'expiry_date', @item.expiration_date.strftime("%d-%m-%Y"),
-                             {:id => 'expiry_date',
-                              :field_type => 'date',
-                              :helpText => "Expiry date",
-                              :maxDate => (Date.today + 20.year).to_date,
-                              :minDate => Date.today.to_date,
-                              :tt_pageStyleClass => "Date DatesOnly"} %>
+           <%= text_field_tag 'expiry_date', @item.expiration_date.strftime("%Y-%m-%d"),
+                              {:id => 'expiry_date',
+                               :field_type => 'date',
+                               :helpText => "Expiry date",
+                                :maxDate => (Date.current + 20.year).to_date,
+                                :minDate => (Date.current + 1).to_date,
+                                :min => (Date.current + 1).to_date,
+                                :absoluteMin => (Date.current + 1).to_date,
+                               :tt_pageStyleClass => "Date DatesOnly"} %>
 
         </td>
       </tr>
