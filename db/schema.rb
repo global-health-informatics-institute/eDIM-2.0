@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_16_071541) do
   create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
@@ -48,6 +48,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.boolean "voided", default: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.integer "location_id"
   end
 
   create_table "drug_categories", primary_key: "drug_category_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
@@ -395,7 +396,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
     t.index ["voided"], name: "index_prepacks_on_voided"
-    t.check_constraint "json_valid(`times`)", name: "times"
   end
 
   create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
