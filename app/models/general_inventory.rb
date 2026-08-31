@@ -9,6 +9,7 @@ class GeneralInventory < ActiveRecord::Base
 
   validates :expiration_date, :date_received, :received_quantity, :current_quantity, presence: true
   validates :received_quantity, :current_quantity, numericality: { only_integer: true, greater_than: -1 }
+  validate :expiration_date_not_in_past
   validates_associated :drug
 
   include Misc
@@ -43,6 +44,18 @@ class GeneralInventory < ActiveRecord::Base
 
   def expired?
     expiration_date.present? && expiration_date <= Date.current
+  end
+
+  def expiration_date_not_in_past
+    return if expiration_date.blank?
+
+    if persisted? && !expiration_date_changed?
+      return
+    end
+
+    if expiration_date <= Date.current
+      errors.add(:expiration_date, "must be a future date")
+    end
   end
 
   private

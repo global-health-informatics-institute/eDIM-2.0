@@ -374,24 +374,69 @@ img[src*="/assets/"] {
           <div style="display: table-row; width: 100%;">  <!-- Full width row -->
             <% prepack_pair.each do |prepack, global_index| %>
               <% next if prepack.blank? %>
+              <%
+                packs_remaining = prepack[:packs_remaining].to_i
+                packs_dispensed = prepack[:packs_dispensed].to_i
+                packs_damaged = prepack[:packs_damaged].to_i
+                total_packs_created = prepack[:total_packs_created].to_i
+                completed_packs = packs_dispensed + packs_damaged
+                all_packs_damaged = total_packs_created.positive? && packs_damaged == total_packs_created
+                all_packs_completed = total_packs_created.positive? && completed_packs >= total_packs_created
+                status_label = if packs_remaining.positive?
+                                 'ACTIVE'
+                               elsif all_packs_damaged
+                                 'DAMAGED'
+                               else
+                                 'DONE'
+                               end
+                status_color = case status_label
+                               when 'ACTIVE'
+                                 '#28a745'
+                               when 'DONE'
+                                 '#a10e0e'
+                               when 'DAMAGED'
+                                 '#dc3545'
+                               end
+                primary_count_text = if packs_remaining.positive?
+                                       "#{packs_remaining}/#{total_packs_created} Available"
+                                     elsif packs_dispensed.positive? && packs_damaged.zero?
+                                       "#{packs_dispensed}/#{total_packs_created} Dispensed"
+                                     elsif packs_damaged.positive? && packs_dispensed.zero?
+                                       "#{packs_damaged}/#{total_packs_created} Damaged"
+                                     elsif packs_dispensed.positive? && packs_damaged.positive?
+                                       "#{completed_packs}/#{total_packs_created} Done"
+                                     else
+                                       "0/#{total_packs_created} Available"
+                                     end
+              %>
                 <div id="prepack_row_<%= prepack[:id] %>" 
                   style="display: table-cell; width: 49vw; padding: 5px;" 
                   data-prepack-id="<%= prepack[:id] %>"
                   data-gn-identifier="<%= prepack[:gn_identifier] %>"
                   data-packs-remaining="<%= prepack[:packs_remaining] %>">
-                  <div style="border: 1px solid <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
+                  <div style="border: 1px solid <%= all_packs_completed ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : 'gray') %>; 
                       padding: 8px; margin: 3px; 
-                      background-color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
+                      background-color: <%= all_packs_completed ? '#FFF5F5' : (prepack[:packs_dispensed] >= 0 ? '#F0FFF0' : '#F8F9FA') %>;
                       position: relative; border-radius: 8px; min-height: 90px; cursor: pointer; transition: all 0.2s ease;"
-                      onclick="showPrepackDetailModal('<%= prepack[:id] %>', '<%= j(prepack[:drug_name]) %>', '<%= prepack[:packs_dispensed] %>', '<%= prepack[:total_packs_created] %>', '<%= prepack[:quantity_per_pack] %>', '<%= prepack[:gn_identifier] %>', '<%= prepack[:status] %>', '<%= prepack[:created_at].present? ? l(prepack[:created_at].to_date, format: "%d/%m/%Y") : "N/A" %>', '<%= prepack[:packs_remaining] %>')"
+                      onclick="showPrepackDetailModal('<%= prepack[:id] %>', '<%= j(prepack[:drug_name]) %>', '<%= prepack[:packs_dispensed] %>', '<%= prepack[:total_packs_created] %>', '<%= prepack[:quantity_per_pack] %>', '<%= prepack[:gn_identifier] %>', '<%= prepack[:status] %>', '<%= prepack[:created_at].present? ? l(prepack[:created_at].to_date, format: "%d/%m/%Y") : "N/A" %>', '<%= prepack[:packs_remaining] %>', '<%= prepack[:active_packs_total] %>', '<%= prepack[:packs_damaged] %>')"
                       onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'">
                       
                       <!-- Progress Indicator and Action Buttons -->
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                           <!-- Progress Indicator -->
                           <div style="font-size: 1.3rem; font-weight: bold;
-                                  color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
-                              <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
+                                  color: <%= packs_remaining.positive? ? '#2E8B57' : '#dc3545' %>;">
+                              <%= primary_count_text %>
+                              <% if packs_remaining.positive? && packs_dispensed.positive? %>
+                                <span style="margin-left: 10px; color: #666; font-weight: 600;">
+                                  <%= packs_dispensed %> Dispensed
+                                </span>
+                              <% end %>
+                              <% if packs_remaining.positive? && packs_damaged.positive? %>
+                                <span style="margin-left: 10px; color: #dc3545; font-weight: 600;">
+                                  <%= packs_damaged %> Damaged
+                                </span>
+                              <% end %>
                           </div>
                           <!-- Quantity per pack -->
                           <div style="margin-bottom: 4px; right: 8px">
@@ -444,14 +489,14 @@ img[src*="/assets/"] {
                               <div class="tray-handle" style="width: 4px; height: 60px; background: #e5e7eb; border-radius: 2px; margin-right: 16px; opacity: 0; align-self: center;"></div>
                               
                               <!-- Edit Button -->
-                              <% can_edit = prepack[:packs_remaining].to_i > 0 %>
+                              <% can_edit = packs_remaining.positive? %>
                               <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.1s;">
                                 <img style="cursor: <%= can_edit ? 'pointer' : 'not-allowed' %>; width: 48px; height: 48px; transition: all 0.3s ease; 
                                           opacity: <%= can_edit ? '1' : '0.4' %>; transform: scale(0.8) translateX(10px); 
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/edit.png" 
-                                    title="<%= can_edit ? 'Edit Prepack': 'Cannot edit - all packs have been dispensed' %>"
-                                  onmousedown="event.stopPropagation(); <%= can_edit ? "window.editPrepackInline(#{prepack[:id]})" : "showFlashMessage('Cannot edit: All packs for this prepack have been dispensed', 'errors', { transient: true, duration: 1000 })" %>"
+                                    title="<%= can_edit ? 'Edit Prepack': 'Only active packs can be edited' %>"
+                                  onmousedown="event.stopPropagation(); <%= can_edit ? "window.editPrepackInline(#{prepack[:id]})" : "showFlashMessage('Only active packs can be edited', 'errors', { transient: true, duration: 1000 })" %>"
                                     onmouseover="<%= can_edit ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor=\"not-allowed\"' %>"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
                                 <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: <%= can_edit ? '#333' : '#999' %>; text-align: center; 
@@ -461,22 +506,21 @@ img[src*="/assets/"] {
                               </div>
 
                               <!-- Log Damages Button -->
+                              <% can_log_damage = packs_remaining.positive? %>
                               <div class="option-item" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; animation-delay: 0.2s;">
-                                <img style="cursor: pointer; width: 48px; height: 48px; transition: all 0.3s ease; 
-                                          opacity: 0; transform: scale(0.8) translateX(10px); 
+                                <img style="cursor: <%= can_log_damage ? 'pointer' : 'not-allowed' %>; width: 48px; height: 48px; transition: all 0.3s ease; 
+                                          opacity: <%= can_log_damage ? '0' : '0.4' %>; transform: scale(0.8) translateX(10px); 
                                           padding: 6px; border-radius: 10px;" 
                                     src="/assets/damage.png" 
-                                    title="Log Damages"
-                                    onmousedown="event.stopPropagation(); logDamages(
-                                      '<%= prepack[:id] %>', 
-                                      '<%= prepack[:drug_name] %>', 
-                                      <%= prepack[:packs_remaining] %>, 
-                                      <%= prepack[:bottle_quantity] || 0 %>,
-                                      <%= prepack[:quantity_per_pack] || 0 %>
-                                    )"
-                                    onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'"
+                                    title="<%= can_log_damage ? 'Log Damages' : 'Only active packs can be damaged' %>"
+                                    <% if can_log_damage %>
+                                      onmousedown="event.stopPropagation(); logDamages('<%= prepack[:id] %>', '<%= j(prepack[:drug_name]) %>', <%= packs_remaining %>, <%= prepack[:bottle_quantity] || 0 %>, <%= prepack[:quantity_per_pack] || 0 %>)"
+                                    <% else %>
+                                      onmousedown="event.stopPropagation(); showFlashMessage('Only active packs can be marked as damaged', 'errors', { transient: true, duration: 1000 })"
+                                    <% end %>
+                                    onmouseover="<%= can_log_damage ? "this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0, 100, 149, 0.05)'" : 'this.style.cursor=\"not-allowed\"' %>"
                                     onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'">
-                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: #333; text-align: center; 
+                                <div class="option-caption" style="font-size: 1rem; font-weight: 500; color: <%= can_log_damage ? '#333' : '#999' %>; text-align: center; 
                                       white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.3s;">
                                   Log Damages
                                 </div>
@@ -514,7 +558,7 @@ img[src*="/assets/"] {
                         <% else %>
                         <img style="cursor: not-allowed; width: 40px; height: 40px; opacity: 0.5;" 
                             src="/assets/print.png" 
-                            title="<%= prepack_id ? 'All packs dispensed - cannot print' : 'No prepack ID' %>">
+                            title="<%= prepack_id ? 'No available packs to print' : 'No prepack ID' %>">
                         <% end %>
                         
                         <!-- Delete/Cancel Button -->
@@ -541,36 +585,16 @@ img[src*="/assets/"] {
                       <!-- Progress Bar -->
                       <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
                           <div style="height: 100%; background: #28a745; border-radius: 10px; 
-                                  width: <%= (prepack[:packs_dispensed].to_f / prepack[:total_packs_created] * 100).round(1) %>%"></div>
+                                  width: <%= total_packs_created.positive? ? (completed_packs.to_f / total_packs_created * 100).round(1) : 0 %>%"></div>
                       </div>
 
                       <!-- Status Badge Only -->
                       <div style="position: absolute; top: -6px; right: -6px; z-index: 50;">
                         <!-- Status Badge -->
-                        <div style="background: <%= 
-                          case prepack[:status]
-                          when 'created', 'active'
-                            '#28a745'
-                          when 'dispensed'
-                            '#a10e0e'
-                          when 'cancelled'
-                            '#dc3545'
-                          else
-                            '#ffc107'
-                          end
-                        %>; 
+                        <div style="background: <%= status_color %>; 
                         color: white; padding: 1px 8px; border-radius: 8px; font-size: 0.9rem;
                         font-weight: bold; min-width: 70px; text-align: center;">
-                          <% case prepack[:status] %>
-                          <% when 'created', 'active' %>
-                            ACTIVE
-                          <% when 'dispensed' %>
-                            DONE
-                          <% when 'cancelled' %>
-                            CANCELLED
-                          <% else %>
-                            <%= prepack[:status]&.upcase %>
-                          <% end %>
+                          <%= status_label %>
                         </div>
                       </div>
                   </div>
@@ -1772,7 +1796,7 @@ function removePrepackFromList(id) {
     modal.style.display = 'block';
   }
 
-  function printPrepackLabel(prepackId) {
+  function printPrepackLabel(prepackId, printAllUndispensed) {
     console.log('printPrepackLabel called with:', prepackId, typeof prepackId);
     
     // Validate prepackId
@@ -1791,9 +1815,10 @@ function removePrepackFromList(id) {
     }
     
     const frame = document.getElementById('prepackPrintFrame');
-    const printUrl = `/print_dispensation_label/PREPACK-${prepackId}?single=1&_ts=${Date.now()}`;
+    const printMode = printAllUndispensed ? 'print_all_undispensed=1' : 'single=1';
+    const printUrl = `/print_dispensation_label/PREPACK-${prepackId}?${printMode}&_ts=${Date.now()}`;
 
-    showFlashMessage('Printing label ...', 'notice', { transient: true, duration: 800 });
+    showFlashMessage(printAllUndispensed ? 'Printing labels ...' : 'Printing label ...', 'notice', { transient: true, duration: 800 });
 
     if (!frame) {
       window.location = printUrl;
@@ -3153,8 +3178,8 @@ function removePrepackFromList(id) {
       })
       .then(data => {
         if (!data.success) throw new Error(data.error || 'Update failed');
-        showFlashMessage('Prepack updated. Printing label ...', 'notice', { transient: true, duration: 2000 });
-        printPrepackLabel(prepackId);
+        showFlashMessage('Prepack updated. Printing labels ...', 'notice', { transient: true, duration: 2000 });
+        printPrepackLabel(prepackId, true);
         setTimeout(() => { window.location.reload(); }, 1800);
       })
       .catch(error => {
@@ -3438,7 +3463,7 @@ function logDamages(prepackId, drugName, availablePacks, bottle_quantity, packSi
 }
 
 // Show prepack detail modal
-function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks, quantityPerPack, gnIdentifier, status, createdDate, packsRemaining) {
+  function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks, quantityPerPack, gnIdentifier, status, createdDate, packsRemaining, activePacksTotal, packsDamaged) {
   // Close any open view options
   if (openViewOptionsId) {
     closeViewOptions(openViewOptionsId);
@@ -3447,19 +3472,31 @@ function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks,
   isModalOpen = true;
   
   // Calculate progress percentage
-  const progressPercent = (parseFloat(packsDispensed) / parseFloat(totalPacks) * 100).toFixed(1);
+  const totalCreated = parseInt(totalPacks) || 0;
+  const usableTotal = parseInt(activePacksTotal) || 0;
+  const remainingPacks = parseInt(packsRemaining) || 0;
+  const dispensedPacks = parseInt(packsDispensed) || 0;
+  const damagedPacks = parseInt(packsDamaged) || 0;
+  const completedPacks = dispensedPacks + damagedPacks;
+  const progressTotal = totalCreated || usableTotal;
+  const completedPercent = progressTotal > 0 ? ((completedPacks / progressTotal) * 100).toFixed(1) : '0.0';
   
   // Determine status color and text
   let statusColor, statusText;
   switch(status) {
     case 'created':
     case 'active':
+    case 'available':
       statusColor = '#28a745';
       statusText = 'ACTIVE';
       break;
     case 'dispensed':
       statusColor = '#a10e0e';
       statusText = 'DONE';
+      break;
+    case 'damaged':
+      statusColor = '#dc3545';
+      statusText = 'DAMAGED';
       break;
     case 'cancelled':
       statusColor = '#dc3545';
@@ -3516,14 +3553,14 @@ function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks,
             <!-- Progress -->
             <div style="flex: 1;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 1.4rem; color: #666;">Progress</span>
+                <span style="font-size: 1.4rem; color: #666;">Pack Progress</span>
                 <span style="font-size: 1.6rem; font-weight: bold; color: #006495;">
-                  ${packsDispensed}/${totalPacks} packs (${progressPercent}%)
+                  ${completedPacks} of ${progressTotal} completed (${completedPercent}%)
                 </span>
               </div>
               <div style="background: #e9ecef; border-radius: 4px; height: 10px; overflow: hidden;">
                 <div style="height: 100%; background: #28a745; border-radius: 4px; 
-                            width: ${progressPercent}%; transition: width 0.3s ease;"></div>
+                            width: ${completedPercent}%; transition: width 0.3s ease;"></div>
               </div>
             </div>
           </div>
@@ -3540,17 +3577,43 @@ function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks,
             </div>
 
             <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
-              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Remaining Packs</div>
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Available Packs</div>
               <div style="font-size: 2rem; font-weight: bold; color: #28a745;">
-                ${packsRemaining}
+                ${remainingPacks}
+              </div>
+              <div style="font-size: 1.1rem; color: #666;">of ${progressTotal} created</div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Dispensed Packs</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #6c757d;">
+                ${dispensedPacks}
               </div>
               <div style="font-size: 1.1rem; color: #666;">packs</div>
             </div>
 
             <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
-              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Total Units</div>
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Damaged Packs</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #dc3545;">
+                ${damagedPacks}
+              </div>
+              <div style="font-size: 1.1rem; color: #666;">removed from use</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 30px;">
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Packs Created</div>
               <div style="font-size: 2rem; font-weight: bold; color: #6c757d;">
-                ${parseInt(totalPacks) * parseInt(quantityPerPack)}
+                ${totalCreated}
+              </div>
+              <div style="font-size: 1.1rem; color: #666;">original batch</div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 1.3rem; color: #666; margin-bottom: 8px;">Total Available Units</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #6c757d;">
+                ${remainingPacks * (parseInt(quantityPerPack) || 0)}
               </div>
               <div style="font-size: 1.1rem; color: #666;">units</div>
             </div>
@@ -4599,7 +4662,7 @@ document.addEventListener('keydown', function(e) {
   transform: scale(1.3);
 }
 </style>
-<script>
+      <script>
 window.editPrepackInline = function(id) {
   prepackEditMode = true;
   editingPrepackId = id;
@@ -4655,6 +4718,5 @@ window.editPrepackInline = function(id) {
     });
 };
 </script>
-</body>
-</html>
-
+    </body>
+    </html>

@@ -444,14 +444,8 @@ def create
             date_dispensed: Time.current
           )
 
-          dispensed_count = prepack.prepack_labels.where(dispensed:1, deleted: 0, voided: 0).count
-          remaining_packs = [prepack.num_packs.to_i - dispensed_count,0].max
-
-          prepack.update!(
-            current_num_packs:  remaining_packs,
-            status: (remaining_packs.zero? ? 'dispensed' : prepack.status),
-            location_id: prepack.location_id || session[:location]
-          )
+          prepack.update!(location_id: prepack.location_id || session[:location])
+          prepack.sync_pack_status!
 
         end
 
@@ -652,6 +646,19 @@ def create
         render json: { success: false, message: "Prepack not found" }, status: 404 and return
       end
 
+      active_pack_count = PrepackLabel.where(
+        prepack_id: prepack.id,
+        voided: 0,
+        deleted: 0,
+      ).where(dispensed: [false, nil]).count
+
+      if active_pack_count <= 0
+        render json: {
+          success: false,
+          message: "Only active packs can be marked as damaged"
+        }, status: :forbidden and return
+      end
+
       # Load the general inventory via the prepack
       item = GeneralInventory.find_by(gn_identifier: prepack.gn_identifier)
       unless item
@@ -684,9 +691,8 @@ def create
 
         labels.update_all(voided: 1, updated_at: Time.current)
         total_units_lost = prepack.quantity_per_pack * qty
-        current_num_packs_value = prepack.current_num_packs.nonzero? || prepack.num_packs
-        prepack.update!(current_num_packs: current_num_packs_value - qty,
-                        total_quantity: prepack.total_quantity - total_units_lost)
+        prepack.update!(total_quantity: prepack.total_quantity - total_units_lost)
+        prepack.sync_pack_status!
       else
         # Bottle damage - reduce inventory quantity
         if qty > item.current_quantity
