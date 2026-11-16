@@ -362,72 +362,29 @@ def create
       prepack = label.prepack
 
       if context == "patient"
-
-        bottle = GeneralInventory.find_by(
-          gn_inventory_id: prepack.bottle_id,
-          location_id: session[:location]
-        )
-
-        return render json: { error: "Bottle not found" } if bottle.nil?
-
-        # Hard stop, expired
-        if bottle.expiration_date.present? && bottle.expiration_date <= Date.current
-          return render json: {
-            error: "This bottle has expired and cannot be dispensed.",
-            expired: true,
-            expiration_date: bottle.expiration_date
-          }, status: :unprocessable_entity
-        end
-
-        patient_id = params[:patient_id] || session[:patient_id]
-        return render json: { error: "Patient context missing" } if patient_id.nil?
-
-        disp = nil
-        prescription = nil
-
-        GeneralInventory.transaction do
-
-          prescription = Prescription.create!(
-            patient_id: patient_id,
-            drug_id: bottle.drug_id,
-            date_prescribed: Time.current,
-            quantity: prepack.quantity_per_pack,
-            amount_dispensed: prepack.quantity_per_pack,
-            directions: prepack.directions || "Dispensed as prepack",
-            provider_id: User.current.id
+        begin
+          disp = PackDispensation.call(
+            label_identifier: scanned, patient_id: params[:patient_id] || session[:patient_id],
+            user: User.current, location_id: session[:location]
           )
-
-          disp = Dispensation.create!(
-            rx_id: prescription.id,
-            inventory_id: bottle.gn_inventory_id,
-            patient_id: patient_id,
-            quantity: prepack.quantity_per_pack,
-            dispensation_date: Time.current,
-            dispensed_by: User.current.id
-          )
-
-          label.update!(
-            dispensed: 1,
-            patient_id: patient_id,
-            dispensed_by: User.current.id,
-            date_dispensed: Time.current
-          )
-
-          if prepack.prepack_labels.where(dispensed: 1).count == prepack.num_packs
-            prepack.update!(
-              status: 'dispensed',
-              location_id: prepack.location_id || session[:location]
-            )
-          end
+        rescue PackDispensation::ExpiredPack => e
+          return render json: { error: e.message, expired: true, expiration_date: e.expiration_date },
+                        status: :unprocessable_entity
+        rescue PackDispensation::Error => e
+          return render json: { error: e.message }, status: :unprocessable_entity
+        rescue ActiveRecord::RecordInvalid => e
+          Rails.logger.error "Prepack dispensation failed: #{e.message}"
+          return render json: { error: 'Could not complete prepack dispensation' },
+                        status: :unprocessable_entity
         end
 
         return render json: {
           prepack: true,
-          message: "Successfully dispensed #{bottle.drug.name}",
-          quantity: prepack.quantity_per_pack,
+          message: "Successfully dispensed #{disp.drug_name}",
+          quantity: disp.quantity,
           dispensation_id: disp.id,
-          prescription_id: prescription.id,
-          currentQty: bottle.current_quantity
+          prescription_id: disp.rx_id,
+          currentQty: disp.general_inventory.current_quantity
         }
       end
 

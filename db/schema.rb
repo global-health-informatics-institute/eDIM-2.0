@@ -10,8 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
-  create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+ActiveRecord::Schema[7.0].define(version: 2026_11_16_093000) do
+  create_table "app_options", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "value"
     t.datetime "created_at", null: false
@@ -19,7 +19,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["name"], name: "index_app_options_on_name", unique: true
   end
 
-  create_table "damages", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "damages", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "general_inventory_id", null: false
     t.integer "quantity", default: 0, null: false
     t.string "reason"
@@ -38,7 +38,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["prepack_id"], name: "index_damages_on_prepack_id"
   end
 
-  create_table "dispensations", primary_key: "dispensation_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "dispensations", primary_key: "dispensation_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "rx_id"
     t.string "inventory_id"
     t.integer "patient_id"
@@ -48,16 +48,24 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.boolean "voided", default: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "prepack_label_id"
+    t.string "dispensation_type", default: "unknown", null: false
+    t.string "reversal_reason"
+    t.text "reversal_notes"
+    t.bigint "reversed_by_id"
+    t.datetime "reversed_at"
+    t.index ["prepack_label_id"], name: "index_dispensations_on_prepack_label_id"
+    t.index ["reversed_by_id"], name: "index_dispensations_on_reversed_by_id"
   end
 
-  create_table "drug_categories", primary_key: "drug_category_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "drug_categories", primary_key: "drug_category_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "category"
     t.boolean "voided", default: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "drug_thresholds", primary_key: "threshold_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "drug_thresholds", primary_key: "threshold_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "drug_id"
     t.integer "threshold"
     t.boolean "voided", default: false
@@ -65,7 +73,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "drugs", primary_key: "drug_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "drugs", primary_key: "drug_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "drug_category_id"
     t.string "name"
     t.string "dose_strength"
@@ -77,7 +85,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.string "item_code"
   end
 
-  create_table "edim_patients", primary_key: "patient_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "edim_patients", primary_key: "patient_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "given_name", limit: 50
     t.string "family_name", limit: 50
     t.string "full_name", limit: 120
@@ -89,7 +97,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["identifier"], name: "index_edim_patients_on_identifier", unique: true
   end
 
-  create_table "edim_visits", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "edim_visits", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "edim_patient_id", null: false
     t.datetime "arrival_time", null: false
     t.datetime "departure_time"
@@ -101,7 +109,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["identifier"], name: "index_edim_visits_on_identifier"
   end
 
-  create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "general_inventories", primary_key: "gn_inventory_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "drug_id"
     t.string "gn_identifier"
     t.date "expiration_date"
@@ -120,7 +128,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["gn_identifier"], name: "index_general_inventories_on_gn_identifier"
   end
 
-  create_table "issues", primary_key: "issue_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "issues", primary_key: "issue_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "inventory_id"
     t.integer "location_id"
     t.integer "issued_to"
@@ -132,7 +140,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "location", primary_key: "location_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "location", primary_key: "location_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "description"
     t.string "address1"
@@ -153,7 +161,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["name"], name: "index_location_on_name"
   end
 
-  create_table "location_tag", primary_key: "location_tag_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "location_tag", primary_key: "location_tag_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
     t.boolean "retired", default: false
@@ -168,7 +176,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["name"], name: "index_location_tag_on_name"
   end
 
-  create_table "location_tag_map", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "location_tag_map", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "location_tag_id", null: false
     t.integer "location_id", null: false
     t.datetime "created_at", null: false
@@ -176,7 +184,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["location_tag_id", "location_id"], name: "index_location_tag_map_on_location_tag_id_and_location_id", unique: true
   end
 
-  create_table "mobile_visit", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "mobile_visit", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.date "visit_date", null: false
     t.integer "visit_supervisor", null: false
     t.text "notes"
@@ -190,7 +198,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["visit_supervisor"], name: "index_mobile_visit_on_visit_supervisor"
   end
 
-  create_table "mobile_visit_products", primary_key: "mvp_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "mobile_visit_products", primary_key: "mvp_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "mobile_visit_id"
     t.string "gn_identifier"
     t.integer "amount_taken"
@@ -200,7 +208,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "mobile_visits", primary_key: "mobile_visit_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "mobile_visits", primary_key: "mobile_visit_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.date "visit_date"
     t.integer "visit_supervisor"
     t.boolean "voided", default: false
@@ -208,7 +216,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "patient", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "patient", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "person_id", null: false
     t.boolean "voided", default: false
     t.integer "creator"
@@ -224,7 +232,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["person_id"], name: "index_patient_on_person_id"
   end
 
-  create_table "patient_identifier", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "patient_identifier", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "patient_id", null: false
     t.integer "identifier_type", null: false
     t.string "identifier", null: false
@@ -241,7 +249,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["patient_id"], name: "index_patient_identifier_on_patient_id"
   end
 
-  create_table "patient_identifier_type", primary_key: "patient_identifier_type_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "patient_identifier_type", primary_key: "patient_identifier_type_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
     t.boolean "retired", default: false
@@ -254,7 +262,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "person", primary_key: "person_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "person", primary_key: "person_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.boolean "voided", default: false
     t.integer "creator"
     t.datetime "date_created"
@@ -274,7 +282,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "person_address", primary_key: "person_address_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "person_address", primary_key: "person_address_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "person_id", null: false
     t.string "address1"
     t.string "address2"
@@ -294,7 +302,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["person_id"], name: "index_person_address_on_person_id"
   end
 
-  create_table "person_attribute", primary_key: "person_attribute_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "person_attribute", primary_key: "person_attribute_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "person_id", null: false
     t.integer "person_attribute_type_id", null: false
     t.text "value"
@@ -310,7 +318,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["person_id"], name: "index_person_attribute_on_person_id"
   end
 
-  create_table "person_attribute_type", primary_key: "person_attribute_type_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "person_attribute_type", primary_key: "person_attribute_type_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
     t.boolean "retired", default: false
@@ -323,7 +331,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "person_name", primary_key: "person_name_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "person_name", primary_key: "person_name_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "person_id", null: false
     t.string "given_name"
     t.string "middle_name"
@@ -341,7 +349,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["person_id"], name: "index_person_name_on_person_id"
   end
 
-  create_table "person_name_code", primary_key: "person_name_code_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "person_name_code", primary_key: "person_name_code_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "person_name_id", null: false
     t.string "given_name_code"
     t.string "middle_name_code"
@@ -353,7 +361,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["person_name_id"], name: "index_person_name_code_on_person_name_id"
   end
 
-  create_table "prepack_labels", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "prepack_labels", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "prepack_id", null: false
     t.integer "bottle_id", null: false
     t.string "label_identifier", null: false
@@ -370,7 +378,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["prepack_id"], name: "index_prepack_labels_on_prepack_id"
   end
 
-  create_table "prepacks", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "prepacks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "bottle_id", null: false
     t.integer "drug_id", null: false
     t.integer "quantity_per_pack", null: false
@@ -387,7 +395,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.boolean "voided", default: false, null: false
     t.boolean "deleted", default: false, null: false
     t.string "pack_identifier"
-    t.text "times", size: :long, collation: "utf8mb4_bin"
+    t.json "times"
     t.index ["bottle_id"], name: "fk_rails_7c59771cdf"
     t.index ["deleted"], name: "index_prepacks_on_deleted"
     t.index ["drug_id"], name: "fk_rails_10a6425e68"
@@ -395,10 +403,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["prepacked_by_id"], name: "fk_rails_9a9ad1026f"
     t.index ["status"], name: "index_prepacks_on_status"
     t.index ["voided"], name: "index_prepacks_on_voided"
-    t.check_constraint "json_valid(`times`)", name: "times"
   end
 
-  create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "prescriptions", primary_key: "rx_id", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "drug_id"
     t.datetime "date_prescribed", precision: nil
@@ -412,7 +419,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.string "times"
   end
 
-  create_table "requests", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "requests", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "drug_id", null: false
     t.integer "location_id", null: false
     t.integer "quantity", null: false
@@ -423,14 +430,14 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "role", primary_key: "role", id: :string, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "role", primary_key: "role", id: :string, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "description"
     t.integer "creator"
     t.datetime "date_created"
     t.boolean "voided", default: false
   end
 
-  create_table "user_property", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "user_property", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "property", null: false
     t.text "property_value"
@@ -441,7 +448,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["user_id"], name: "index_user_property_on_user_id"
   end
 
-  create_table "user_role", id: false, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "user_role", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "role", null: false
     t.integer "creator"
@@ -452,7 +459,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
     t.index ["user_id"], name: "index_user_role_on_user_id"
   end
 
-  create_table "users", primary_key: "user_id", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+  create_table "users", primary_key: "user_id", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "person_id"
     t.string "username", null: false
     t.string "password", null: false
@@ -473,6 +480,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_03_074227) do
   end
 
   add_foreign_key "damages", "prepacks"
+  add_foreign_key "dispensations", "prepack_labels"
+  add_foreign_key "dispensations", "users", column: "reversed_by_id", primary_key: "user_id"
   add_foreign_key "edim_visits", "edim_patients", primary_key: "patient_id"
   add_foreign_key "prepack_labels", "general_inventories", column: "bottle_id", primary_key: "gn_inventory_id"
   add_foreign_key "prepack_labels", "prepacks"

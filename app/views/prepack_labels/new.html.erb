@@ -394,6 +394,10 @@ img[src*="/assets/"] {
                           <div style="font-size: 1.3rem; font-weight: bold;
                                   color: <%= prepack[:packs_dispensed] == prepack[:total_packs_created] ? '#dc3545' : (prepack[:packs_dispensed] >= 0 ? '#2E8B57' : '#666') %>;">
                               <%= prepack[:packs_dispensed] %>/<%= prepack[:total_packs_created] %> Dispensed
+                              <% if prepack[:packs_dispensed].to_i.positive? %>
+                                <%= link_to 'View dispensed packs', list_dispensation_index_path(prepack_id: prepack[:id]),
+                                            onclick: 'event.stopPropagation()', style: 'display: block; margin-top: 8px; font-size: 1rem;' %>
+                              <% end %>
                           </div>
                           <!-- Quantity per pack -->
                           <div style="margin-bottom: 4px; right: 8px">

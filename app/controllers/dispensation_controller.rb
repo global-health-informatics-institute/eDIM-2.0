@@ -27,61 +27,23 @@ class DispensationController < ApplicationController
 
     # Check if this scan is from a prepack label
     prepack_label = PrepackLabel.find_by(label_identifier: params[:bottle_id])
-    if prepack_label.present?
-      prepack = prepack_label.prepack
-      if prepack.present?
-        # Use item.location_id directlY
-        item = GeneralInventory.find_by(gn_inventory_id: prepack.bottle_id)
-        if item.blank?
-          flash[:errors] = "Parent bottle for #{params[:bottle_id]} not found in inventory"
-          redirect_to return_path and return
-        end
-
-        # Automatically dispense from prepack
-        begin
-          GeneralInventory.transaction do
-            if item.current_quantity <= 0
-              flash[:errors] = "Insufficient stock for prepack bottle #{prepack.gn_identifier}"
-              redirect_to return_path and return
-            end
-
-            # Decrease stock by one pack worth
-            item.update!(current_quantity: item.current_quantity - prepack.quantity_per_pack)
-
-            # Create prescription for prepack dispensation
-            directions = prepack.directions.presence || "Take as directed"
-            
-            prescription = Prescription.create!(
-              patient_id:       @patient&.id || session[:patient_id],
-              drug_id:          item.drug_id,
-              directions:       directions,
-              quantity:         prepack.quantity_per_pack,
-              amount_dispensed: prepack.quantity_per_pack,
-              times: normalized_times_json,
-              provider_id:      User.current.id,
-              date_prescribed:  Time.current
-            )
-
-            # Create dispensation record linked to prescription
-            disp = Dispensation.create!(
-              rx_id: prescription.id,
-              inventory_id: item.gn_inventory_id,
-              patient_id: @patient&.id || session[:patient_id],
-              quantity: prepack.quantity_per_pack,
-              dispensation_date: Time.current,
-              dispensed_by: User.current.id,
-              location_id: item.location_id
-            )
-
-            flash[:success] = "Successfully dispensed #{item.drug.name} (Prepack #{params[:bottle_id]})"
-            print_and_redirect("/print_dispensation_label/#{prescription.id}", return_path)
-          end
-        rescue => e
-          flash[:errors] = "Could not complete prepack dispensation"
-          redirect_to return_path
-        end
-        return
+    if prepack_label.present? || params[:bottle_id].to_s.strip.start_with?('PK-')
+      begin
+        disp = PackDispensation.call(
+          label_identifier: params[:bottle_id], patient_id: @patient&.id || session[:patient_id],
+          user: User.current, location_id: session[:location]
+        )
+        flash[:success] = "Successfully dispensed #{disp.drug_name} (Prepack #{params[:bottle_id]})"
+        print_and_redirect("/print_dispensation_label/#{disp.rx_id}", return_path)
+      rescue PackDispensation::Error => e
+        flash[:errors] = e.message
+        redirect_to return_path
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "Prepack dispensation failed: #{e.message}"
+        flash[:errors] = 'Could not complete prepack dispensation'
+        redirect_to return_path
       end
+      return
     end
 
     # Continue with normal bottle dispensing flow
@@ -213,6 +175,7 @@ class DispensationController < ApplicationController
           # Create dispensation records for each bottle used
           dispense_result[:dispensed_items].each do |dispensed_item|
             Dispensation.create!(
+              dispensation_type: 'bottle',
               rx_id:             @new_prescription.id,
               inventory_id:      dispensed_item[:item].gn_inventory_id,
               patient_id:        @patient&.id || session[:patient_id],
@@ -390,7 +353,8 @@ class DispensationController < ApplicationController
         @prescription.save!
 
 
-        @dispensation = Dispensation.create({:rx_id => @prescription.id, :inventory_id => item.bottle_id,
+        @dispensation = Dispensation.create({:dispensation_type => 'bottle',
+                                             :rx_id => @prescription.id, :inventory_id => item.gn_inventory_id,
                                              :patient_id => @prescription.patient_id, :quantity => amount_dispensed,
                                              :dispensation_date => Time.current, :dispensed_by => User.current.id})
 
@@ -445,13 +409,19 @@ class DispensationController < ApplicationController
     end
 
     # Fetch dispensations for date range and location
-    @records = Dispensation
-             .where(dispensation_date: start_date..end_date, voided: false)
-             #.where(patient_id: Patient.where(location_id: session[:location]).select(:patient_id))
-             .order(dispensation_date: :desc)
+    @records = Dispensation.where(voided: false)
+                          .includes(:prescription, :general_inventory, :prepack_label, :patient, :user)
+                          .order(dispensation_date: :desc)
+    if params[:prepack_id].present?
+      prepack = Prepack.find(params[:prepack_id])
+      @records = @records.where(prepack_label_id: prepack.prepack_labels.select(:id))
+      @report_type = "Dispensed packs — #{prepack.drug.name}"
+    else
+      @records = @records.where(dispensation_date: start_date..end_date)
+    end
 
     # Render the list
-    render :list, layout: 'touch'
+    render :list, layout: 'application'
   end
 
   def select
@@ -461,19 +431,32 @@ class DispensationController < ApplicationController
   end
 
   def destroy
-    #Delete an dispensation
-    dispensation = Dispensation.void(params[:id])
-
-    if dispensation.voided
-      flash[:success] = "Dispensation successfully voided"
-    else
-      flash[:errors] = "Failed to void the dispensation"
+    if request.get?
+      dispensation = Dispensation.find(params[:id])
+      flash[:errors] = 'Use Reverse in the patient history and select a reason.'
+      redirect_to(dispensation.patient_id.present? ? patient_path(dispensation.patient_id) : root_path)
+      return
     end
+    reverse
+  end
 
-    #rails show route
-     redirect_to patient_path(dispensation.patient)  
- 
-
+  def reverse
+    dispensation = DispensationReversal.call(
+      dispensation_id: params[:id], reason: params[:reason], notes: params[:notes],
+      user: User.current, location_id: session[:location]
+    )
+    flash[:success] = 'Dispensation reversed successfully.'
+    render json: { success: true, message: flash[:success], dispensation_id: dispensation.id }
+  rescue DispensationReversal::AlreadyReversed => e
+    render json: { error: e.message }, status: :conflict
+  rescue DispensationReversal::Error => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'The dispensation or its source record was not found.' }, status: :not_found
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Dispensation reversal failed: #{e.message}"
+    render json: { error: 'Could not reverse the dispensation. No changes were saved.' },
+           status: :unprocessable_entity
   end
 
   private
@@ -537,7 +520,8 @@ class DispensationController < ApplicationController
       prescription.amount_dispensed = prescription.amount_dispensed.to_i + dispense_amount.to_i
       prescription.save!  
 
-        dispensation = Dispensation.create({:rx_id => prescription.id, :inventory_id => inventory.bottle_id,
+        dispensation = Dispensation.create({:dispensation_type => 'bottle',
+                                            :rx_id => prescription.id, :inventory_id => inventory.gn_inventory_id,
                                             :patient_id => prescription.patient_id, :quantity => dispense_amount,
                                             :dispensation_date => Time.now})
 

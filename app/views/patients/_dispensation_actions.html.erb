@@ -1,0 +1,39 @@
+<div class="dispensation-actions">
+  <div style="display: flex; flex-direction: row-reverse; align-items: center; gap: 12px;">
+    <% if local_assigns.fetch(:show_print, true) %>
+      <img style="display: block; flex: 0 0 48px; width: 48px; height: 48px; cursor: pointer;"
+           src="/assets/print.png" title="Print dispensation label"
+           onmousedown="window.location='/print_dispensation_label/<%= dispensation.rx_id.presence || dispensation.id %>'">
+    <% end %>
+    <% unless dispensation.voided? || dispensation.reversed_at.present? %>
+      <% blocked_reason = dispensation.reversal_blocked_reason %>
+      <% blocked = blocked_reason.present? %>
+      <% explanation = blocked ? " — #{blocked_reason}" : '' %>
+      <button type="button" class="dispensation-icon-button"
+              <%= 'disabled' if blocked %>
+              aria-label="Void Item" title="Void Item<%= explanation %>"
+              data-reversal-deadline="<%= dispensation.reversal_deadline&.iso8601 %>"
+              data-drug-name="<%= dispensation.drug_name %>"
+              data-reversal-url="<%= reverse_dispensation_path(dispensation) %>"
+              data-dispensation-id="<%= dispensation.id %>" onclick="openReversalModal(this)">
+        <img src="/assets/delete.png" width="48" height="48" alt="" style="display: block;">
+      </button>
+      <button type="button" class="dispensation-icon-button reverse-dispensation-button"
+              <%= 'disabled' if blocked %>
+              aria-label="Reverse" title="Reverse<%= explanation %>"
+              data-reversal-deadline="<%= dispensation.reversal_deadline&.iso8601 %>"
+              data-drug-name="<%= dispensation.drug_name %>"
+              data-reversal-url="<%= reverse_dispensation_path(dispensation) %>"
+              data-dispensation-id="<%= dispensation.id %>" onclick="openReversalModal(this)">
+        <svg style="display: block;" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <path d="M17 10L7 20L17 30M8 20H29C36 20 41 25 41 32C41 39 36 43 29 43H23"
+                stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    <% end %>
+  </div>
+  <% unless dispensation.voided? || dispensation.reversed_at.present? %>
+    <div class="dispensation-reversal-limit" <%= 'hidden' unless blocked %>
+         style="margin-top: 8px; color: #666; font-size: 1rem;"><%= blocked_reason %></div>
+  <% end %>
+</div>

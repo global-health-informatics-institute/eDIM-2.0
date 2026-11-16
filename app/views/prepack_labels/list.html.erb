@@ -106,6 +106,11 @@
 
               <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: bold; font-size:1.4rem; color: <%= dispensed_count > 0 ? '#28a745' : '#6c757d' %>; background-color: <%= dispensed_count > 0 ? '#f0fff4' : '#fffaf0' %>; border-right: 1px solid #e5e7eb;">
                 <%= dispensed_count %>
+                <% if dispensed_count.positive? %>
+                  <div style="margin-top: 8px; font-size: 1rem;">
+                    <%= link_to 'View dispensed packs', list_dispensation_index_path(prepack_id: prepack.id) %>
+                  </div>
+                <% end %>
               </td>
               <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f0f9ff;">
                 <% if unique_users_with_counts.any? %>
