@@ -39,12 +39,10 @@
                           <b>Drug:</b> <%= dispensation.drug_name %><br/>
                           <b>Directions:</b> <%= dispensation.dispensation_dir %><br/>
                           <b>Quantity:</b> <%= dispensation.quantity %><br/>
+                          <%= render 'patients/dispensation_reversal_status', dispensation: dispensation %>
                         </div>
                         <div style="display: table-cell;vertical-align: middle;padding: 5px;">
-                          <img style="float: right;" src="/assets/print.png" title="Print dispensation label"
-                              onmousedown="window.location='/print_dispensation_label/<%= dispensation.rx_id.present? ? dispensation.rx_id : dispensation.id %>'">
-                          <img style="float: right;" src="/assets/delete.png" title="Void Item"
-                               onmousedown="confirmAction('/void_dispensation/<%= dispensation.id %>', 'Are you Sure?')">
+                          <%= render 'patients/dispensation_actions', dispensation: dispensation %>
                         </div>
                       </div>
                     </div>

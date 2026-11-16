@@ -1,0 +1,209 @@
+<style>
+  button.dispensation-icon-button,
+  button.dispensation-icon-button:hover,
+  button.dispensation-icon-button:active,
+  button.dispensation-icon-button:focus {
+    display: block;
+    flex: 0 0 48px;
+    box-sizing: border-box;
+    width: 48px;
+    min-width: 0;
+    height: 48px;
+    min-height: 48px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: #006495;
+    line-height: 0;
+    cursor: pointer;
+    background: transparent !important;
+    box-shadow: none;
+    filter: none !important;
+  }
+  button.dispensation-icon-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  #reversalModal .nav-bttn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 60px;
+    margin: 0;
+    padding: 12px 16px;
+    font-size: 1.5rem !important;
+    line-height: 1.2;
+  }
+  #reversalModal .nav-bttn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+<div id="reversalShadow" class="opaqueLayer" style="position: fixed; inset: 0; z-index: 1002;"></div>
+<div id="reversalModal" class="questionLayer" role="dialog" aria-modal="true"
+     style="position: fixed; inset: 0; z-index: 1003; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;"
+     aria-labelledby="reversalModalTitle" onkeydown="handleReversalModalKeydown(event)">
+  <div class="dialogBox" style="display: block; box-sizing: border-box; width: 640px; max-width: 100%; max-height: calc(100vh - 40px); overflow-y: auto; height: auto; margin: 0; padding: 24px;">
+    <h2 id="reversalModalTitle" style="margin: 0 0 16px; text-align: center; color: #003366;">Reverse dispensation</h2>
+    <p id="reversalDrugName" style="margin: 0 0 24px; text-align: center; font-size: 1.4rem; overflow-wrap: anywhere;"></p>
+    <label for="reversalReason" style="display: block; margin-bottom: 10px; font-size: 1.4rem; font-weight: bold;">Reason for reversal</label>
+    <select id="reversalReason" onchange="updateReversalReason()"
+            style="box-sizing: border-box; width: 100%; min-height: 48px; padding: 10px; font-size: 1.3rem; border: 2px solid #006495; border-radius: 5px;">
+      <option value="">Select a reason</option>
+      <% Dispensation::REVERSAL_REASONS.each do |value, label| %>
+        <option value="<%= value %>"><%= label %></option>
+      <% end %>
+    </select>
+    <div id="reversalOtherReason" hidden style="margin-top: 16px;">
+      <label for="reversalNotes" style="display: block; margin-bottom: 8px; font-size: 1.3rem;">Please specify</label>
+      <textarea id="reversalNotes" rows="3" oninput="updateReversalReason()"
+                style="box-sizing: border-box; width: 100%; padding: 10px; font-size: 1.2rem;"></textarea>
+    </div>
+    <p style="font-size: 1.1rem;">Reversal is available for 24 hours after dispensing. It restores the recorded stock or pack availability. The original entry stays in the patient history.</p>
+    <p id="reversalMessage" role="status" hidden style="font-size: 1.2rem; color: #b71c1c;"></p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 24px;">
+      <button type="button" id="reversalCancel" class="nav-bttn red" onclick="closeReversalModal()">Cancel</button>
+      <button type="button" id="reversalConfirm" class="nav-bttn green" disabled
+              onclick="submitReversal()">
+        Reverse
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openReversalModal(button) {
+    refreshReversalAvailability();
+    if (button.disabled) return;
+    if (typeof isModalOpen !== 'undefined') isModalOpen = true;
+    const modal = document.getElementById('reversalModal');
+    const shadow = document.getElementById('reversalShadow');
+    document.body.append(shadow, modal);
+    modal.reversalTrigger = button;
+    modal.dataset.dispensationId = button.dataset.dispensationId;
+    modal.dataset.reversalUrl = button.dataset.reversalUrl;
+    modal.dataset.reversalDeadline = button.dataset.reversalDeadline || '';
+    document.getElementById('reversalDrugName').textContent = button.dataset.drugName;
+    document.getElementById('reversalReason').value = '';
+    document.getElementById('reversalNotes').value = '';
+    updateReversalReason();
+    shadow.style.display = 'block';
+    modal.style.display = 'flex';
+    document.getElementById('reversalReason').focus();
+  }
+
+  function updateReversalReason() {
+    if (document.getElementById('reversalModal').dataset.submitting === 'true') return;
+    const reason = document.getElementById('reversalReason').value;
+    document.getElementById('reversalOtherReason').hidden = reason !== 'other';
+    document.getElementById('reversalConfirm').disabled = !reason ||
+      (reason === 'other' && !document.getElementById('reversalNotes').value.trim()) || reversalModalExpired();
+    const message = document.getElementById('reversalMessage');
+    message.hidden = !reversalModalExpired();
+    if (!message.hidden) message.textContent = 'The 24-hour reversal window has expired.';
+  }
+
+  function closeReversalModal() {
+    if (document.getElementById('reversalModal').dataset.submitting === 'true') return;
+    document.getElementById('reversalModal').style.display = 'none';
+    document.getElementById('reversalShadow').style.display = 'none';
+    if (typeof isModalOpen !== 'undefined') isModalOpen = false;
+    document.getElementById('reversalModal').reversalTrigger.focus();
+  }
+
+  async function submitReversal() {
+    refreshReversalAvailability();
+    const modal = document.getElementById('reversalModal');
+    const confirm = document.getElementById('reversalConfirm');
+    if (confirm.disabled || modal.dataset.submitting === 'true') return;
+    const reason = document.getElementById('reversalReason');
+    const notes = document.getElementById('reversalNotes');
+    const cancel = document.getElementById('reversalCancel');
+    const message = document.getElementById('reversalMessage');
+    const originalText = confirm.textContent;
+    modal.dataset.submitting = 'true';
+    confirm.disabled = cancel.disabled = reason.disabled = notes.disabled = true;
+    confirm.textContent = 'Reversing…';
+    message.hidden = true;
+    try {
+      const token = document.querySelector('meta[name="csrf-token"]');
+      if (!token) throw new Error('Please refresh the page and try again.');
+      const response = await fetch(modal.dataset.reversalUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': token.content },
+        body: JSON.stringify({ reason: reason.value, notes: notes.value.trim() })
+      });
+      if (response.redirected) {
+        window.location.assign(response.url);
+        return;
+      }
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || 'Could not reverse the dispensation.');
+      window.location.reload();
+    } catch (error) {
+      modal.dataset.submitting = 'false';
+      confirm.textContent = originalText;
+      cancel.disabled = reason.disabled = notes.disabled = false;
+      updateReversalReason();
+      message.textContent = error.message || 'Could not reverse the dispensation. Please try again.';
+      message.hidden = false;
+      confirm.focus();
+    }
+  }
+
+  function handleReversalModalKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeReversalModal();
+    } else if (event.key === 'Tab') {
+      const controls = Array.from(document.getElementById('reversalModal')
+        .querySelectorAll('select, textarea, button')).filter(control =>
+          !control.disabled && control.getClientRects().length);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  function reversalModalExpired() {
+    const modal = document.getElementById('reversalModal');
+    const deadline = Date.parse(modal.dataset.reversalDeadline || '');
+    return Number.isFinite(deadline) && Date.now() >= deadline;
+  }
+
+  function refreshReversalAvailability() {
+    document.querySelectorAll('.dispensation-icon-button[data-reversal-deadline]').forEach(button => {
+      const deadline = Date.parse(button.dataset.reversalDeadline);
+      if (!Number.isFinite(deadline) || Date.now() < deadline) return;
+      button.disabled = true;
+      button.title = button.getAttribute('aria-label') + ' — The 24-hour reversal window has expired.';
+      const caption = button.closest('.dispensation-actions').querySelector('.dispensation-reversal-limit');
+      if (caption) {
+        caption.textContent = 'The 24-hour reversal window has expired.';
+        caption.hidden = false;
+      }
+    });
+    const modal = document.getElementById('reversalModal');
+    if (modal && modal.style.display === 'flex' && modal.dataset.submitting !== 'true' && reversalModalExpired()) {
+      document.getElementById('reversalConfirm').disabled = true;
+      const message = document.getElementById('reversalMessage');
+      message.textContent = 'The 24-hour reversal window has expired.';
+      message.hidden = false;
+    }
+  }
+
+  if (window.reversalExpiryTimer) clearInterval(window.reversalExpiryTimer);
+  window.reversalExpiryTimer = setInterval(refreshReversalAvailability, 1000);
+  refreshReversalAvailability();
+</script>

@@ -36,6 +36,7 @@
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Patient ID</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2);">Dispensed By</th>
           <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Date</th>
+          <th style="background: linear-gradient(135deg, #006495 0%, #004d73 100%); color: white; padding: 14px 10px; font-weight: 700;">Actions</th>
         </tr>
       </thead>
 
@@ -76,14 +77,17 @@
               <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; font-size:1.4rem; background-color: #f8fafc; text-align: center;">
                 <%= l(d.dispensation_date, format: '%d %B %Y') %>
               </td>
+              <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb;">
+                <%= render 'patients/dispensation_actions', dispensation: d, show_print: false %>
+              </td>
             </tr>
           <% end %>
         <% else %>
           <tr>
-            <td colspan="6" style="text-align: center; padding: 50px; background: #f8fafc;">
+            <td colspan="7" style="text-align: center; padding: 50px; background: #f8fafc;">
               <div style="color: #6b7280; font-size: 1.5rem; margin-bottom: 10px;">
                 <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
-                No dispensation records found.
+                <%= params[:prepack_id].present? ? 'No linked dispensations found. Older pack entries require reconciliation.' : 'No dispensation records found.' %>
               </div>
             </td>
           </tr>
@@ -95,6 +99,7 @@
 </div>
 
 <!-- FOOTER -->
+<%= render 'patients/reversal_modal' %>
 <div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
   <button onmousedown="window.location = '/dispensation/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
     Back
@@ -257,6 +262,7 @@ $(document).ready(function () {
     autoWidth: false,
     language: { search: "" },
     order: [[5, "desc"]],
+    columnDefs: [{ targets: 6, orderable: false, searchable: false }],
     initComplete: function () {
       const $input = $(".dataTables_filter input");
       activeInput = $input[0];

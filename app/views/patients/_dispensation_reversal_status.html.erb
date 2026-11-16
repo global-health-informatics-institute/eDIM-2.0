@@ -1,0 +1,15 @@
+<% if dispensation.prepack_label.present? %>
+  <div style="font-size: 1.1rem; margin-top: 8px;">Pack: <%= dispensation.prepack_label.label_identifier %></div>
+<% end %>
+<% if dispensation.reversed_at.present? %>
+  <div style="margin-top: 8px; padding: 8px; background: #fff3cd; color: #78520c; font-size: 1.1rem;">
+    <strong>Reversed</strong> — <%= Dispensation::REVERSAL_REASONS.fetch(dispensation.reversal_reason, dispensation.reversal_reason.to_s.humanize) %><br>
+    <%= dispensation.reversed_by&.username || 'Unknown user' %>,
+    <%= l(dispensation.reversed_at, format: '%d %b %Y %H:%M') %>
+    <% if dispensation.reversal_notes.present? %>
+      <div><%= dispensation.reversal_notes %></div>
+    <% end %>
+  </div>
+<% elsif dispensation.voided? %>
+  <div style="margin-top: 8px; color: #666; font-size: 1.1rem;">Voided</div>
+<% end %>

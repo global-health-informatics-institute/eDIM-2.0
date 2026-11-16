@@ -7,7 +7,9 @@ class PatientsController < ApplicationController
       flash[:errors] = "Patient with ID #{params[:id]} not found"
       redirect_to "/" and return
     else
-      @history = Dispensation.where("patient_id = ? and voided = ?",@patient.id,false).order(dispensation_date: :desc).limit(10)
+      @history = Dispensation.where(patient_id: @patient.id)
+                            .includes(:prescription, :general_inventory, :prepack_label, :reversed_by)
+                            .order(dispensation_date: :desc, dispensation_id: :desc).limit(10)
 
       if YAML.load_file("#{Rails.root}/config/application.yml")['has_prescribing']
         @prescriptions = Prescription.where("patient_id = ? and voided = ?",@patient.id,false).order(date_prescribed: :desc).limit(10)

@@ -113,6 +113,9 @@ Rails.application.routes.draw do
   end
 
   resources :dispensation do
+    member do
+      post :reverse
+    end
     collection do
       get :list
       get :select
