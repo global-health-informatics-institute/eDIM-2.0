@@ -3573,7 +3573,7 @@ function showPrepackDetailModal(prepackId, drugName, packsDispensed, totalPacks,
 
           <!-- Action Button -->
           <div style="text-align: center;">
-            <button onclick="printPrepackLabel(prepackId)"
+            <button data-prepack-id="${prepackId}" onclick="printPrepackLabel(this.dataset.prepackId)"
                     style="padding: 15px 40px; background: #006495; color: white; border: none; 
                           border-radius: 6px; font-size: 1.6rem; font-weight: bold; cursor: pointer;
                           transition: background 0.2s; display: inline-flex; align-items: center; 
