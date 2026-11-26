@@ -96,11 +96,11 @@
 
 <!-- FOOTER -->
 <div class="footer" style="background: #262626; padding: 10px 20px; margin-top: 24px; font-size: 1.2rem;">
-  <button onmousedown="window.location = '/dispensation/select'" class="nav-bttn red" style="float: left; margin-left: 2px; font-size: 2rem;">
-    Back
+  <button onmousedown="window.location = '/dispensation/select'" class="button navButton red" style="float: left; margin-left: 1vw; font-size: 1.7rem !important; min-width: 11vw; height: 100px !important; padding: 10px 25px;">
+    <span>Back</span>
   </button>
-  <button onmousedown="window.location = '/'" class="nav-bttn green" style="margin-right: 2vw; float: right; font-size: 2rem;">
-    Home
+  <button onmousedown="window.location = '/'" class="button navButton green" style="margin-right: 1vw; float: right; font-size: 1.7rem !important; min-width: 11vw; height: 100px !important; padding: 10px 25px;">
+    <span>Home</span>
   </button>
 </div>
 
@@ -533,10 +533,10 @@ $(document).ready(function () {
 
 /* Button styles */
 .nav-bttn {
-  padding: 10px 25px;
+  padding: 18px 35px;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 30px !important;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -552,10 +552,7 @@ $(document).ready(function () {
   color: white;
 }
 
-.nav-bttn.green {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-  color: white;
-}
+/* Remove custom green gradient - let it use the default .button.green styling */
 
 .nav-bttn:hover {
   transform: translateY(-2px);

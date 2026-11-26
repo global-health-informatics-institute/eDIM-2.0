@@ -49,6 +49,7 @@ Rails.application.routes.draw do
   post "/prescription/edit"
 
   ###################### Dispensation Controller ######################
+  get "/print_dispensation_label/SEARCH" => "dispensation#search_and_print_label"
   get "/print_dispensation_label/:id" => "dispensation#print_dispensation_label"
   get "/void_dispensation/:id" => "dispensation#destroy"
 
@@ -70,8 +71,33 @@ Rails.application.routes.draw do
   
   get '/general_inventory/prepack_labels', to: 'prepack_labels#new'
   get '/prepack_labels/delete/:id', to: 'prepack_labels#delete', as: 'delete_prepack_label'
+  get '/prepack_labels/check_label', to: 'prepack_labels#check_label_status'
+  get '/prepack_labels/available_labels', to: 'prepack_labels#get_available_labels'
 
   ###################### Resources #####################################
+
+  # prepack_labels declaration - collection routes FIRST
+  resources :prepack_labels, only: [:show, :new, :create, :destroy] do
+    collection do
+      get 'ajax_bottle_prepack'
+      get 'select'
+      post 'report'
+      get 'list'
+    end
+  end
+
+  get 'prepack_labels/:id/edit', to: 'prepack_labels#edit'
+
+  get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
+
+  # prepack_labels member routes LAST (edit, update)
+  resources :prepack_labels do
+    member do
+      get 'edit'
+      patch 'update'
+    end
+  end
+
 
   resources :general_inventory do
     member do
@@ -88,20 +114,6 @@ Rails.application.routes.draw do
 
   # Custom route for viewing specific inventory items
   get 'general_inventory/:id/:sequence', to: 'general_inventory#show', as: :general_inventory_item
-
-  # prepack_labels declaration
-  resources :prepack_labels, only: [:show, :new, :create, :destroy] do
-    collection do
-      get 'ajax_bottle_prepack'
-      get 'select'
-      post 'report'
-      get 'list'
-    end
-  end
-
-  get 'prepack_labels/:id/edit', to: 'prepack_labels#edit'
-
-  get "/print_prepack_labels/:id" => "prepack_labels#show", as: :print_prepack_labels
 
   resources :requests do
     member do
