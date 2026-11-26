@@ -385,7 +385,7 @@ class DispensationController < ApplicationController
         rx.patient_name,
         rx.date_prescribed,
         times: dose_map,
-        pack_id: "RX-#{rx.id}",
+        pack_id: disp&.prepack_label&.label_identifier.presence || "RX-#{rx.id}",
         bottle_id: bottle&.gn_identifier || "UNKNOWN",
         expiration_date: expiration_date
       )
@@ -405,7 +405,7 @@ class DispensationController < ApplicationController
         disp.patient&.full_name || "Unknown Patient",
         disp.dispensation_date,
         times: dose_map,
-        pack_id: bottle&.gn_identifier || "DISP-#{disp.id}",
+        pack_id: disp.prepack_label&.label_identifier.presence || bottle&.gn_identifier || "DISP-#{disp.id}",
         bottle_id: bottle&.gn_identifier || "UNKNOWN",
         expiration_date: expiration_date
       )
